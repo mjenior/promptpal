@@ -183,7 +183,7 @@ We welcome contributions! If you'd like to contribute to this project, please fo
 
 ## License
 
-This project is licensed under the [MIT](http://opensource.org/licenses/MIT) License. See the [LICENSE](https://github.com/mjenior/cli_assistant/LICENSE.txt) file for more details.
+This project is licensed under the [MIT](http://opensource.org/licenses/MIT) License. See the [LICENSE](https://raw.githubusercontent.com/mjenior/cli_assistant/refs/heads/main/LICENSE.txt) file for more details.
 
 For any queries or issues, feel free to reach out to mattjenior@example.com.
 
