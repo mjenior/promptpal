@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 ChatGPT API script for conversation with AI assistant in command line
 
@@ -22,10 +22,10 @@ model : str
 thought : bool
     Include chain of thought enforcement in user prompt.
     Default is True
-code : bool
+save_code : bool
     Save detected code in responses as individual scripts.
     Default is True
-history : str
+context : str
     Directory to search for previous chat history files.
     May also be set to False
     Default is current working directory
@@ -61,9 +61,9 @@ if __name__ == "__main__":
                         help='ChatGPT model to interact with')
     parser.add_argument('-t',"--thought", type=bool, default=True, 
                         help='Include chain of thought enforcement in user prompt.')
-    parser.add_argument('-c',"--code", type=bool, default=True, 
+    parser.add_argument('-s',"--save_code", type=bool, default=True, 
                         help='Save detected code in responses as individual scripts.')
-    parser.add_argument('-h',"--history", default='.', 
+    parser.add_argument('-c',"--context", default='.', 
                         help='Directory to search for previous chat history files.')
     parser.add_argument('-a','--api_key', type=str, default="system",
                         help='OpenAI API key. Default looks for OPENAI_API_KEY env var.')
@@ -123,24 +123,25 @@ if __name__ == "__main__":
         role += COT
 
     # Check for previous context
-    if args.history != False:
-        histFiles = glob.glob(f"{args.history}/{label}.{model}.*.history.txt"); history = ""
-        for x in histFiles:
-            with open(x, "r") as previous:
-                if args.verbose: print(f'\nConversation history with {x.split("_")[0]} found!')
-                history += " ".join([x.strip() for x in previous.readlines()])
-    
-    # Establish current session history tracking
-    histFile = f"{label}.{model}.{current}.history.txt"
-    with open(histFile, "w") as newFile:
-        newFile.write(f"This is a conversation between an AI assistant and a user:\n\n")
+    if args.context != False:
+        try:
+            histFile = glob.glob(f"{args.context}/{label}.{model}.*.context.txt")[0]
+            with open(histFile, "r") as previous:
+                if args.verbose: print(f'\nConversation history with found!')
+                context = previous.readlines()
+            context = " ".join([y.strip() for y in context])
+        except:
+            # Establish current session context tracking
+            histFile = f"{label}.{model}.{current}.context.txt"; context = ""
+            with open(histFile, "w") as newFile:
+                newFile.write("This is a conversation between an AI assistant and a user:\n\n")
 
     # Assemble query
     query = [{"role": "user", "content": prompt}]
     if len(role) > 0: query.append({"role": "system", "content": role})
-    if len(history) > 0: query.append({"role": "assistant", "content": history})
+    if len(context) > 0: query.append({"role": "assistant", "content": context})
 
-    # Record new history
+    # Record new context
     continued = open(histFile, "a")
     continued.write(f"system msg to assistant:\n{role}\n\n")
     continued.write(f"user msg:\n{prompt}\n\n")
@@ -170,7 +171,7 @@ if __name__ == "__main__":
         outFile.write(message)
 
     # Check for presence of code
-    if args.code:
+    if args.save_code:
         scripts = pull_code(message, current, ExtDict)
         if args.verbose and len(scripts) > 0:
                 print('Code found!')

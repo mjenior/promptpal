@@ -89,7 +89,7 @@ model : str
 thought : bool
     Include chain of thought enforcement in user prompt.
     Default is True
-code : bool
+save_code : bool
     Save detected code in responses as individual scripts.
     Default is True
 history : str
@@ -129,7 +129,7 @@ The CLI tool automatically detects code snippets within ChatGPT's responses and 
 
 Example:
 ```bash
-assistant --prompt "Show me a Python function to find the maximum element in a list." --code True
+assistant --save_code True --prompt "Show me a Python function to find the maximum element in a list."
 ```
 
 Output:
@@ -138,33 +138,31 @@ def find_max(lst):
     return max(lst)
 ```
 
-This assistant will then automatically save the generated code into find_max.py. Set to [True] by default
+This assistant will then automatically save the generated code into find_max.py in the current working directory. Set to [True] by default.
 
 ### Scanning Conversation History for Context
 
-You can scan previous chat conversation history stored as text files to provide additional context for your current prompt. This helps improve continuity between sessions or when referring to previous discussions. 
+You can scan previous chat conversation history stored as text files to provide additional context for your current prompt. This helps improve continuity between sessions or when referring to previous discussions. The default scans the current working directory, but can also be set to [False] to skip this entirely.
 
 Example:
 ```bash
-assistant --prompt "Where are they playing this week?" --history ~/Desktop/history_docs
+assistant --history ~/Desktop/history_docs --prompt "Where are they playing this week?" 
 ```
-
-The default scans the current working directory, but can also be set to [False] to skip this entirely.
 
 ### Chain of Thought Tracking
 
-This feature helps guide the model's response by breaking down the steps in complex reasoning tasks. The --thought flag enables the tool to append "chain of thought" prompts to ensure more detailed responses. It is [True] by default and automatically added to the default assistant, combio, and invest system role prompts.
+This feature helps guide the model's response by breaking down the steps in complex reasoning tasks. The --thought flag enables the tool to append "chain of thought" prompts to ensure more detailed responses. It is [True] by default and automatically added to the default assistant, combio, and invest system role prompts. The chain of thought flag will prompt the model to provide a step-by-step explanation or breakdown of reasoning, which can be especially useful in educational or technical explanations. It also helps mitigate the occurence of hallucinations.
 
+Example:
 ```bash
-assistant --prompt "Can you write out a list of directions to change a tire?" --thought True
+assistant --thought True --prompt "Can you write out a list of directions to change a tire?" 
 ```
-
-The chain of thought flag will prompt the model to provide a step-by-step explanation or breakdown of reasoning, which can be especially useful in educational or technical explanations. It also helps mitigate the occurence of hallucinations.
 
 
 You are also able to instead provide the key directly to the assistant if it is not specified by your system.
+
 ```bash
-assistant --prompt "How do you make pizza dough?" --api_key YOUR_API_KEY_HERE
+assistant --api_key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
 ```
 
 
@@ -185,5 +183,4 @@ We welcome contributions! If you'd like to contribute to this project, please fo
 
 This project is licensed under the [MIT](http://opensource.org/licenses/MIT) License. See the [LICENSE](https://raw.githubusercontent.com/mjenior/cli_assistant/refs/heads/main/LICENSE.txt) file for more details.
 
-For any queries or issues, feel free to reach out to mattjenior@example.com.
 
