@@ -20,18 +20,17 @@ Python based command line interface for prompted conversation using ChatGPT API
 
 ## Table of Contents
 
-1. [Installation](#installation)
-2. [Setup](#setup)
-3. [Usage](#usage)
+1. [Installation and Setup](#installation)
+2. [Usage](#usage)
    - [System Role Selection](#system-role-selection)
    - [Identify and Save Code Snippets](#identify-code-snippets)
    - [Scanning Conversation History for Context](#scanning-conversation-history-for-context)
    - [Chain of Thought Tracking](#chain-of-thought-tracking)
-5. [Contributing](#contributing)
-6. [License](#license)
+4. [Contributing](#contributing)
+5. [License](#license)
 
 
-## Installation
+## Installation and Setup
 
 First, ensure you have Python 3.10+ installed on your system. You can install the ChatGPT-CLI tool directly from the repository.
 
@@ -40,28 +39,17 @@ Clone the repository:
 ```bash
 git clone https://github.com/mjenior/cli_assistant.git
 cd cli_assistant
-```
-
-Install the OpenAI API python package:
-```bash
-pip install openai
-```
-
-Install the package:
-
-```bash
 python setup.py install
 ```
 
-
-## Setup
-
-Before using the tool, you need to set up your OpenAI API key.
+Before using the tool, a helpful step set up your OpenAI API key. Otherwise you'll need to provide to the app directly (described below).
 
 Set the OPENAI_API_KEY as an environment variable:
 ```bash
 export OPENAI_API_KEY="your_openai_api_key"
 ```
+
+That's it! The assistant app comes pre-compiled and is executable directly from the downloaded directory.
 
 
 ## Usage
@@ -138,7 +126,7 @@ def find_max(lst):
     return max(lst)
 ```
 
-This assistant will then automatically save the generated code into find_max.py in the current working directory. Set to [True] by default.
+This assistant will then automatically save the generated code into find_max.time_stamp.py in the current working directory. Set to [True] by default.
 
 ### Scanning Conversation History for Context
 
@@ -172,11 +160,11 @@ If you encounter any problems, please [file an issue](https://github.com/mjenior
 
 We welcome contributions! If you'd like to contribute to this project, please follow these steps:
 
-- Fork the repository.
-- Create a new feature branch (git checkout -b feature-name).
-- Commit your changes (git commit -m 'Add new feature').
-- Push the branch (git push origin feature-name).
-- Create a pull request.
+1. Fork the repository.
+2. Create a new feature branch (`git checkout -b feature-name`).
+3. Commit your changes (`git commit -m 'Add new feature'`).
+4. Push the branch (`git push origin feature-name`).
+5. Create a pull request.
 
 
 ## License

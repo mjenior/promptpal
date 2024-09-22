@@ -43,37 +43,13 @@ verbose : bool
 import os
 import glob
 import requests
-import argparse
 from openai import OpenAI
 
-from bin.prompts import *
-from bin.lib import gen_timestamp, pull_code, ExtDict, modelList
+from bin.func import gen_timestamp, get_arguments, translate_args, pull_code
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-p','--prompt', type=str,# nargs='+',
-                        help='User prompt text')
-    parser.add_argument('-r',"--role", type=str,# nargs='+',
-                        default="assistant",
-                        help='Assistant role text')
-    parser.add_argument('-m',"--model", type=str, default="gpt-4o-mini", 
-                        help='ChatGPT model to interact with')
-    parser.add_argument('-t',"--thought", type=bool, default=True, 
-                        help='Include chain of thought enforcement in user prompt.')
-    parser.add_argument('-s',"--save_code", type=bool, default=True, 
-                        help='Save detected code in responses as individual scripts.')
-    parser.add_argument('-c',"--context", default='.', 
-                        help='Directory to search for previous chat history files.')
-    parser.add_argument('-a','--api_key', type=str, default="system",
-                        help='OpenAI API key. Default looks for OPENAI_API_KEY env var.')
-    parser.add_argument('-d',"--dimensions", type=str, default="1024x1024", 
-                        help='Image dimensions for Dall-e')
-    parser.add_argument('-v',"--verbose", type=bool, default=False, 
-                        help='Print all information to StdOut')
-    args = parser.parse_args()
-
-    # Get current time
+    args = get_arguments()
     current = gen_timestamp()
 
     # Get OpenAI API key
@@ -85,44 +61,11 @@ if __name__ == "__main__":
     else:
         os.environ["OPENAI_API_KEY"] = args.api_key
 
-    # Select model
-    if args.model not in modelList:
-        model = "gpt-4o-mini"
-        if args.role == "image":
-            model = "dall-e-3"
-    else:
-        model = args.model
-
-    # Format prompt
-    prompt = " ".join(list(args.prompt)).strip()
-    if args.role == "story":
-        prompt = "".join([STORYTIME[0], prompt, STORYTIME[0]])
-
-    # Select role
-    if args.role == "story":
-        role = STORYTIME
-        label = "story"
-    elif args.role == "compbio":
-        role = COMPBIO
-        label = "compbio"
-    elif args.role == "investor":
-        role = INVESTING
-        label = "investor"
-    elif args.role == "artist":
-        role = ARTIST
-        label = "image"
-    elif args.role == "assistant":
-        role = "You are a helpful AI assistant."
-        label = "assistant"
-    else:
-        role = args.role
-        label = "custom"
-
-    # Add Chain of Thought
-    if args.thought and label not in ["image","story"]:
-        role += COT
+    # Get important vars from arguments
+    prompt, role, model, label = translate_args(args)
 
     # Check for previous context
+    histFile = f"{label}.{model}.{current}.context.txt"; context = ""
     if args.context != False:
         try:
             histFile = glob.glob(f"{args.context}/{label}.{model}.*.context.txt")[0]
@@ -131,8 +74,7 @@ if __name__ == "__main__":
                 context = previous.readlines()
             context = " ".join([y.strip() for y in context])
         except:
-            # Establish current session context tracking
-            histFile = f"{label}.{model}.{current}.context.txt"; context = ""
+            # Establish new session context tracking
             with open(histFile, "w") as newFile:
                 newFile.write("This is a conversation between an AI assistant and a user:\n\n")
 
@@ -141,7 +83,7 @@ if __name__ == "__main__":
     if len(role) > 0: query.append({"role": "system", "content": role})
     if len(context) > 0: query.append({"role": "assistant", "content": context})
 
-    # Record new context
+    # Record current context
     continued = open(histFile, "a")
     continued.write(f"system msg to assistant:\n{role}\n\n")
     continued.write(f"user msg:\n{prompt}\n\n")
@@ -172,7 +114,7 @@ if __name__ == "__main__":
 
     # Check for presence of code
     if args.save_code:
-        scripts = pull_code(message, current, ExtDict)
+        scripts = pull_code(message, current)
         if args.verbose and len(scripts) > 0:
                 print('Code found!')
     
