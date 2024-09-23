@@ -13,9 +13,9 @@ def gen_timestamp():
 # Parse user args
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p','--prompt', type=str, reuired=True,
+    parser.add_argument('-p','--prompt', type=str, nargs="+",
                         help='User prompt text')
-    parser.add_argument('-r',"--role", type=str, default="assistant",
+    parser.add_argument('-r',"--role", type=str, default="assistant", nargs="+",
                         help='Assistant role text')
     parser.add_argument('-m',"--model", type=str, default="gpt-4o-mini", 
                         help='ChatGPT model to interact with')
@@ -36,11 +36,12 @@ def get_arguments():
 
 # Get critical variables from user arguments
 def translate_args(arguments):
+    report = ""
 
     # Select model
     if arguments.model not in modelList:
         model = "gpt-4o-mini"
-        if arguments.role == "image":
+        if arguments.role == "artist":
             model = "dall-e-3"
     else:
         model = arguments.model
@@ -62,7 +63,7 @@ def translate_args(arguments):
         label = "investor"
     elif arguments.role == "artist":
         role = ARTIST
-        label = "image"
+        label = "artist"
     elif arguments.role == "assistant":
         role = "You are a helpful AI assistant."
         label = "assistant"
@@ -70,9 +71,26 @@ def translate_args(arguments):
         role = arguments.role
         label = "custom"
 
+    # Check for image generation request
+    prompt_wrds = set(prompt.split())
+    art_check = set(['image','picture','draw','create','paint','painting','illustration'])
+    if len(prompt_wrds.intersection(art_check)) > 1 and label != 'artist':
+        role = ARTIST
+        label = "artist"
+        model = "dall-e-3"
+        if arguments.verbose:
+            print(f"Image request detected, switching to Artist system role.")
+    report += f"Model: {model}\n"
+    report += f"System role type: {label}\n"
+
     # Add Chain of Thought
-    if arguments.thought and label not in ["image","story"]:
+    if arguments.thought and label not in ["artist","story"]:
         role += COT
+        report += f"Chain of Thought: True\n"
+    else:
+        report += f"Chain of Thought: False\n"
+
+    if arguments.verbose: print(report)
 
     return prompt, role, model, label
 

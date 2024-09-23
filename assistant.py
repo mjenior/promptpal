@@ -62,13 +62,13 @@ if __name__ == "__main__":
         os.environ["OPENAI_API_KEY"] = args.api_key
 
     # Get important vars from arguments
-    prompt, role, model, label = translate_args(args)
+    prompt, role, model, role_lbl = translate_args(args)
 
     # Check for previous context
-    histFile = f"{label}.{model}.{current}.context.txt"; context = ""
+    histFile = f"{role_lbl}.{model}.{current}.context.txt"; context = ""
     if args.context != False:
         try:
-            histFile = glob.glob(f"{args.context}/{label}.{model}.*.context.txt")[0]
+            histFile = glob.glob(f"{args.context}/{role_lbl}.{model}.*.context.txt")[0]
             with open(histFile, "r") as previous:
                 if args.verbose: print(f'\nConversation history with found!')
                 context = previous.readlines()
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
     # Submit query
     client = OpenAI()
-    if label != "image":
+    if role_lbl != "artist":
         response = client.chat.completions.create(model=model, messages=query)
         message = response.choices[0].message.content
     else:
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     # Save current revised prompt text
     continued.write(f"assistant msg:\n{message}\n\n")
     if args.verbose: print(message)
-    outFile = f"{model}.{current}.response.txt"
+    outFile = f"{role_lbl}.{model}.{current}.response.txt"
     if args.verbose: print('\nCurrent response text saved to:', outFile)
     with open(outFile, "w") as outFile:
         outFile.write(message)

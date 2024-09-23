@@ -42,14 +42,14 @@ cd cli_assistant
 python setup.py install
 ```
 
-Before using the tool, a helpful step set up your OpenAI API key. Otherwise you'll need to provide to the app directly (described below).
+Before using the tool, a helpful step is to also set up your OpenAI API key. Otherwise you'll need to provide to the app directly (described below).
 
 Set the OPENAI_API_KEY as an environment variable:
 ```bash
 export OPENAI_API_KEY="your_openai_api_key"
 ```
 
-That's it! The assistant app comes pre-compiled and is executable directly from the downloaded directory.
+That's it! The installation adds the "assistant" shortcut alias to your bash profile which will directly call the app in terminal.
 
 
 ## Usage
