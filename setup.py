@@ -15,5 +15,5 @@ if __name__ == "__main__":
             aliasStr = f"alias assistant='python {libDir}/assistant.py'"
             os.system(aliasStr)
             with open(f"{homeDir}/.{prfl}", "a") as current:
-                current.write(f"\n# CLI assistant shortcut alias\n{aliasStr}")
+                current.write(f"\n# ChatGPT CLI assistant shortcut alias\n{aliasStr}")
 
