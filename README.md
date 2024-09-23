@@ -49,7 +49,7 @@ Set the OPENAI_API_KEY as an environment variable:
 export OPENAI_API_KEY="your_openai_api_key"
 ```
 
-That's it! The installation adds the "assistant" shortcut alias to your bash profile which will directly call the app in terminal.
+That's it! The installation creates the "assistant" shortcut alias which will directly call the app in terminal.
 
 
 ## Usage
@@ -60,6 +60,8 @@ Example:
 ```bash
 assistant --prompt "Help me compose an agenda for a week-long trip to Tokyo."
 ```
+
+All arguments:
 
 ```
 REQUIRED
@@ -164,7 +166,7 @@ We welcome contributions! If you'd like to contribute to this project, please fo
 2. Create a new feature branch (`git checkout -b feature-name`).
 3. Commit your changes (`git commit -m 'Add new feature'`).
 4. Push the branch (`git push origin feature-name`).
-5. Create a pull request.
+5. Create a [pull request](https://github.com/mjenior/cli_assistant/pulls).
 
 
 ## License
