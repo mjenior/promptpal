@@ -58,6 +58,9 @@ def translate_args(arguments):
     elif arguments.role == "compbio":
         role = COMPBIO
         label = "compbio"
+    elif arguments.role == "developer":
+        role = DEVELOPER
+        label = "developer"
     elif arguments.role == "investor":
         role = INVESTING
         label = "investor"
