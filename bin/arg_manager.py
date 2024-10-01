@@ -79,11 +79,9 @@ def manage_reflection(model, label, curr_time):
 
 
 # Get critical variables from user arguments
-def manage_arg_vars():
+def manage_arg_vars(arguments):
 
     curr_time = gen_timestamp()
-
-    arguments = get_arguments()
 
     # Handle OpenAI API key
     openai_api_key(arguments.key)
@@ -133,7 +131,7 @@ def manage_arg_vars():
 '''.format(mdl=model, lbl=label, c=cot, r=ref)
         print(status)
 
-    args = {'prompt': prompt, 
+    vars = {'prompt': prompt, 
             'role': role, 
             'model': model, 
             'label': label, 
@@ -145,4 +143,4 @@ def manage_arg_vars():
             'verbose': verbose,
             'timestamp': curr_time}
 
-    return args
+    return vars

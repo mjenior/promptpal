@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from bin.func import assemble_query, submit_query
-from bin.arg_manager import manage_arg_vars
+from bin.arg_manager import get_arguments, manage_arg_vars
 
 """
 ChatGPT API script for conversation with AI assistant in command line
@@ -52,12 +52,12 @@ verbose : bool
 
 if __name__ == "__main__":
     
-
     # Get important vars from arguments
-    varDict = manage_arg_vars()
+    args = get_arguments()
+    varDict = manage_arg_vars(args)
 
     # Assemble query
-    varDict['query'] = assemble_query(vars)
+    varDict['query'] = assemble_query(varDict)
 
     # Submit query and parse response
     response = submit_query(varDict)
@@ -65,15 +65,11 @@ if __name__ == "__main__":
     # Record current context
     with open(varDict['histFile'], "a") as continued:
         continued.write(f"""
-<system msg to assistant>
-{varDict['role']}
-</system msg to assistant>
-
 <user msg>
 {varDict['prompt']}
 </user msg>
 
-<assistant msg>
-{response}
-</assistant msg>
+<system msg to assistant>
+{varDict['role']}
+</system msg to assistant>
 """)
