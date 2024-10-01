@@ -3,6 +3,7 @@ import os
 import glob
 import argparse
 
+from bin.func import gen_timestamp
 from bin.lib import roleDict, modelList, CHAIN_OF_THOUGHT
 
 
@@ -37,26 +38,58 @@ def get_arguments():
     return parser.parse_args()
 
 
-# Get critical variables from user arguments
-def parse_args(arguments, curr_time):
-
+def openai_api_key(key):
     # Handle OpenAI API key
-    if arguments.key == "system":
+    if key == "system":
         try:
             OPENAI_API_KEY=os.environ.get("OPENAI_API_KEY")
-            if arguments.verbose: print("\nOpenAI API key found.")
         except: 
             raise Exception("OPENAI_API_KEY env variable not found!")
     else:
-        os.environ["OPENAI_API_KEY"] = arguments.key
+        os.environ["OPENAI_API_KEY"] = key
+
+
+def role_select(arg):
+    try:
+        role = roleDict[arg]
+        label = arg
+    except KeyError:
+        role = arg
+        label = "custom"
+
+    return role, label
+
+
+def manage_reflection(model, label, curr_time):
+    reflection = ""; modelLbl = model.replace('-','_')
+
+    os.makedirs('history', exist_ok=True)
+    try:
+        histFile = glob.glob(f"history/{label}.{modelLbl}.*.history.txt")[0]
+        with open(histFile, "r") as previous:
+            reflection = previous.readlines()
+        reflection = " ".join([y.strip() for y in reflection])
+    except:
+        # Establish new session context tracking
+        histFile = f"history/{label}.{modelLbl}.{curr_time}.history.txt"
+        with open(histFile, "w") as newFile:
+            newFile.write("This is the transcript of an ongoing conversation between you and a user.\n")
+
+    return histFile, reflection
+
+
+# Get critical variables from user arguments
+def manage_arg_vars():
+
+    curr_time = gen_timestamp()
+
+    arguments = get_arguments()
+
+    # Handle OpenAI API key
+    openai_api_key(arguments.key)
 
     # Select role
-    try:
-        role = roleDict[arguments.role]
-        label = arguments.role
-    except KeyError:
-        role = arguments.role
-        label = "custom"
+    role, label = role_select(arguments.role)
 
     # Select model
     model = arguments.model if arguments.model in modelList else "gpt-4o-mini"
@@ -77,28 +110,39 @@ def parse_args(arguments, curr_time):
         role += CHAIN_OF_THOUGHT; cot ='True'
 
     # Add reflection prompting from continued previous conversation
-    reflection = ""; modelLbl = model.replace('-','_'); ref = 'False'
+    ref = 'False'
     if arguments.reflection:
-        os.makedirs('history', exist_ok=True)
-        try:
-            histFile = glob.glob(f"history/{label}.{modelLbl}.*.history.txt")[0]
-            with open(histFile, "r") as previous:
-                if arguments.verbose: print(f'\nConversation history with found!')
-                reflection = previous.readlines()
-            reflection = " ".join([y.strip() for y in reflection]); ref = True
-        except:
-            # Establish new session context tracking
-            histFile = f"history/{label}.{modelLbl}.{curr_time}.history.txt"
-            with open(histFile, "w") as newFile:
-                newFile.write("This is the transcript of an ongoing conversation between you and a user.\n")
+        histFile, reflection = manage_reflection(model, label, curr_time)
+        if reflection != "": ref = 'True'
 
+    # Saving code separately and verbosity
+    code = False if arguments.scripts == False else True
+    verbose = False if arguments.verbose == False else True
+
+    # Image parameters
+    size = f"{arguments.dim_l}x{arguments.dim_w}"
+    quality = arguments.qual
+
+    # Run status
     if arguments.verbose: 
-        report = '''
+        status = '''
         Model: {mdl}
         System role: {lbl}
         Chain of though: {c}
         Reflection: {r}
 '''.format(mdl=model, lbl=label, c=cot, r=ref)
-        print(report)
+        print(status)
 
-    return {'prompt':prompt, 'role':role, 'model':model, 'label':label, 'reflection':reflection, 'histFile':histFile}
+    args = {'prompt': prompt, 
+            'role': role, 
+            'model': model, 
+            'label': label, 
+            'reflection': reflection, 
+            'histFile': histFile, 
+            'code': code, 
+            'size': size, 
+            'quality': quality, 
+            'verbose': verbose,
+            'timestamp': curr_time}
+
+    return args

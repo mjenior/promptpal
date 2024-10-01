@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+from bin.func import assemble_query, submit_query
+from bin.arg_manager import manage_arg_vars
+
 """
 ChatGPT API script for conversation with AI assistant in command line
 
@@ -45,65 +49,31 @@ verbose : bool
     Default is False
 """
 
-import requests
-from openai import OpenAI
-
-from bin.func import gen_timestamp, pull_code
-from bin.arg_manager import get_arguments, parse_args
-
-
 
 if __name__ == "__main__":
-    args = get_arguments()
-    current = gen_timestamp()
+    
 
     # Get important vars from arguments
-    varDict = parse_args(args, current)
+    varDict = manage_arg_vars()
 
     # Assemble query
-    query = [{"role": "user", "content": varDict['prompt']}]
-    if len(varDict['role']) > 0: query.append({"role": "system", "content": varDict['role']})
-    if len(varDict['reflection']) > 0: query.append({"role": "assistant", "content": varDict['reflection']})
+    varDict['query'] = assemble_query(vars)
+
+    # Submit query and parse response
+    response = submit_query(varDict)
 
     # Record current context
-    continued = open(varDict['histFile'], "a")
-    continued.write(f"system msg to assistant:\n{varDict['role']}\n\n")
-    continued.write(f"user msg:\n{varDict['prompt']}\n\n")
+    with open(varDict['histFile'], "a") as continued:
+        continued.write(f"""
+<system msg to assistant>
+{varDict['role']}
+</system msg to assistant>
 
-    # Submit query
-    client = OpenAI()
-    if varDict['label'] != "artist":
-        response = client.chat.completions.create(model=varDict['model'], messages=query)
-        message = response.choices[0].message.content
-        outType = 'response'
-    else:
-        response = client.images.generate(model=varDict['model'], prompt=varDict['prompt'], n=1, 
-                                          size=f"{args.dim_l}x{args.dim_w}", quality=args.qual)
-        message = response.data[0].revised_prompt
-        outType = 'description'
-        image_url = response.data[0].url
-        image_data = requests.get(image_url)
-        #image_file = image_url.split("/")[-1]
-        image_file = f"{varDict['model'].replace('-','')}.{current}.image.png"
-        if args.verbose: print('\nGenerated image saved to:', image_file)
-        with open(image_file,'wb') as outFile:
-            outFile.write(image_data.content)
+<user msg>
+{varDict['prompt']}
+</user msg>
 
-    # Save current revised prompt text
-    continued.write(f"assistant msg:\n{message}\n\n")
-    if args.verbose: print(message)
-    outFile = f"{varDict['label']}.{varDict['model'].replace('-','')}.{current}.{outType}.txt"
-    if args.verbose: print('\nCurrent response text saved to:', outFile)
-    with open(outFile, "w") as outFile:
-        outFile.write(message)
-
-    # Check for presence of code
-    if args.scripts:
-        scripts = pull_code(message)
-        if args.verbose and len(scripts) > 0:
-                print('\nCode identified and saved separately.')
-    
-    # Clean up
-    continued.close()
-    if args.verbose: print('\nDone!\n')
-
+<assistant msg>
+{response}
+</assistant msg>
+""")
