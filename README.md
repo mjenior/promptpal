@@ -58,7 +58,7 @@ Once installed, you can invoke the ChatGPT CLI tool directly from the terminal.
 
 Example:
 ```bash
-assistant --prompt "Help me compose an agenda for a week-long trip to Tokyo."
+assistant.py --prompt "Help me compose an agenda for a week-long trip to Tokyo."
 ```
 
 All arguments:
@@ -76,20 +76,19 @@ role : str
 model : str
     ChatGPT model to interact with
     Default is gpt-4o-mini
-thought : bool
+chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
     Default is True
-save_code : bool
+scripts : bool
     Save detected code in responses as individual scripts.
     Default is True
-history : str
-    Directory to search for previous chat history files.
-    May also be set to False
-    Default is current working directory
+reflection : bool
+    Search for previous chat history for reflection prompting.
+    Default is True
 dimensions : str
     Image dimensions for Dall-e image generation
     Default is 1024x1024
-api_key : str
+key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
 verbose : bool
@@ -110,7 +109,7 @@ Available role shortcuts:
 
 Example:
 ```bash
-assistant --role compbio --prompt "Generate a Python script to align DNA sequences and analyze the data. Add code to generate at least 2 figures summarizing the results."
+assistant.py --role compbio --prompt "Generate a Python script to align DNA sequences and analyze the data. Add code to generate at least 2 figures summarizing the results."
 ```
 
 ### Identify Code Snippets
@@ -119,7 +118,7 @@ The CLI tool automatically detects code snippets within ChatGPT's responses and 
 
 Example:
 ```bash
-assistant --save_code True --prompt "Show me a Python function to find the maximum element in a list."
+assistant.py --save_code True --prompt "Show me a Python function to find the maximum element in a list."
 ```
 
 Output:
@@ -136,7 +135,7 @@ You can scan previous chat conversation history stored as text files to provide 
 
 Example:
 ```bash
-assistant --history ~/Desktop/history_docs --prompt "Where are they playing this week?" 
+assistant.py --history ~/Desktop/history_docs --prompt "Where are they playing this week?" 
 ```
 
 ### Chain of Thought Tracking
@@ -145,14 +144,14 @@ This feature helps guide the model's response by breaking down the steps in comp
 
 Example:
 ```bash
-assistant --thought True --prompt "Can you write out a list of directions to change a tire?" 
+assistant.py --thought True --prompt "Can you write out a list of directions to change a tire?" 
 ```
 
 
 You are also able to instead provide the key directly to the assistant if it is not specified by your system.
 
 ```bash
-assistant --api_key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
+assistant.py --api_key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
 ```
 
 

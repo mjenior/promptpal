@@ -12,8 +12,8 @@ if __name__ == "__main__":
 
     for prfl in ["bashrc","bash_profile","zshrc","bash_aliases"]:
         if os.path.isfile(f"{homeDir}/.{prfl}"):
-            aliasStr = f"alias assistant='python {libDir}/assistant.py'"
+            aliasStr = f"alias gpt='python {libDir}/assistant.py --verbose True --prompt'"
             os.system(aliasStr)
             with open(f"{homeDir}/.{prfl}", "a") as current:
-                current.write(f"\n# ChatGPT CLI assistant shortcut alias\n{aliasStr}")
+                current.write(f"\n# ChatGPT CLI assistant shortcut alias\n{aliasStr}\n")
 
