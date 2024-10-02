@@ -1,4 +1,5 @@
 
+import re
 import os
 import requests
 from openai import OpenAI
@@ -35,8 +36,9 @@ def submit_query(vars):
         if vars['code']:
             scripts = pull_code(message)
             if vars['verbose'] and len(scripts) > 0:
-                    print('\nCode identified and saved separately.')
-
+                    print('\nCode identified and saved separately:')
+                    for x in scripts:
+                        print(f"\t{x}")
     else:
         response = client.images.generate(model=vars['model'], prompt=vars['prompt'], n=1, 
                                         size=vars['size'], quality=vars['quality'])
@@ -48,12 +50,23 @@ def submit_query(vars):
         with open(image_file,'wb') as outFile: outFile.write(image_data.content)
 
     outFile = f"{vars['label']}.{vars['model'].replace('-','')}.{vars['timestamp']}.response.txt"
-    if vars['verbose']: print('\nCurrent response text saved to:', outFile)
+    if vars['verbose']: print(f'\nCurrent response text saved to:\n\t{outFile}\n')
     with open(outFile, "w") as outFile: outFile.write(message)
 
 
+def script_name(text):
+
+    func = text.split()[1].split('(')[0].lower()
+    func = re.sub('[^0-9a-zA-Z]+', '_', func)
+
+    if func in ['','main','function']:
+        return 'script'
+    else:
+        return func
+
+
 # Find code snippets in responses and save to separate scripts with appropriate file extensions
-def pull_code(response, name_ext='script', extensions=extDict):
+def pull_code(response, extensions=extDict):
     os.makedirs('code', exist_ok=True)
 
     code_found = False; code = ''; count = 0; outFiles = []
@@ -63,15 +76,16 @@ def pull_code(response, name_ext='script', extensions=extDict):
             continue
 
         if line.startswith('```') and code_found == False:
-            code_found = True; count += 1; code = ''
+            code_found = True; count += 1; code = ''; funcNames = []
             lang = line.replace('```','').lower().split()[0]
             try:
                 ext = extensions[lang]
             except KeyError:
                 ext = lang
-            codeFile = f"code/{name_ext}.{count}.{ext}"
 
         elif line.startswith('```') and code_found == True:
+            name_ext = max(funcNames, key=len)
+            codeFile = f"code/{name_ext}.{count}{ext}"
             code_found = False
             outFiles.append(codeFile)
             if codeFile.startswith('_'): codeFile = codeFile.lstrip('_')
@@ -81,6 +95,8 @@ def pull_code(response, name_ext='script', extensions=extDict):
         
         elif code_found == True:
             code += f"{line}\n"
+            if "def " in line:
+                funcNames.append(script_name(line))
 
     return outFiles
 

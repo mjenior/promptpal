@@ -38,6 +38,26 @@ def get_arguments():
     return parser.parse_args()
 
 
+def image_params(dims, qual, model, verbose):
+
+    if model == 'dall-e-3' and dims.lower() not in ['1024x1024','1792x1024','1024x1792']:
+        dimensions = '1024x1024'
+        if verbose: print(f"\nDesired dimensions not available for {model}. Defaulting to 1024x1024.")
+    elif model == 'dall-e-2' and dims.lower() not in ['1024x1024','512x512','256x256']:
+        dimensions = '1024x1024'
+        if verbose: print(f"\nDesired dimensions not available for {model}. Defaulting to 1024x1024.")
+    else:
+        dimensions = dims.lower()
+
+    if qual.lower() in ['h','hd','high','higher','highest']:
+        quality = 'hd'
+        if verbose: print(f"\nHigher (HD) generated image quality set.")
+    else:
+        quality = 'standard'
+
+    return dimensions, quality
+
+
 def openai_api_key(key):
     # Handle OpenAI API key
     if key == "system":
@@ -90,7 +110,7 @@ def manage_arg_vars(arguments):
     role, label = role_select(arguments.role)
 
     # Select model
-    model = arguments.model if arguments.model in modelList else "gpt-4o-mini"
+    model = arguments.model.lower() if arguments.model.lower() in modelList else "gpt-4o-mini"
 
     # Format prompt
     prompt = " ".join(list(arguments.prompt)).strip()
@@ -100,7 +120,7 @@ def manage_arg_vars(arguments):
     art_check = set(['image','picture','draw','create','paint','painting','illustration'])
     if len(words.intersection(art_check)) > 1 and label != 'artist':
         role = roleDict['artist']; label = "artist"; model = "dall-e-3"
-        if arguments.verbose: print(f"Image request detected, switching to Artist system role.")
+        if arguments.verbose: print("\nImage request detected, switching to Artist system role.")
 
     # Add Chain of Thought
     cot = 'False'
@@ -118,18 +138,22 @@ def manage_arg_vars(arguments):
     verbose = False if arguments.verbose == False else True
 
     # Image parameters
-    size = f"{arguments.dim_l}x{arguments.dim_w}"
-    quality = arguments.qual
+    size, quality = image_params(f"{arguments.dim_l}x{arguments.dim_w}", arguments.qual, model, arguments.verbose)
 
     # Run status
     if arguments.verbose: 
         status = '''
         Model: {mdl}
         System role: {lbl}
-        Chain of though: {c}
-        Reflection: {r}
-'''.format(mdl=model, lbl=label, c=cot, r=ref)
-        print(status)
+        Chain of thought: {c}
+        Reflection: {r}'''.format(mdl=model, lbl=label, c=cot, r=ref)
+        if 'dall-e' in model:
+            status += '''
+        Dimensions: {dim}
+        Quality: {qual}'''.format(dim=size, qual=quality)
+        
+        print(f"{status}\n")
+
 
     vars = {'prompt': prompt, 
             'role': role, 

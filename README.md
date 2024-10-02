@@ -42,6 +42,11 @@ cd cli_assistant
 python setup.py install
 ```
 
+[setup.py] also adds a bash alias to you profile to access the assistant with the command [gpt]. This command can be run from any relative path and is the shortcut for the following arguments:
+```bash
+assistant.py --verbose True --prompt
+```
+
 Before using the tool, a helpful step is to also set up your OpenAI API key. Otherwise you'll need to provide to the app directly (described below).
 
 Set the OPENAI_API_KEY as an environment variable:
@@ -85,9 +90,15 @@ scripts : bool
 reflection : bool
     Search for previous chat history for reflection prompting.
     Default is True
-dimensions : str
-    Image dimensions for Dall-e image generation
-    Default is 1024x1024
+dim_l : int
+    Length dimension for Dall-e image generation
+    Default is 1024
+dim_w : int
+    Width dimension for Dall-e image generation
+    Default is 1024
+qual : str
+    Image quality for Dall-e output
+    Default is standard
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
@@ -98,18 +109,27 @@ verbose : bool
 
 ### System Role Selection
 
-The --role option allows you to specify a system role for ChatGPT, which will optimize its responses based on the role you choose. Any text that does not match one of the existing role shortcuts will be submitted as a new custom role.
+The --role option allows you to specify a system role for ChatGPT, which will optimize its responses based on the role you choose. Any text that does not match one of the existing role shortcuts will be submitted as a new custom role. The default is an improved personal assistant.
 
 Available role shortcuts:
 
-    default: "You are a helpful AI assistant."
+    assistant (default): 
     compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
     investor: Experience in technology stock investment and wealth management. Provides analyses for new stocks to invest in.
     artist: Creates an images described by the prompt, default style leans toward illustrations
+    refinement: Designed to assist with iterative prompt engineering and refinement
+    storyteller: Retells plot of popular books and movies to appropriate for ~3 year olds with fun changes to characters
+    writer: Writing assistant to help with clarity and brevity
+    friend: Understanding chat bot designed to simply be supportive, seeks shared interests
 
-Example:
+Example 1:
 ```bash
 assistant.py --role compbio --prompt "Generate a Python script to align DNA sequences and analyze the data. Add code to generate at least 2 figures summarizing the results."
+```
+
+Example 2:
+```bash
+assistant.py --role "" --prompt "."
 ```
 
 ### Identify Code Snippets
@@ -118,7 +138,7 @@ The CLI tool automatically detects code snippets within ChatGPT's responses and 
 
 Example:
 ```bash
-assistant.py --save_code True --prompt "Show me a Python function to find the maximum element in a list."
+assistant.py --scripts True --prompt "Show me a Python function to find the maximum element in a list."
 ```
 
 Output:
@@ -129,13 +149,13 @@ def find_max(lst):
 
 This assistant will then automatically save the generated code into find_max.time_stamp.py in the current working directory. Set to [True] by default.
 
-### Scanning Conversation History for Context
+### Scanning Conversation History for Improved Context (Reflection)
 
 You can scan previous chat conversation history stored as text files to provide additional context for your current prompt. This helps improve continuity between sessions or when referring to previous discussions. The default scans the current working directory, but can also be set to [False] to skip this entirely.
 
 Example:
 ```bash
-assistant.py --history ~/Desktop/history_docs --prompt "Where are they playing this week?" 
+assistant.py --reflection Trues --prompt "Where are they playing this week?" 
 ```
 
 ### Chain of Thought Tracking
@@ -144,14 +164,25 @@ This feature helps guide the model's response by breaking down the steps in comp
 
 Example:
 ```bash
-assistant.py --thought True --prompt "Can you write out a list of directions to change a tire?" 
+assistant.py --chain_of_thought True --prompt "Can you write out a list of directions to change a tire?" 
 ```
 
+### Image Generation Parameters
 
-You are also able to instead provide the key directly to the assistant if it is not specified by your system.
+You are able to set specific parameters of the output image created by Dall-e. Flags for length (--dim_l) and width (--dim_w) dimenions in pixels, as well as definition quality (--qual) have been implemented.
 
+Example:
 ```bash
-assistant.py --api_key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
+assistant.py --dim_l 800 --dim_w 600 --qual high --prompt "Please create an image of a cell dissolving into code in the style of the impressionists." 
+```
+
+### User-specific API Keys
+
+You are also able to instead provide the key directly to the assistant if it is not specified by your system. The default settings attempt to pull from system-wide environmental variables ().
+
+Example:
+```bash
+assistant.py --key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
 ```
 
 
