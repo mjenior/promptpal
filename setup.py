@@ -2,18 +2,20 @@
 
 import os
 from pathlib import Path
-from setuptools import setup
 
 if __name__ == "__main__":
-    setup(install_requires=["openai>=1.46.1"])
+    os.system("pip install -U openai")
 
     libDir = os.path.dirname(os.path.realpath(__file__))
     homeDir = Path.home()
 
-    for prfl in ["bashrc","bash_profile","zshrc","bash_aliases"]:
-        if os.path.isfile(f"{homeDir}/.{prfl}"):
-            aliasStr = f"alias gpt='python {libDir}/assistant.py --verbose True --prompt'"
-            os.system(aliasStr)
-            with open(f"{homeDir}/.{prfl}", "a") as current:
-                current.write(f"\n# ChatGPT CLI assistant shortcut alias\n{aliasStr}\n")
+    outStr = "\n\n# >>> Added by ChatGPT CLI assistant >>>\n"
+    outStr += f"export PATH=$PATH:{libDir}\n"
+    outStr += 'alias gpt="assistant.py"\n'
+    outStr += "# <<< Added by ChatGPT CLI assistant <<<\n\n"
 
+    for prfl in ["bashrc", "bash_profile", "zshrc", "bash_aliases"]:
+        if os.path.isfile(f"{homeDir}/.{prfl}"):
+            with open(f"{homeDir}/.{prfl}", "a") as current:
+                current.write(outStr)
+            os.system(f"source {homeDir}/.{prfl}")

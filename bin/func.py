@@ -35,7 +35,7 @@ def submit_query(vars):
         if vars['verbose']: print(f"Response:\n{message}")
         if vars['code']:
             scripts = pull_code(message)
-            if vars['verbose'] and len(scripts) > 0:
+            if len(scripts) > 0:
                     print('\nCode identified and saved separately:')
                     for x in scripts:
                         print(f"\t{x}")
@@ -46,11 +46,11 @@ def submit_query(vars):
         if vars['verbose']: print(f"Revise prompt:\n{message}")
         image_data = requests.get(response.data[0].url)
         image_file = f"{vars['model'].replace('-','')}.{vars['timestamp']}.image.png"
-        if vars['verbose']: print('\nGenerated image saved to:', image_file)
+        print('\nGenerated image saved to:', image_file)
         with open(image_file,'wb') as outFile: outFile.write(image_data.content)
 
     outFile = f"{vars['label']}.{vars['model'].replace('-','')}.{vars['timestamp']}.response.txt"
-    if vars['verbose']: print(f'\nCurrent response text saved to:\n\t{outFile}\n')
+    print(f'\nCurrent response text saved to:\n\t{outFile}\n')
     with open(outFile, "w") as outFile: outFile.write(message)
 
 

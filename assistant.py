@@ -60,6 +60,7 @@ if __name__ == "__main__":
     varDict['query'] = assemble_query(varDict)
 
     # Submit query and parse response
+    print('\nThinking...\n')
     response = submit_query(varDict)
 
     # Record current context

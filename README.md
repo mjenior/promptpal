@@ -39,12 +39,12 @@ Clone the repository:
 ```bash
 git clone https://github.com/mjenior/cli_assistant.git
 cd cli_assistant
-python setup.py install
+python setup.py
 ```
 
 [setup.py] also adds a bash alias to you profile to access the assistant with the command [gpt]. This command can be run from any relative path and is the shortcut for the following arguments:
 ```bash
-assistant.py --verbose True --prompt
+assistant.py --verbose True
 ```
 
 Before using the tool, a helpful step is to also set up your OpenAI API key. Otherwise you'll need to provide to the app directly (described below).
@@ -63,7 +63,7 @@ Once installed, you can invoke the ChatGPT CLI tool directly from the terminal.
 
 Example:
 ```bash
-assistant.py --prompt "Help me compose an agenda for a week-long trip to Tokyo."
+gpt "Help me compose an agenda for a week-long trip to Tokyo."
 ```
 
 All arguments:
@@ -113,23 +113,24 @@ The --role option allows you to specify a system role for ChatGPT, which will op
 
 Available role shortcuts:
 
-    assistant (default): 
+    assistant (default): Standard personal assistant with improved ability to prioritize important tasks
     compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
     investor: Experience in technology stock investment and wealth management. Provides analyses for new stocks to invest in.
     artist: Creates an images described by the prompt, default style leans toward illustrations
     refinement: Designed to assist with iterative prompt engineering and refinement
     storyteller: Retells plot of popular books and movies to appropriate for ~3 year olds with fun changes to characters
     writer: Writing assistant to help with clarity and brevity
+    game: Videogame developer with a focus on UI and player experience
     friend: Understanding chat bot designed to simply be supportive, seeks shared interests
 
 Example 1:
 ```bash
-assistant.py --role compbio --prompt "Generate a Python script to align DNA sequences and analyze the data. Add code to generate at least 2 figures summarizing the results."
+gpt --role compbio --prompt "Generate a Python script to align DNA sequences and analyze the data. Add code to generate at least 2 figures summarizing the results."
 ```
 
 Example 2:
 ```bash
-assistant.py --role "" --prompt "."
+gpt --role "You are a Sr. game developer." --prompt "Recreate the game Chip's Challenge in python."
 ```
 
 ### Identify Code Snippets
@@ -138,7 +139,7 @@ The CLI tool automatically detects code snippets within ChatGPT's responses and 
 
 Example:
 ```bash
-assistant.py --scripts True --prompt "Show me a Python function to find the maximum element in a list."
+gpt --scripts True --prompt "Show me a Python function to find the maximum element in a list."
 ```
 
 Output:
@@ -155,7 +156,7 @@ You can scan previous chat conversation history stored as text files to provide 
 
 Example:
 ```bash
-assistant.py --reflection Trues --prompt "Where are they playing this week?" 
+gpt --reflection True --prompt "Where are they playing this week?" 
 ```
 
 ### Chain of Thought Tracking
@@ -164,7 +165,7 @@ This feature helps guide the model's response by breaking down the steps in comp
 
 Example:
 ```bash
-assistant.py --chain_of_thought True --prompt "Can you write out a list of directions to change a tire?" 
+gpt --chain_of_thought True --prompt "Can you write out a list of directions to change a tire?" 
 ```
 
 ### Image Generation Parameters
@@ -173,7 +174,7 @@ You are able to set specific parameters of the output image created by Dall-e. F
 
 Example:
 ```bash
-assistant.py --dim_l 800 --dim_w 600 --qual high --prompt "Please create an image of a cell dissolving into code in the style of the impressionists." 
+gpt --dim_l 800 --dim_w 600 --qual high --prompt "Please create an image of a cell dissolving into code in the style of the impressionists." 
 ```
 
 ### User-specific API Keys
@@ -182,7 +183,7 @@ You are also able to instead provide the key directly to the assistant if it is 
 
 Example:
 ```bash
-assistant.py --key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
+gpt --key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
 ```
 
 

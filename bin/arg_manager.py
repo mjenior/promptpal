@@ -141,19 +141,17 @@ def manage_arg_vars(arguments):
     size, quality = image_params(f"{arguments.dim_l}x{arguments.dim_w}", arguments.qual, model, arguments.verbose)
 
     # Run status
-    if arguments.verbose: 
-        status = '''
-        Model: {mdl}
-        System role: {lbl}
-        Chain of thought: {c}
-        Reflection: {r}'''.format(mdl=model, lbl=label, c=cot, r=ref)
-        if 'dall-e' in model:
-            status += '''
-        Dimensions: {dim}
-        Quality: {qual}'''.format(dim=size, qual=quality)
-        
-        print(f"{status}\n")
-
+    status = '''
+    Model: {mdl}
+    System role: {lbl}
+    Chain of thought: {c}
+    Reflection: {r}'''.format(mdl=model, lbl=label, c=cot, r=ref)
+    if 'dall-e' in model:
+        status += '''
+    Dimensions: {dim}
+    Quality: {qual}'''.format(dim=size, qual=quality)
+    
+    print(f"{status}\n")
 
     vars = {'prompt': prompt, 
             'role': role, 
