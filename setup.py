@@ -1,10 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 from pathlib import Path
 
 if __name__ == "__main__":
     os.system("pip install -U openai")
+    os.system("chmod +x *")
+    os.system("chmod +x bin/*")
 
     libDir = os.path.dirname(os.path.realpath(__file__))
     homeDir = Path.home()
@@ -18,4 +20,6 @@ if __name__ == "__main__":
         if os.path.isfile(f"{homeDir}/.{prfl}"):
             with open(f"{homeDir}/.{prfl}", "a") as current:
                 current.write(outStr)
-            os.system(f"source {homeDir}/.{prfl}")
+            os.system(f". {homeDir}/.{prfl}")
+
+print('\nDone!\n')
