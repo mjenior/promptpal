@@ -9,6 +9,7 @@ from bin.lib import extDict
 
 # Generate timestamp string
 def gen_timestamp(time=True):
+    """Generate timestamp string"""
     date_time = str(datetime.now()).split()
     date = date_time[0].split('-'); time = date_time[1].split('.')[0]
     date = f"{int(date[1])}_{int(date[2])}_{int(date[0])}"; time = time.replace(':','')
@@ -18,8 +19,9 @@ def gen_timestamp(time=True):
     else:
         return date
 
-    # Assemble query
+
 def assemble_query(vars):
+    """Assemble query dictionary to send to API"""
     query = [{"role": "user", "content": vars['prompt']}, {"role": "system", "content": vars['role']}]
     if len(vars['reflection']) > 0: query.append({"role": "assistant", "content": vars['reflection']})
 
@@ -27,14 +29,14 @@ def assemble_query(vars):
 
 
 def submit_query(vars):
-    
+    """Sends and and interprets data from OpenAI API"""
     client = OpenAI()
     if vars['label'] != "artist":
         response = client.chat.completions.create(model=vars['model'], messages=vars['query'])
         message = response.choices[0].message.content
         if vars['verbose']: print(f"Response:\n{message}")
         if vars['code']:
-            scripts = pull_code(message)
+            scripts, outText = separate_code(message)
             if len(scripts) > 0:
                     print('\nCode identified and saved separately:')
                     for x in scripts:
@@ -53,27 +55,29 @@ def submit_query(vars):
     print(f'\nCurrent response text saved to:\n\t{outFile}\n')
     with open(outFile, "w") as outFile: outFile.write(message)
 
+    return outText
 
-def script_name(text):
 
-    func = text.split()[1].split('(')[0].lower()
-    func = re.sub('[^0-9a-zA-Z]+', '_', func)
+def find_script_name(text):
+    """Scrape function or class names"""
 
-    if func in ['','main','function']:
+    newName = text.split()[1].split('(')[0].lower()
+    newName = re.sub('[^0-9a-zA-Z]+', '_', newName)
+
+    if newName in ['','main','function','class']:
         return 'script'
     else:
-        return func
+        return newName
 
 
-# Find code snippets in responses and save to separate scripts with appropriate file extensions
-def pull_code(response, extensions=extDict):
+def separate_code(response, extensions=extDict):
+    """Find code snippets in responses and save to separate scripts with appropriate file extensions"""
+    message = ""
     os.makedirs('code', exist_ok=True)
 
     code_found = False; code = ''; count = 0; outFiles = []
     lines = response.split('\n')
     for line in lines:
-        if len(line.strip()) == 0:
-            continue
 
         if line.startswith('```') and code_found == False:
             code_found = True; count += 1; code = ''; funcNames = []
@@ -92,12 +96,16 @@ def pull_code(response, extensions=extDict):
             if len(code.split('\n')) > 2:
                 with open(codeFile, "w") as outFile:
                     outFile.write(code)
+            message += f"Refer to: {codeFile}"
         
         elif code_found == True:
             code += f"{line}\n"
-            if "def " in line:
-                funcNames.append(script_name(line))
+            if "def " in line or "class " in line:
+                funcNames.append(find_script_name(line))
 
-    return outFiles
+        else:
+            message += f"{line}\n"
+
+    return outFiles, message
 
 

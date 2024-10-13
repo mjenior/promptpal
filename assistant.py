@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from bin.func import assemble_query, submit_query
-from bin.arg_manager import get_arguments, manage_arg_vars
+from bin.core import assemble_query, submit_query
+from bin.io import get_arguments, manage_arg_vars
 
 """
 ChatGPT API script for conversation with AI assistant in command line
@@ -45,7 +45,10 @@ key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
 verbose : bool
-    Print all information to StdOut
+    Print all additional information to StdOut
+    Default is False
+silent : bool
+    Silences all StdOut
     Default is False
 """
 
@@ -62,6 +65,8 @@ if __name__ == "__main__":
     # Submit query and parse response
     print('\nThinking...\n')
     response = submit_query(varDict)
+    if args['silent'] == False:
+        print(response)
 
     # Record current context
     with open(varDict['histFile'], "a") as continued:

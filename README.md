@@ -42,10 +42,7 @@ cd cli_assistant
 python setup.py
 ```
 
-[setup.py] also adds a bash alias to you profile to access the assistant with the command [gpt]. This command can be run from any relative path and is the shortcut for the following arguments:
-```bash
-assistant.py --verbose True
-```
+[setup.py] also adds a bash alias to you profile to access the assistant with the command [gpt], this command can be run from any relative path.
 
 Before using the tool, a helpful step is to also set up your OpenAI API key. Otherwise you'll need to provide to the app directly (described below).
 
@@ -67,7 +64,6 @@ gpt "Help me compose an agenda for a week-long trip to Tokyo."
 ```
 
 All arguments:
-
 ```
 REQUIRED
 prompt : str
@@ -89,13 +85,10 @@ scripts : bool
     Default is True
 reflection : bool
     Search for previous chat history for reflection prompting.
-    Default is True
-dim_l : int
-    Length dimension for Dall-e image generation
-    Default is 1024
-dim_w : int
-    Width dimension for Dall-e image generation
-    Default is 1024
+    Default is False
+dim : int
+    Dimension for Dall-e image generation
+    Default is 1024x1024x
 qual : str
     Image quality for Dall-e output
     Default is standard
@@ -103,7 +96,10 @@ key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
 verbose : bool
-    Print all information to StdOut
+    Print all additional information to StdOut
+    Default is False
+silent : bool
+    Silences all StdOut
     Default is False
 ```
 
@@ -113,15 +109,15 @@ The --role option allows you to specify a system role for ChatGPT, which will op
 
 Available role shortcuts:
 
-    assistant (default): Standard personal assistant with improved ability to prioritize important tasks
-    compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
-    investor: Experience in technology stock investment and wealth management. Provides analyses for new stocks to invest in.
-    artist: Creates an images described by the prompt, default style leans toward illustrations
-    refinement: Designed to assist with iterative prompt engineering and refinement
-    storyteller: Retells plot of popular books and movies to appropriate for ~3 year olds with fun changes to characters
-    writer: Writing assistant to help with clarity and brevity
-    game: Videogame developer with a focus on UI and player experience
-    friend: Understanding chat bot designed to simply be supportive, seeks shared interests
+- assistant (default): Standard personal assistant with improved ability to prioritize important tasks
+- compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
+- investor: Experience in technology stock investment and wealth management. Provides analyses for new stocks to invest in.
+- artist: Creates an images described by the prompt, default style leans toward illustrations
+- refinement: Designed to assist with iterative prompt engineering and refinement
+- storyteller: Retells plot of popular books and movies to appropriate for ~3 year olds with fun changes to characters
+- writer: Writing assistant to help with clarity and brevity
+- game: Videogame developer with a focus on UI and player experience
+- friend: Understanding chat bot designed to simply be supportive, seeks shared interests
 
 Example 1:
 ```bash

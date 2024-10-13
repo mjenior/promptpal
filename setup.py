@@ -1,10 +1,20 @@
 #!/usr/bin/env python3
 
-import os
+import os, sys
 from pathlib import Path
 
 if __name__ == "__main__":
     os.system("pip install -U openai")
+
+    cwd = os.getcwd().split('/')
+    if cwd != 'cli_assistant':
+        try:
+            os.system('cd cli_assistant')
+        except OSError:
+            # If directory has already been created or is inaccessible
+            if not os.path.exists('cli_assistant'):
+                sys.exit("Error setting up CLI assistant. Cannot find cli_assistant directory.")
+
     os.system("chmod +x *")
     os.system("chmod +x bin/*")
 
