@@ -4,7 +4,7 @@ import os, sys
 from pathlib import Path
 
 if __name__ == "__main__":
-    os.system("pip install -U openai")
+    os.system("pip install -U openai black")
 
     cwd = os.getcwd().split('/')
     if cwd != 'cli_assistant':

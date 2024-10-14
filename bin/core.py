@@ -104,6 +104,10 @@ def separate_code(response, extensions=extDict):
             if "def " in line or "class " in line:
                 funcNames.append(find_script_name(line))
 
+    for x in outFiles:
+        if x.endswith('.py'):
+            os.system(f'black ${x} -q')
+
     return outFiles
 
 
