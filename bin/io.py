@@ -20,8 +20,6 @@ def get_arguments():
                         help='Include chain of thought enforcement in user prompt')
     parser.add_argument('-c',"--code", type=bool, default=False, 
                         help='Save detected code in responses as individual scripts')
-    parser.add_argument('-n',"--name", type=bool, default='script', 
-                        help='Optional name extension for scripts created by current query')
     parser.add_argument('-g',"--log", default=False, 
                         help='Directory to search for previous chat log files')
     parser.add_argument('-k','--key', type=str, default="system",
@@ -34,6 +32,8 @@ def get_arguments():
                         help='Print all additional information to StdOut')
     parser.add_argument('-s',"--silent", type=bool, default=False, 
                         help='Silences all StdOut')
+    parser.add_argument('-i',"--current", type=bool, default=False, 
+                        help='Save response to current query as a separate text file')
     
     return parser.parse_args()
 
@@ -180,6 +180,7 @@ def manage_arg_vars(arguments):
             'quality': arguments.qual, 
             'verbose': arguments.verbose,
             'silent': arguments.silent,
+            'current': arguments.current,
             'timestamp': curr_time}
 
     return vars

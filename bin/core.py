@@ -52,9 +52,10 @@ def submit_query(vars):
         print('\nGenerated image saved to:', image_file)
         with open(image_file,'wb') as outFile: outFile.write(image_data.content)
 
-    outFile = f"{vars['label']}.{vars['model'].replace('-','')}.{vars['timestamp']}.response.txt"
-    print(f'\nCurrent response text saved to:\n\t{outFile}\n')
-    with open(outFile, "w") as outFile: outFile.write(message)
+    if vars['current']:
+        outFile = f"{vars['label']}.{vars['model'].replace('-','')}.{vars['timestamp']}.response.txt"
+        print(f'Current response text saved to:\n\t{outFile}\n')
+        with open(outFile, "w") as outFile: outFile.write(message)
 
     return message
 

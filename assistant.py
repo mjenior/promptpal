@@ -27,10 +27,10 @@ model : str
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
     Default is False
-scripts : bool
+code : bool
     Save detected code in responses as individual scripts.
     Default is True
-reflection : bool
+log : bool
     Search for previous chat history for reflection prompting.
     Default is True
 dim : str
@@ -48,6 +48,9 @@ verbose : bool
 silent : bool
     Silences all StdOut
     Default is False
+current : bool
+    Silences all StdOut
+    Save response to current query as a separate text file
 """
 
 

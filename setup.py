@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     outStr = "\n\n# >>> Added by ChatGPT CLI assistant >>>\n"
     outStr += f"export PATH=$PATH:{libDir}\n"
-    outStr += 'alias gpt="assistant.py"\n'
+    outStr += 'alias gpt="assistant.py --prompt"\n'
     outStr += "# <<< Added by ChatGPT CLI assistant <<<\n\n"
 
     for prfl in ["bashrc", "bash_profile", "zshrc", "bash_aliases"]:

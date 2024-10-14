@@ -42,16 +42,17 @@ cd cli_assistant
 python setup.py
 ```
 
-[setup.py] also adds a bash alias to you profile to access the assistant with the command [gpt], this command can be run from any relative path.
+[setup.py] also adds a bash alias <assistant.py --prompt> to you profile to access the assistant with the command <gpt>, this command can be run from any relative path.
 
-Before using the tool, a helpful step is to also set up your OpenAI API key. Otherwise you'll need to provide to the app directly (described below).
+
+Before using the tool, a final helpful step is to also set up your OpenAI API key. Otherwise you'll need to provide to the app directly (described below).
 
 Set the OPENAI_API_KEY as an environment variable:
 ```bash
 export OPENAI_API_KEY="your_openai_api_key"
 ```
 
-That's it! The installation creates the "assistant" shortcut alias which will directly call the app in terminal.
+That's it! The assistant API is ready to use in the termal, below are some example uses and additional arguments that further tailor responses.
 
 
 ## Usage
@@ -72,23 +73,23 @@ prompt : str
 OPTIONAL
 role : str
     System role text, predefines system behaviours or type of expertise
-    Built-in shortcut options include: compbio, investor, artist, story
-    Default is "You are a helpful AI assistant."
+    Built-in shortcut options include: compbio, investor, artist, storyteller, and developer
+    Default is assistant
 model : str
     ChatGPT model to interact with
     Default is gpt-4o-mini
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
-    Default is True
-scripts : bool
+    Default is False
+code : bool
     Save detected code in responses as individual scripts.
     Default is True
-reflection : bool
+log : bool
     Search for previous chat history for reflection prompting.
-    Default is False
-dim : int
-    Dimension for Dall-e image generation
-    Default is 1024x1024x
+    Default is True
+dim : str
+    Dimensions for Dall-e image generation
+    Default is 1024x1024
 qual : str
     Image quality for Dall-e output
     Default is standard
@@ -101,6 +102,9 @@ verbose : bool
 silent : bool
     Silences all StdOut
     Default is False
+current : bool
+    Silences all StdOut
+    Save response to current query as a separate text file
 ```
 
 ### System Role Selection
