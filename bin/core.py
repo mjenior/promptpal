@@ -35,8 +35,9 @@ def submit_query(vars):
         response = client.chat.completions.create(model=vars['model'], messages=vars['query'])
         message = response.choices[0].message.content
         if vars['verbose']: print(f"Response:\n{message}")
+        os.makedirs('code', exist_ok=True)
         if vars['code']:
-            scripts, outText = separate_code(message)
+            scripts = separate_code(message)
             if len(scripts) > 0:
                     print('\nCode identified and saved separately:')
                     for x in scripts:
@@ -55,7 +56,7 @@ def submit_query(vars):
     print(f'\nCurrent response text saved to:\n\t{outFile}\n')
     with open(outFile, "w") as outFile: outFile.write(message)
 
-    return outText
+    return message
 
 
 def find_script_name(text):
@@ -63,7 +64,7 @@ def find_script_name(text):
 
     newName = text.split()[1].split('(')[0].lower()
     newName = re.sub('[^0-9a-zA-Z]+', '_', newName)
-
+    print(newName)
     if newName in ['','main','function','class']:
         return 'script'
     else:
@@ -72,9 +73,6 @@ def find_script_name(text):
 
 def separate_code(response, extensions=extDict):
     """Find code snippets in responses and save to separate scripts with appropriate file extensions"""
-    message = ""
-    os.makedirs('code', exist_ok=True)
-
     code_found = False; code = ''; count = 0; outFiles = []
     lines = response.split('\n')
     for line in lines:
@@ -88,7 +86,10 @@ def separate_code(response, extensions=extDict):
                 ext = lang
 
         elif line.startswith('```') and code_found == True:
-            name_ext = max(funcNames, key=len)
+            try:
+                name_ext = max(funcNames, key=len)
+            except:
+                name_ext = "code"
             codeFile = f"code/{name_ext}.{count}{ext}"
             code_found = False
             outFiles.append(codeFile)
@@ -96,16 +97,12 @@ def separate_code(response, extensions=extDict):
             if len(code.split('\n')) > 2:
                 with open(codeFile, "w") as outFile:
                     outFile.write(code)
-            message += f"Refer to: {codeFile}"
         
         elif code_found == True:
             code += f"{line}\n"
             if "def " in line or "class " in line:
                 funcNames.append(find_script_name(line))
 
-        else:
-            message += f"{line}\n"
-
-    return outFiles, message
+    return outFiles
 
 

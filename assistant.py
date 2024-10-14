@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 from bin.core import assemble_query, submit_query
 from bin.io import get_arguments, manage_arg_vars
 
@@ -25,19 +26,16 @@ model : str
     Default is gpt-4o-mini
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
-    Default is True
+    Default is False
 scripts : bool
     Save detected code in responses as individual scripts.
     Default is True
 reflection : bool
     Search for previous chat history for reflection prompting.
     Default is True
-dim_l : int
-    Length dimension for Dall-e image generation
-    Default is 1024
-dim_w : int
-    Width dimension for Dall-e image generation
-    Default is 1024
+dim : str
+    Dimensions for Dall-e image generation
+    Default is 1024x1024
 qual : str
     Image quality for Dall-e output
     Default is standard
@@ -65,12 +63,16 @@ if __name__ == "__main__":
     # Submit query and parse response
     print('\nThinking...\n')
     response = submit_query(varDict)
-    if args['silent'] == False:
+    if varDict['silent'] == False:
         print(response)
 
     # Record current context
-    with open(varDict['histFile'], "a") as continued:
-        continued.write(f"""
+    try:
+        outFile = open(varDict['histFile'], "a")
+    except FileNotFoundError:
+        outFile = open(varDict['histFile'], "w")
+
+outFile.write(f"""
 <user msg>
 {varDict['prompt']}
 </user msg>
@@ -79,3 +81,4 @@ if __name__ == "__main__":
 {varDict['role']}
 </system msg to assistant>
 """)
+outFile.close()

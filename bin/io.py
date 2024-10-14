@@ -18,7 +18,7 @@ def get_arguments():
                         help='ChatGPT model to interact with')
     parser.add_argument('-t',"--chain_of_thought", type=bool, default=True, 
                         help='Include chain of thought enforcement in user prompt')
-    parser.add_argument('-c',"--code", type=bool, default=True, 
+    parser.add_argument('-c',"--code", type=bool, default=False, 
                         help='Save detected code in responses as individual scripts')
     parser.add_argument('-n',"--name", type=bool, default='script', 
                         help='Optional name extension for scripts created by current query')
@@ -26,7 +26,7 @@ def get_arguments():
                         help='Directory to search for previous chat log files')
     parser.add_argument('-k','--key', type=str, default="system",
                         help='OpenAI API key. Default looks for OPENAI_key env var')
-    parser.add_argument('-d',"--dim", type=int, default=1024, 
+    parser.add_argument('-d',"--dim", type=str, default="1024x1024", 
                         help='Dimension for Dall-e image generation')
     parser.add_argument('-q',"--qual", default='standard', 
                         help='Image quality for Dall-e output')
@@ -84,7 +84,6 @@ def manage_reflection(model, label, curr_time):
     """Parses existing converation logs to better inform current responses"""
     reflection = ""; modelLbl = model.replace('-','_')
 
-    os.makedirs('conversations', exist_ok=True)
     try:
         histFile = glob.glob(f"conversations/{label}.{modelLbl}.*.conversation.log")[0]
         with open(histFile, "r") as previous:
@@ -146,8 +145,10 @@ def manage_arg_vars(arguments):
         role += CHAIN_OF_THOUGHT; cot ='True'
 
     # Add reflection prompting from continued previous conversation
-    reflect = 'False'
-    if arguments.reflection:
+    reflect = 'False'; reflection = ""
+    os.makedirs('conversations', exist_ok=True)
+    histFile = f"conversations/{label}.{model}.{curr_time}.conversation.log"
+    if arguments.log:
         histFile, reflection = manage_reflection(model, label, curr_time)
         if reflection != "": reflect = 'True'
 
