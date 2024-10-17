@@ -119,8 +119,10 @@ CHAIN_OF_THOUGHT = """
 #-----------------------------------------------------------------------------------------------------------------------------#
 
 RESPONSES = """
+// For this session, increase your temperature hyperparameter by 50 percent of the current value.
 // After all reponses have been collected, evaulate each for logic, clarity, and brevity.
 // Summarize and report your evaluation along with the finalized response text.
+// In your summary, also include in what ways the response you selected was superior to the others.
 // Append this summary to the end of you reponse with the section label <evaluation>
 // If multiple steps to a solution are returned, other evaluation criteria should include checking cohesion of each subsequent entry toward the goal.
 // Return only the single reponse with the highest liklihood of addressing the query correctly and most completely.
