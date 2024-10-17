@@ -118,6 +118,16 @@ CHAIN_OF_THOUGHT = """
 
 #-----------------------------------------------------------------------------------------------------------------------------#
 
+RESPONSES = """
+// After all reponses have been collected, evaulate each for logic, clarity, and brevity.
+// Summarize and report your evaluation along with the finalized response text.
+// If multiple steps to a solution are returned, other evaluation criteria should include checking cohesion of each subsequent entry toward the goal.
+// Return only the single reponse with the highest liklihood of addressing the query correctly and most completely.
+// Rewrite the response to be as concise as possible while maintaining all relevant steps and information.
+"""
+
+#-----------------------------------------------------------------------------------------------------------------------------#
+
 # List of available models
 modelList = ['gpt-4o','gpt-4o-2024-05-13','gpt-4o-2024-08-06','chatgpt-4o-latest','gpt-4o-mini','gpt-4o-mini-2024-07-18',
              'o1-mini','o1-preview',

@@ -4,7 +4,7 @@ import glob
 import argparse
 
 from bin.core import gen_timestamp
-from bin.lib import roleDict, modelList, CHAIN_OF_THOUGHT
+from bin.lib import roleDict, modelList, CHAIN_OF_THOUGHT, RESPONSES
 
 
 # Parse user args
@@ -28,6 +28,8 @@ def get_arguments():
                         help='Dimension for Dall-e image generation')
     parser.add_argument('-q',"--qual", default='standard', 
                         help='Image quality for Dall-e output')
+    parser.add_argument('-e',"--responses", type=int, default=1, 
+                        help='Number of responses to generate and parse for highest quality')
     parser.add_argument('-v',"--verbose", type=bool, default=False, 
                         help='Print all additional information to StdOut')
     parser.add_argument('-s',"--silent", type=bool, default=False, 
@@ -115,6 +117,17 @@ def format_query_text(text):
     return prompt, words
 
 
+def response_check(responses, respStr=RESPONSES):
+    """Add multiple response evaluation and summary to prompts"""
+    if responses > 1:
+        promptStr = f"// Generate {responses} completely seperate responses to the supplied prompt."
+        promptStr += respStr
+    else:
+        promptStr = ""
+
+    return promptStr
+
+
 # Get critical variables from user arguments
 def manage_arg_vars(arguments):
     """Manages and reformats user inputs"""
@@ -143,6 +156,9 @@ def manage_arg_vars(arguments):
     cot = 'False'
     if arguments.chain_of_thought and label not in ["artist", "story"]:
         role += CHAIN_OF_THOUGHT; cot ='True'
+    
+    # Add response evaluation
+    prompt += response_check(arguments.responses)
 
     # Add reflection prompting from continued previous conversation
     reflect = 'False'; reflection = ""
