@@ -177,6 +177,12 @@ def manage_arg_vars(arguments):
     System role: {lbl}
     Chain of thought: {c}
     Reflection: {r}'''.format(mdl=model, lbl=label, c=cot, r=reflect)
+
+    if arguments.responses > 1:
+        status += '''
+    Responses: {resp}
+'''.format(resp=arguments.responses)
+
     if 'dall-e' in model:
         status += '''
     Dimensions: {dim}

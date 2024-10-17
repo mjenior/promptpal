@@ -38,7 +38,10 @@ dim : str
     Default is 1024x1024
 qual : str
     Image quality for Dall-e output
-    Default is standard
+    Default int standard
+responses : str
+    Number of responses to generate and parse for highest quality
+    Default is 1
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.

@@ -93,6 +93,9 @@ dim : str
 qual : str
     Image quality for Dall-e output
     Default is standard
+responses : str
+    Number of responses to generate and parse for highest quality
+    Default is 1
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
@@ -125,12 +128,12 @@ Available role shortcuts:
 
 Example 1:
 ```bash
-gpt --role compbio --prompt "Generate a Python script to align DNA sequences and analyze the data. Add code to generate at least 2 figures summarizing the results."
+assistant.py --role compbio --prompt "Generate a Python script to align DNA sequences and analyze the data. Add code to generate at least 2 figures summarizing the results."
 ```
 
 Example 2:
 ```bash
-gpt --role "You are a Sr. game developer." --prompt "Recreate the game Chip's Challenge in python."
+assistant.py --role "You are a Sr. game developer." --prompt "Recreate the game Chip's Challenge in python."
 ```
 
 ### Identify Code Snippets
@@ -139,7 +142,7 @@ The CLI tool automatically detects code snippets within ChatGPT's responses and 
 
 Example:
 ```bash
-gpt --scripts True --prompt "Show me a Python function to find the maximum element in a list."
+assistant.py --code True --prompt "Show me a Python function to find the maximum element in a list."
 ```
 
 Output:
@@ -156,7 +159,7 @@ You can scan previous chat conversation history stored as text files to provide 
 
 Example:
 ```bash
-gpt --reflection True --prompt "Where are they playing this week?" 
+assistant.py --log True --prompt "Where are they playing this week?" 
 ```
 
 ### Chain of Thought Tracking
@@ -165,7 +168,16 @@ This feature helps guide the model's response by breaking down the steps in comp
 
 Example:
 ```bash
-gpt --chain_of_thought True --prompt "Can you write out a list of directions to change a tire?" 
+assistant.py --chain_of_thought True --prompt "Can you write out a list of directions to change a tire?" 
+```
+
+### Response Evaluation
+
+
+
+Example:
+```bash
+assistant.py --responses 3 --prompt "Create a python script to download DNA sequence data from the SRA, preprocess the data for maximum comparibility, and idenify putative gene sequences." 
 ```
 
 ### Image Generation Parameters
@@ -174,7 +186,7 @@ You are able to set specific parameters of the output image created by Dall-e. F
 
 Example:
 ```bash
-gpt --dim_l 800 --dim_w 600 --qual high --prompt "Please create an image of a cell dissolving into code in the style of the impressionists." 
+assistant.py --dim_l 800 --dim_w 600 --qual high --prompt "Please create an image of a cell dissolving into code in the style of the impressionists." 
 ```
 
 ### User-specific API Keys
@@ -183,7 +195,7 @@ You are also able to instead provide the key directly to the assistant if it is 
 
 Example:
 ```bash
-gpt --key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
+assistant.py --key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
 ```
 
 
