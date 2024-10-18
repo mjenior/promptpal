@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import os
-from bin.core import assemble_query, submit_query
-from bin.io import get_arguments, manage_arg_vars
+from src.core import assemble_query, submit_query
+from src.io import get_arguments, manage_arg_vars
 
 """
 ChatGPT API script for conversation with AI assistant in command line
