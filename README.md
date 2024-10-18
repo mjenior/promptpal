@@ -106,8 +106,8 @@ silent : bool
     Silences all StdOut
     Default is False
 current : bool
-    Silences all StdOut
     Save response to current query as a separate text file
+    Default is False
 ```
 
 ### System Role Selection
