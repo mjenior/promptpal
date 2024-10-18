@@ -13,7 +13,7 @@ def gen_timestamp(time=True):
     date_time = str(datetime.now()).split()
     date = date_time[0].split('-'); time = date_time[1].split('.')[0]
     date = f"{int(date[1])}_{int(date[2])}_{int(date[0])}"
-    time = "_".join([int(str(x)) for x in time.split(":")])
+    time = "_".join([str(int(x)) for x in time.split(":")])
     
     if time:
         return f"{date}.{time}"
