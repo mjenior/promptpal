@@ -164,7 +164,7 @@ assistant.py --log True --prompt "Where are they playing this week?"
 
 ### Chain of Thought Tracking
 
-This feature helps guide the model's response by breaking down the steps in complex reasoning tasks. The --thought flag enables the tool to append "chain of thought" prompts to ensure more detailed responses. It is [True] by default and automatically added to the default assistant, combio, and invest system role prompts. The chain of thought flag will prompt the model to provide a step-by-step explanation or breakdown of reasoning, which can be especially useful in educational or technical explanations. It also helps mitigate the occurence of hallucinations.
+This feature helps guide the model's response by breaking down the steps in complex reasoning tasks. The --thought flag enables the tool to append "chain of thought" prompts to ensure more detailed responses. It is [True] by default and automatically added to the default assistant, combio, developer, and invest system role prompts. The chain of thought flag will prompt the model to provide a step-by-step explanation or breakdown of reasoning, which can be especially useful in educational or technical explanations. It also helps mitigate the occurence of hallucinations.
 
 Example:
 ```bash
@@ -173,7 +173,7 @@ assistant.py --chain_of_thought True --prompt "Can you write out a list of direc
 
 ### Response Evaluation
 
-
+This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --reponses flag accepts an integer value representing the number of separate reponses the model will create for the given prompt. Increasing this value past the default of 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point.
 
 Example:
 ```bash

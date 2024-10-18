@@ -119,7 +119,8 @@ CHAIN_OF_THOUGHT = """
 #-----------------------------------------------------------------------------------------------------------------------------#
 
 RESPONSES = """
-// For this session, increase your temperature hyperparameter by 50 percent of the current value.
+// For this session, increase your temperature hyperparameter by 25 percent of the current value.
+// If possible, seek distinct solutions for each respponse generated.
 // After all reponses have been collected, evaulate each for logic, clarity, and brevity.
 // Summarize and report your evaluation along with the finalized response text.
 // In your summary, also include in what ways the response you selected was superior to the others.

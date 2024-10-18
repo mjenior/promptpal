@@ -120,7 +120,7 @@ def format_query_text(text):
 def response_check(responses, respStr=RESPONSES):
     """Add multiple response evaluation and summary to prompts"""
     if responses > 1:
-        promptStr = f"// Generate {responses} completely seperate responses to the supplied prompt."
+        promptStr = f"""// Generate {responses} completely seperate responses to the supplied prompt."""
         promptStr += respStr
     else:
         promptStr = ""
