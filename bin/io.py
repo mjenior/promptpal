@@ -20,7 +20,7 @@ def get_arguments():
                         help='Include chain of thought enforcement in user prompt')
     parser.add_argument('-c',"--code", type=bool, default=False, 
                         help='Save detected code in responses as individual scripts')
-    parser.add_argument('-g',"--log", default=False, 
+    parser.add_argument('-g',"--history", default=False, 
                         help='Directory to search for previous chat log files')
     parser.add_argument('-k','--key', type=str, default="system",
                         help='OpenAI API key. Default looks for OPENAI_key env var')
@@ -28,13 +28,13 @@ def get_arguments():
                         help='Dimension for Dall-e image generation')
     parser.add_argument('-q',"--qual", default='standard', 
                         help='Image quality for Dall-e output')
-    parser.add_argument('-e',"--responses", type=int, default=1, 
+    parser.add_argument('-i',"--iterations", type=int, default=3, 
                         help='Number of responses to generate and parse for highest quality')
     parser.add_argument('-v',"--verbose", type=bool, default=False, 
                         help='Print all additional information to StdOut')
     parser.add_argument('-s',"--silent", type=bool, default=False, 
                         help='Silences all StdOut')
-    parser.add_argument('-i',"--current", type=bool, default=False, 
+    parser.add_argument('-n',"--current", type=bool, default=False, 
                         help='Save response to current query as a separate text file')
     
     return parser.parse_args()
@@ -103,24 +103,25 @@ def manage_reflection(model, label, curr_time):
 def format_query_text(text):
     """Reformat input text to JSON-compatible"""
 
+    # Fix some whitespace
     if type(text) is list:
-        text = " ".join(text).strip()
-    else:
-        text = text.strip()
-
+        text = " ".join(text)
+    text = text.strip()
     words = set(text.lower().split())
 
-    prompt = f"\n// ".join(text.split("\n"))
+    text = ["\n// " + x.strip() for x in text.split("\n") if len(x.strip()) > 0]
+    prompt = "".join(text)
     for x in [".", "?", "!"]:
         prompt = f"{x}\n// ".join(prompt.split(x))
+    prompt = prompt.replace('// //','//')
     
     return prompt, words
 
 
-def response_check(responses, respStr=RESPONSES):
+def response_check(iterations, respStr=RESPONSES):
     """Add multiple response evaluation and summary to prompts"""
-    if responses > 1:
-        promptStr = f"""// Generate {responses} completely seperate responses to the supplied prompt."""
+    if iterations > 1:
+        promptStr = f"// Generate {iterations} completely seperate responses to the supplied prompt."
         promptStr += respStr
     else:
         promptStr = ""
@@ -158,13 +159,13 @@ def manage_arg_vars(arguments):
         role += CHAIN_OF_THOUGHT; cot ='True'
     
     # Add response evaluation
-    prompt += response_check(arguments.responses)
+    role += response_check(arguments.iterations)
 
     # Add reflection prompting from continued previous conversation
     reflect = 'False'; reflection = ""
     os.makedirs('conversations', exist_ok=True)
     histFile = f"conversations/{label}.{model}.{curr_time}.conversation.log"
-    if arguments.log:
+    if arguments.history:
         histFile, reflection = manage_reflection(model, label, curr_time)
         if reflection != "": reflect = 'True'
 
@@ -178,10 +179,10 @@ def manage_arg_vars(arguments):
     Chain of thought: {c}
     Reflection: {r}'''.format(mdl=model, lbl=label, c=cot, r=reflect)
 
-    if arguments.responses > 1:
+    if arguments.iterations > 1:
         status += '''
-    Responses: {resp}
-'''.format(resp=arguments.responses)
+    Iterations: {resp}
+'''.format(resp=arguments.iterations)
 
     if 'dall-e' in model:
         status += '''

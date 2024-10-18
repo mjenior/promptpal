@@ -39,9 +39,9 @@ dim : str
 qual : str
     Image quality for Dall-e output
     Default int standard
-responses : str
+iterations : int
     Number of responses to generate and parse for highest quality
-    Default is 1
+    Default is 3
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
@@ -67,7 +67,8 @@ if __name__ == "__main__":
     varDict['query'] = assemble_query(varDict)
 
     # Submit query and parse response
-    print('\nThinking...\n')
+    if varDict['silent'] == False:
+        print('Thinking...\n')
     response = submit_query(varDict)
     if varDict['silent'] == False:
         print(response)
@@ -78,7 +79,7 @@ if __name__ == "__main__":
     except FileNotFoundError:
         outFile = open(varDict['histFile'], "w")
 
-outFile.write(f"""
+    outFile.write(f"""
 <user msg>
 {varDict['prompt']}
 </user msg>
@@ -87,4 +88,7 @@ outFile.write(f"""
 {varDict['role']}
 </system msg to assistant>
 """)
-outFile.close()
+    outFile.close()
+
+    if varDict['silent'] == False:
+        print('\nDone!\n')

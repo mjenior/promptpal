@@ -93,9 +93,9 @@ dim : str
 qual : str
     Image quality for Dall-e output
     Default is standard
-responses : str
+iterations : int
     Number of responses to generate and parse for highest quality
-    Default is 1
+    Default is 3
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
@@ -173,11 +173,11 @@ assistant.py --chain_of_thought True --prompt "Can you write out a list of direc
 
 ### Response Evaluation
 
-This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --reponses flag accepts an integer value representing the number of separate reponses the model will create for the given prompt. Increasing this value past the default of 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point.
+This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --iterations flag accepts an integer value representing the number of separate reponse iterations the model will create for the given prompt. Increasing this value past the 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point. The deault is 3 iterations.
 
 Example:
 ```bash
-assistant.py --responses 3 --prompt "Create a python script to download DNA sequence data from the SRA, preprocess the data for maximum comparibility, and idenify putative gene sequences." 
+assistant.py --iterations 3 --prompt "Create a python script to download DNA sequence data from the SRA, preprocess the data for maximum comparibility, and idenify putative gene sequences." 
 ```
 
 ### Image Generation Parameters
