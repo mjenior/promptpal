@@ -163,9 +163,17 @@ def manage_arg_vars(arguments):
     cot = 'False'
     if arguments.chain_of_thought and label not in ["artist", "story", "photo"]:
         role += CHAIN_OF_THOUGHT; cot ='True'
+
+    # Refinement check
+    if role == 'refinement':
+        iters = arguments.iterations + 2
+        if cot == 'False':
+            role += CHAIN_OF_THOUGHT; cot ='True'
+    else:
+        iters = arguments.iterations
     
     # Add response evaluation
-    role += response_check(arguments.iterations)
+    role += response_check(iters)
 
     # Add reflection prompting from continued previous conversation
     reflect = 'False'; reflection = ""
@@ -187,7 +195,7 @@ def manage_arg_vars(arguments):
     System role: {lbl}
     Chain of thought: {c}
     Reflection: {r}
-    Iterations: {resp}'''.format(mdl=model.capitalize(), lbl=label.capitalize(), c=cot, r=reflect, resp=arguments.iterations)
+    Iterations: {resp}'''.format(mdl=model.capitalize(), lbl=label.capitalize(), c=cot, r=reflect, resp=iters)
 
     if 'dall-e' in model:
         status += '''
@@ -206,6 +214,7 @@ def manage_arg_vars(arguments):
             'histFile': histFile, 
             'code': arguments.code, 
             'size': size, 
+            'iterations': iters,
             'quality': arguments.qual, 
             'verbose': arguments.verbose,
             'silent': arguments.silent,

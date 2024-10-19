@@ -19,7 +19,7 @@ prompt : str
 OPTIONAL
 role : str
     System role text, predefines system behaviours or type of expertise
-    Built-in shortcut options include: compbio, investor, artist, storyteller, and developer
+    Several built-in options are available, refer to README for details
     Default is assistant
 model : str
     ChatGPT model to interact with

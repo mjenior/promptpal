@@ -73,7 +73,7 @@ prompt : str
 OPTIONAL
 role : str
     System role text, predefines system behaviours or type of expertise
-    Built-in shortcut options include: compbio, investor, artist, photo, storyteller, and developer
+    Several built-in options are available, refer to README for details
     Default is assistant
 model : str
     ChatGPT model to interact with
@@ -120,6 +120,7 @@ Available role shortcuts:
 - compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
 - investor: Experience in technology stock investment and wealth management. Provides analyses for new stocks to invest in.
 - artist: Creates an images described by the prompt, default style leans toward illustrations
+- photo: Gnereates more photo-realistic images
 - refinement: Designed to assist with iterative prompt engineering and refinement
 - storyteller: Retells plot of popular books and movies to appropriate for ~3 year olds with fun changes to characters
 - writer: Writing assistant to help with clarity and brevity
