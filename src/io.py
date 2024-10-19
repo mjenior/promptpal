@@ -34,7 +34,7 @@ def get_arguments():
                         help='Print all additional information to StdOut')
     parser.add_argument('-s',"--silent", type=bool, default=False, 
                         help='Silences all StdOut')
-    parser.add_argument('-n',"--current", type=bool, default=True, 
+    parser.add_argument('-l',"--log", type=bool, default=True, 
                         help='Save response to current query as a separate text file')
     
     return parser.parse_args()
@@ -218,7 +218,7 @@ def manage_arg_vars(arguments):
             'quality': arguments.qual, 
             'verbose': arguments.verbose,
             'silent': arguments.silent,
-            'current': arguments.current,
+            'current': arguments.log,
             'timestamp': curr_time}
 
     return vars

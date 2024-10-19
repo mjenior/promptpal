@@ -105,7 +105,7 @@ verbose : bool
 silent : bool
     Silences all StdOut
     Default is False
-current : bool
+log : bool
     Save response to current query as a separate text file
     Default is False
 ```

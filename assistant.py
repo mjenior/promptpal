@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 from src.core import assemble_query, submit_query
 from src.io import get_arguments, manage_arg_vars
 
@@ -51,7 +50,7 @@ verbose : bool
 silent : bool
     Silences all StdOut
     Default is False
-current : bool
+log : bool
     Save response to current query as a separate text file
     Default is False
 """
