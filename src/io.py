@@ -28,13 +28,13 @@ def get_arguments():
                         help='Dimension for Dall-e image generation')
     parser.add_argument('-q',"--qual", default='standard', 
                         help='Image quality for Dall-e output')
-    parser.add_argument('-i',"--iterations", type=int, default=3, 
+    parser.add_argument('-i',"--iterations", type=int, default=1, 
                         help='Number of responses to generate and parse for highest quality')
     parser.add_argument('-v',"--verbose", type=bool, default=False, 
                         help='Print all additional information to StdOut')
     parser.add_argument('-s',"--silent", type=bool, default=False, 
                         help='Silences all StdOut')
-    parser.add_argument('-n',"--current", type=bool, default=False, 
+    parser.add_argument('-n',"--current", type=bool, default=True, 
                         help='Save response to current query as a separate text file')
     
     return parser.parse_args()
@@ -121,7 +121,7 @@ def format_query_text(text):
 def response_check(iterations, respStr=RESPONSES):
     """Add multiple response evaluation and summary to prompts"""
     if iterations > 1:
-        promptStr = f"// Generate {iterations} completely seperate responses to the supplied prompt."
+        promptStr = f"\n// Generate {iterations} completely seperate responses to the supplied prompt."
         promptStr += respStr
     else:
         promptStr = ""
@@ -148,14 +148,20 @@ def manage_arg_vars(arguments):
     prompt, words = format_query_text(arguments.prompt)
 
     # Check for image generation request    
-    art_check = set(['image','picture','draw','create','paint','painting','illustration'])
-    if len(words.intersection(art_check)) > 1 and label != 'artist':
+    art_check = set(['create','generate','image','picture','draw','paint','painting','illustration'])
+    photo_check = set(['create','generate', 'photo', 'photograph'])
+    if len(words.intersection(art_check)) > 1 and label not in ["artist", "photo"]:
         role = roleDict['artist']; label = "artist"; model = "dall-e-3"
         if arguments.verbose: print("\nImage request detected, switching to Artist system role.")
+    elif len(words.intersection(photo_check)) > 1 and label not in ["artist", "photo"]:
+        role = roleDict['photo']; label = "photo"; model = "dall-e-3"
+        if arguments.verbose: print("\nImage request detected, switching to Photographer system role.")
+    elif label in ["artist", "photo"] and model not in ["dall-e-2","dall-e-3"]:
+        model = "dall-e-3"
 
     # Add Chain of Thought
     cot = 'False'
-    if arguments.chain_of_thought and label not in ["artist", "story"]:
+    if arguments.chain_of_thought and label not in ["artist", "story", "photo"]:
         role += CHAIN_OF_THOUGHT; cot ='True'
     
     # Add response evaluation
@@ -163,31 +169,30 @@ def manage_arg_vars(arguments):
 
     # Add reflection prompting from continued previous conversation
     reflect = 'False'; reflection = ""
-    os.makedirs('conversations', exist_ok=True)
     histFile = f"conversations/{label}.{model}.{curr_time}.conversation.log"
     if arguments.history:
+        os.makedirs('conversations', exist_ok=True)
         histFile, reflection = manage_reflection(model, label, curr_time)
         if reflection != "": reflect = 'True'
 
     # Image parameters
-    size, quality = image_params(arguments.dim, arguments.qual, model, arguments.verbose)
+    if label in ["artist", "photo"]:
+        size, quality = image_params(arguments.dim, arguments.qual, model, arguments.verbose)
+        if label == "photo":
+            quality = "hd"
 
     # Run status
     status = '''
     Model: {mdl}
     System role: {lbl}
     Chain of thought: {c}
-    Reflection: {r}'''.format(mdl=model, lbl=label, c=cot, r=reflect)
-
-    if arguments.iterations > 1:
-        status += '''
-    Iterations: {resp}
-'''.format(resp=arguments.iterations)
+    Reflection: {r}
+    Iterations: {resp}'''.format(mdl=model.capitalize(), lbl=label.capitalize(), c=cot, r=reflect, resp=arguments.iterations)
 
     if 'dall-e' in model:
         status += '''
     Dimensions: {dim}
-    Quality: {qual}'''.format(dim=size, qual=quality)
+    Quality: {qual}'''.format(dim=size, qual=quality.capitalize())
     
     if arguments.silent == False:
         print(f"{status}\n")
@@ -197,6 +202,7 @@ def manage_arg_vars(arguments):
             'model': model, 
             'label': label, 
             'reflection': reflection, 
+            'history': arguments.history, 
             'histFile': histFile, 
             'code': arguments.code, 
             'size': size, 

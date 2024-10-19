@@ -30,7 +30,7 @@ chain_of_thought : bool
 code : bool
     Save detected code in responses as individual scripts.
     Default is True
-log : bool
+history : bool
     Search for previous chat history for reflection prompting.
     Default is True
 dim : str
@@ -41,7 +41,7 @@ qual : str
     Default int standard
 iterations : int
     Number of responses to generate and parse for highest quality
-    Default is 3
+    Default is 1
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
@@ -74,12 +74,13 @@ if __name__ == "__main__":
         print(response)
 
     # Record current context
-    try:
-        outFile = open(varDict['histFile'], "a")
-    except FileNotFoundError:
-        outFile = open(varDict['histFile'], "w")
+    if args.history:
+        try:
+            outFile = open(varDict['histFile'], "a")
+        except FileNotFoundError:
+            outFile = open(varDict['histFile'], "w")
 
-    outFile.write(f"""
+        outFile.write(f"""
 <user msg>
 {varDict['prompt']}
 </user msg>
@@ -88,7 +89,7 @@ if __name__ == "__main__":
 {varDict['role']}
 </system msg to assistant>
 """)
-    outFile.close()
+        outFile.close()
 
     if varDict['silent'] == False:
         print('\nDone!\n')

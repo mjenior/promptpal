@@ -73,7 +73,7 @@ prompt : str
 OPTIONAL
 role : str
     System role text, predefines system behaviours or type of expertise
-    Built-in shortcut options include: compbio, investor, artist, storyteller, and developer
+    Built-in shortcut options include: compbio, investor, artist, photo, storyteller, and developer
     Default is assistant
 model : str
     ChatGPT model to interact with
@@ -84,9 +84,9 @@ chain_of_thought : bool
 code : bool
     Save detected code in responses as individual scripts.
     Default is True
-log : bool
+history : bool
     Search for previous chat history for reflection prompting.
-    Default is True
+    Default is False
 dim : str
     Dimensions for Dall-e image generation
     Default is 1024x1024
@@ -95,7 +95,7 @@ qual : str
     Default is standard
 iterations : int
     Number of responses to generate and parse for highest quality
-    Default is 3
+    Default is 1
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
@@ -159,7 +159,7 @@ You can scan previous chat conversation history stored as text files to provide 
 
 Example:
 ```bash
-assistant.py --log True --prompt "Where are they playing this week?" 
+assistant.py --history True --prompt "Where are they playing this week?" 
 ```
 
 ### Chain of Thought Tracking
@@ -173,7 +173,7 @@ assistant.py --chain_of_thought True --prompt "Can you write out a list of direc
 
 ### Response Evaluation
 
-This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --iterations flag accepts an integer value representing the number of separate reponse iterations the model will create for the given prompt. Increasing this value past the 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point. The deault is 3 iterations.
+This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --iterations flag accepts an integer value representing the number of separate reponse iterations the model will create for the given prompt. Increasing this value past the 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point. 
 
 Example:
 ```bash

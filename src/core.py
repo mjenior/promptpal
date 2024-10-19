@@ -32,12 +32,12 @@ def assemble_query(vars):
 def submit_query(vars):
     """Sends and and interprets data from OpenAI API"""
     client = OpenAI()
-    if vars['label'] != "artist":
+    if vars['label'] not in ["artist","photo"]:
         response = client.chat.completions.create(model=vars['model'], messages=vars['query'])
         message = response.choices[0].message.content
         if vars['verbose']: print(f"Response:\n{message}")
-        os.makedirs('code', exist_ok=True)
         if vars['code']:
+            os.makedirs('code', exist_ok=True)
             scripts = separate_code(message)
             if len(scripts) > 0:
                     print('\nCode identified and saved separately:')
