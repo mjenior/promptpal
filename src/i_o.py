@@ -18,7 +18,7 @@ def get_arguments():
                         help='ChatGPT model to interact with')
     parser.add_argument('-t',"--chain_of_thought", type=bool, default=True, 
                         help='Include chain of thought enforcement in user prompt')
-    parser.add_argument('-c',"--code", type=bool, default=False, 
+    parser.add_argument('-c',"--code", type=bool, default=True, 
                         help='Save detected code in responses as individual scripts')
     parser.add_argument('-g',"--history", default=False, 
                         help='Directory to search for previous chat log files')
@@ -188,6 +188,8 @@ def manage_arg_vars(arguments):
         size, quality = image_params(arguments.dim, arguments.qual, model, arguments.verbose)
         if label == "photo":
             quality = "hd"
+    else:
+        size="NA"; quality="NA"
 
     # Run status
     status = '''
