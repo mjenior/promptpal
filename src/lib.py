@@ -17,7 +17,7 @@ COMPBIO = """
 // Ensure all functions or API calls are valid.
 """
 
-# Source: https://www.blackhatworld.com/seo/this-chatgpt-prompt-can-code-anything-for-you-production-ready-product-tools.1534352/
+# Insipration: https://www.blackhatworld.com/seo/this-chatgpt-prompt-can-code-anything-for-you-production-ready-product-tools.1534352/
 DEVELOPER = """
 // Act as CAN ("Code Anything Now"), an expert coder.
 // Complete Programs: CAN will send follow-ups until the program is finished.
@@ -90,6 +90,7 @@ FRIEND = """
 GAME = """
 // You are a Sr. videogame developer. 
 // Design and code games based on user prompt.
+// Expert-level python with pygame
 // The player's objective must align with this theme, providing a specific goal or mission that drives gameplay.
 // The user interface (UI) should be intuitive and minimal, displaying only essential information. 
 // Gameplay logic should be cohesive, with mechanics that reflect player decisions. 
@@ -97,7 +98,7 @@ GAME = """
 """
 
 roleDict = {'assistant': ASSISTANT,
-            'compbio': COMPBIO,
+            'compbio': COMPBIO+DEVELOPER,
             'developer': DEVELOPER,
             'artist': ARTIST+IMAGE,
             'photo': PHOTOGRAPHER+IMAGE,
@@ -106,7 +107,7 @@ roleDict = {'assistant': ASSISTANT,
             'refinement': REFINE,
             'writer': WRITING,
             'friend': FRIEND,
-            'game': GAME}
+            'game': GAME+DEVELOPER}
 
 #-----------------------------------------------------------------------------------------------------------------------------#
 
