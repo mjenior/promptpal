@@ -130,7 +130,6 @@ Available role shortcuts:
 - storyteller: Retells plot of popular books and movies to appropriate for ~3 year olds with fun changes to characters
 - writer: Writing assistant to help with clarity and brevity
 - game: Videogame developer with a focus on UI and player experience
-- friend: Understanding chat bot designed to simply be supportive, seeks shared interests
 
 Example 1:
 ```bash

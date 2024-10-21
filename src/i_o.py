@@ -34,8 +34,8 @@ def get_arguments():
                         help='Print all additional information to StdOut')
     parser.add_argument('-s',"--silent", type=bool, default=False, 
                         help='Silences all StdOut')
-    parser.add_argument('-l',"--log", type=bool, default=True, 
-                        help='Save response to current query as a separate text file')
+    parser.add_argument('-l',"--log", type=bool, default=False, 
+                        help='Save response to query as a separate text file in current working directory')
     
     return parser.parse_args()
 
@@ -166,7 +166,7 @@ def manage_arg_vars(arguments):
 
     # Refinement check
     if role == 'refinement':
-        iters = arguments.iterations + 2
+        iters = arguments.iterations + 3
         if cot == 'False':
             role += CHAIN_OF_THOUGHT; cot ='True'
     else:

@@ -44,14 +44,16 @@ def submit_query(vars):
                     for x in scripts:
                         print(f"\t{x}")
     else:
+        os.makedirs('images', exist_ok=True)
         response = client.images.generate(model=vars['model'], prompt=vars['prompt'], n=1, 
                                         size=vars['size'], quality=vars['quality'])
         message = response.data[0].revised_prompt
         if vars['verbose']: print(f"Revise prompt:\n{message}")
         image_data = requests.get(response.data[0].url)
-        image_file = f"{vars['model'].replace('-','')}.{vars['timestamp']}.image.png"
-        print('\nGenerated image saved to:', image_file)
+        image_file = f"images/{vars['model'].replace('-','')}.{vars['timestamp']}.image.png"
         with open(image_file,'wb') as outFile: outFile.write(image_data.content)
+        print('\nGenerated image saved to:', image_file)
+        
 
     if vars['current']:
         outFile = f"{vars['label']}.{vars['model'].replace('-','')}.{vars['timestamp']}.response.txt"

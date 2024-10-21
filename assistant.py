@@ -51,7 +51,7 @@ silent : bool
     Silences all StdOut
     Default is False
 log : bool
-    Save response to current query as a separate text file
+    Save response to query as a separate text file in current working directory
     Default is False
 """
 
