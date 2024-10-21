@@ -160,15 +160,14 @@ def manage_arg_vars(arguments):
         model = "dall-e-3"
 
     # Add Chain of Thought
-    cot = 'False'
     if arguments.chain_of_thought and label not in ["artist", "story", "photo"]:
-        role += CHAIN_OF_THOUGHT; cot ='True'
+        role += roleDict['chain']
 
     # Refinement check
     if role == 'refinement':
         iters = arguments.iterations + 3
-        if cot == 'False':
-            role += CHAIN_OF_THOUGHT; cot ='True'
+        if arguments.chain_of_thought == 'False':
+            role += roleDict['chain']
     else:
         iters = arguments.iterations
     
@@ -176,12 +175,12 @@ def manage_arg_vars(arguments):
     role += response_check(iters)
 
     # Add reflection prompting from continued previous conversation
-    reflect = 'False'; reflection = ""
-    histFile = f"conversations/{label}.{model}.{curr_time}.conversation.log"
     if arguments.history:
         os.makedirs('conversations', exist_ok=True)
         histFile, reflection = manage_reflection(model, label, curr_time)
-        if reflection != "": reflect = 'True'
+    else:
+        reflection = ""
+        histFile = f"conversations/{label}.{model}.{curr_time}.conversation.log"
 
     # Image parameters
     if label in ["artist", "photo"]:
@@ -189,24 +188,26 @@ def manage_arg_vars(arguments):
         if label == "photo":
             quality = "hd"
     else:
-        size="NA"; quality="NA"
+        size = "NA"; quality = "NA"
 
-    # Run status
-    status = '''
+    # Run status report
+    if arguments.silent == False:
+        status = '''
     Model: {mdl}
     System role: {lbl}
     Chain of thought: {c}
     Reflection: {r}
-    Iterations: {resp}'''.format(mdl=model.capitalize(), lbl=label.capitalize(), c=cot, r=reflect, resp=iters)
-
-    if 'dall-e' in model:
-        status += '''
+    Iterations: {resp}
     Dimensions: {dim}
-    Quality: {qual}'''.format(dim=size, qual=quality.capitalize())
-    
-    if arguments.silent == False:
+    Quality: {qual}'''.format(
+        mdl=model.capitalize(), 
+        lbl=label.capitalize(), 
+        c=str(arguments.chain_of_thought), 
+        r=str(arguments.history), 
+        resp=iters, dim=size, qual=quality.capitalize())
         print(f"{status}\n")
 
+    # Assemble formatted variable dictionary
     vars = {'prompt': prompt, 
             'role': role, 
             'model': model, 

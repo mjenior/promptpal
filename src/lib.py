@@ -66,7 +66,7 @@ PHOTOGRAPHER = """Photograph
 
 #--------------------------------------#
 
-### Modifiers
+### Modifiers (Also available as solo roles)
 
 CHAIN_OF_THOUGHT = """// 1. Begin with a <thinking> section which includes: 
 //  a. Briefly analyze the question and outline your approach. 
