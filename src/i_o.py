@@ -4,16 +4,15 @@ import glob
 import argparse
 
 from src.core import gen_timestamp
-from src.lib import roleDict, modelList, CHAIN_OF_THOUGHT, RESPONSES
-
+from src.lib import roleDict, modelList
+from src.lib import RESPONSES
 
 # Parse user args
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p','--prompt', type=str, nargs="+",
-                        help='User prompt text')
+    parser.add_argument('prompt', type=str, required=True, help='User prompt text. Accepts prompt strings directly or will read in .txt files')
     parser.add_argument('-r',"--role", type=str, default="assistant",
-                        help='Assistant role text')
+                        help='Assistant role text. Accepts prompt strings directly, will read in .txt files, or respond to keyword roles in README.')
     parser.add_argument('-m',"--model", type=str, default="gpt-4o-mini", 
                         help='ChatGPT model to interact with')
     parser.add_argument('-t',"--chain_of_thought", type=bool, default=True, 
@@ -72,12 +71,19 @@ def openai_api_key(key):
 
 
 def role_select(arg):
+    
     try:
         role = roleDict[arg]
         label = arg
     except KeyError:
         role = arg
         label = "custom"
+
+    if type(role) is list and role[0].endswith('.txt'):
+        with open(role, 'r') as inFile:
+            role = inFile.readlines()
+        role = "\n".join(role)
+        role = ["\n// " + x.strip() for x in role.split("\n") if len(x.strip()) > 0]
 
     return role, label
 
@@ -103,12 +109,15 @@ def manage_reflection(model, label, curr_time):
 def format_query_text(text):
     """Reformat input text to JSON-compatible"""
 
-    # Fix some whitespace
-    if type(text) is list:
+    # Check for txt file for query text
+    if type(text) is list and text[0].endswith('.txt'):
+        with open(text, 'r') as inFile:
+            text = inFile.readlines()
+        text = "\n".join(text)
+    else:
         text = " ".join(text)
-    text = text.strip()
-    words = set(text.lower().split())
 
+    words = set(text.strip().lower().split())
     text = ["\n// " + x.strip() for x in text.split("\n") if len(x.strip()) > 0]
     prompt = "".join(text)
     for x in [".", "?", "!"]:
