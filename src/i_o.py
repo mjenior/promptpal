@@ -10,7 +10,7 @@ from src.lib import roleDict, modelList
 # Parse user args
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('prompt', type=str, help='User prompt text. Accepts prompt strings directly or will read in .txt files')
+    parser.add_argument('-p','--prompt', type=str, help='User prompt text. Accepts prompt strings directly or will read in .txt files')
     parser.add_argument('-r',"--role", type=str, default="assistant",
                         help='Assistant role text. Accepts prompt strings directly, will read in .txt files, or respond to keyword roles in README.')
     parser.add_argument('-m',"--model", type=str, default="gpt-4o-mini", 
@@ -20,7 +20,7 @@ def get_arguments():
     parser.add_argument('-c',"--code", type=bool, default=True, 
                         help='Save detected code in responses as individual scripts')
     parser.add_argument('-g',"--history", default=False, 
-                        help='Directory to search for previous chat log files')
+                        help='Directory to search for previous chat log files for added context')
     parser.add_argument('-k','--key', type=str, default="system",
                         help='OpenAI API key. Default looks for OPENAI_key env var')
     parser.add_argument('-d',"--dim", type=str, default="1024x1024", 
