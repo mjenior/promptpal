@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from src.core import assemble_query, submit_query
-from src.i_o import get_arguments, manage_arg_vars
+from src.i_o import get_arguments, manage_arg_vars, save_query_json
 
 """
 ChatGPT API script for conversation with AI assistant in command line
@@ -64,6 +64,10 @@ if __name__ == "__main__":
 
     # Assemble query
     varDict['query'] = assemble_query(varDict)
+    if args.query:
+        save_query_json(varDict)
+
+    
 
     # Submit query and parse response
     if varDict['silent'] == False:

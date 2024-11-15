@@ -1,16 +1,16 @@
 
 import os
+import json
 import glob
 import argparse
 
 from src.core import gen_timestamp
 from src.lib import roleDict, modelList
-from src.lib import RESPONSES
 
 # Parse user args
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('prompt', type=str, required=True, help='User prompt text. Accepts prompt strings directly or will read in .txt files')
+    parser.add_argument('prompt', type=str, help='User prompt text. Accepts prompt strings directly or will read in .txt files')
     parser.add_argument('-r',"--role", type=str, default="assistant",
                         help='Assistant role text. Accepts prompt strings directly, will read in .txt files, or respond to keyword roles in README.')
     parser.add_argument('-m',"--model", type=str, default="gpt-4o-mini", 
@@ -88,18 +88,18 @@ def role_select(arg):
     return role, label
 
 
-def manage_reflection(model, label, curr_time):
+def manage_reflection(model, label, vars):
     """Parses existing converation logs to better inform current responses"""
-    reflection = ""; modelLbl = model.replace('-','_')
+    reflection = ""
 
     try:
-        histFile = glob.glob(f"conversations/{label}.{modelLbl}.*.conversation.log")[0]
+        histFile = glob.glob(f"conversations/{label}.{model.replace('-','_')}.*.conversation.log")[0]
         with open(histFile, "r") as previous:
             reflection = previous.readlines()
         reflection = " ".join([y.strip() for y in reflection])
     except:
         # Establish new session context tracking
-        histFile = f"conversations/{label}.{modelLbl}.{curr_time}.conversation.log"
+        histFile = f"conversations/{vars['prefix']}.conversation.log"
         with open(histFile, "w") as newFile:
             newFile.write("This is the transcript of an ongoing conversation between you and a user leading up to the current request.\n")
 
@@ -127,11 +127,23 @@ def format_query_text(text):
     return prompt, words
 
 
-def response_check(iterations, respStr=RESPONSES):
+def response_check(iterations):
     """Add multiple response evaluation and summary to prompts"""
+
+    RESPONSES = """
+// For this session, increase your temperature hyperparameter by 25 percent of the current value.
+// If possible, seek distinct solutions for each respponse generated.
+// After all reponses have been collected, evaulate each for logic, clarity, and brevity.
+// Summarize and report your evaluation along with the finalized response text.
+// In your summary, also include in what ways the response you selected was superior to the others.
+// Clearly identify which response you selected as the winner.
+// Append this summary to the end of you reponse with the section label <evaluation>. This MUST be included.
+// If multiple steps to a solution are returned, other evaluation criteria should include checking cohesion of steps.
+"""
+
     if iterations > 1:
         promptStr = f"\n// Generate {iterations} completely seperate responses to the supplied prompt."
-        promptStr += respStr
+        promptStr += RESPONSES
     else:
         promptStr = ""
 
@@ -141,9 +153,10 @@ def response_check(iterations, respStr=RESPONSES):
 # Get critical variables from user arguments
 def manage_arg_vars(arguments):
     """Manages and reformats user inputs"""
-
-    curr_time = gen_timestamp()
-
+    
+    vars = {}
+    vars['timestamp'] = gen_timestamp()
+    
     # Handle OpenAI API key
     openai_api_key(arguments.key)
 
@@ -153,27 +166,30 @@ def manage_arg_vars(arguments):
     # Select model
     model = arguments.model.lower() if arguments.model.lower() in modelList else "gpt-4o-mini"
 
+    # Output file prefix
+    vars['prefix'] = f"{label}.{model.replace('-','_')}.{vars['timestamp']}."
+
     # Format prompt
     prompt, words = format_query_text(arguments.prompt)
 
     # Check for image generation request    
     art_check = set(['create','generate','image','picture','draw','paint','painting','illustration'])
     photo_check = set(['create','generate', 'photo', 'photograph'])
-    if len(words.intersection(art_check)) > 1 and label not in ["artist", "photo"]:
-        role = roleDict['artist']; label = "artist"; model = "dall-e-3"
+    if len(words.intersection(art_check)) > 1 and label not in ["art", "photo"]:
+        role = roleDict['art']; label = "art"; model = "dall-e-3"
         if arguments.verbose: print("\nImage request detected, switching to Artist system role.")
-    elif len(words.intersection(photo_check)) > 1 and label not in ["artist", "photo"]:
+    elif len(words.intersection(photo_check)) > 1 and label not in ["art", "photo"]:
         role = roleDict['photo']; label = "photo"; model = "dall-e-3"
         if arguments.verbose: print("\nImage request detected, switching to Photographer system role.")
-    elif label in ["artist", "photo"] and model not in ["dall-e-2","dall-e-3"]:
+    elif label in ["art", "photo"] and model not in ["dall-e-2","dall-e-3"]:
         model = "dall-e-3"
 
     # Add Chain of Thought
-    if arguments.chain_of_thought and label not in ["artist", "story", "photo"]:
+    if arguments.chain_of_thought and label not in ["art", "story", "photo"]:
         role += roleDict['chain']
 
     # Refinement check
-    if role == 'refinement':
+    if role == 'refine' or role == 'invest':
         iters = arguments.iterations + 3
         if arguments.chain_of_thought == 'False':
             role += roleDict['chain']
@@ -184,15 +200,15 @@ def manage_arg_vars(arguments):
     role += response_check(iters)
 
     # Add reflection prompting from continued previous conversation
-    if arguments.history:
+    if arguments.history or role == 'refine':
         os.makedirs('conversations', exist_ok=True)
-        histFile, reflection = manage_reflection(model, label, curr_time)
+        histFile, reflection = manage_reflection(model, label, vars['timestamp'])
     else:
         reflection = ""
-        histFile = f"conversations/{label}.{model}.{curr_time}.conversation.log"
+        histFile = f"conversations/{vars['prefix']}.conversation.log"
 
     # Image parameters
-    if label in ["artist", "photo"]:
+    if label in ["art", "photo"]:
         size, quality = image_params(arguments.dim, arguments.qual, model, arguments.verbose)
         if label == "photo":
             quality = "hd"
@@ -213,7 +229,7 @@ def manage_arg_vars(arguments):
         lbl=label.capitalize(), 
         c=str(arguments.chain_of_thought), 
         r=str(arguments.history), 
-        resp=iters, dim=size, qual=quality.capitalize())
+        resp=iters, dim=size, qual=quality.upper())
         print(f"{status}\n")
 
     # Assemble formatted variable dictionary
@@ -231,6 +247,13 @@ def manage_arg_vars(arguments):
             'verbose': arguments.verbose,
             'silent': arguments.silent,
             'current': arguments.log,
-            'timestamp': curr_time}
+            'timestamp': vars['timestamp']}
 
     return vars
+
+
+def save_query_json(vars):
+    """Save query to separate json"""
+    queryJSON = f"{vars['prefix']}.query.json"
+    with open(queryJSON, 'w', encoding='utf-8') as f:
+        json.dump(vars['query'], f, ensure_ascii=False, indent=4)

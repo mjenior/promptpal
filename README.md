@@ -121,14 +121,14 @@ The --role option allows you to specify a system role for ChatGPT, which will op
 
 Available role shortcuts:
 
-- assistant (default): Standard personal assistant with improved ability to prioritize important tasks
+- assist (default): Standard personal assistant with improved ability to prioritize important tasks
 - compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
-- investor: Experience in technology stock investment and wealth management. Provides analyses for new stocks to invest in.
-- artist: Creates an images described by the prompt, default style leans toward illustrations
+- invest: Experience in technology stock investment and wealth management. Provides analyses for new stocks to invest in.
+- art: Creates an images described by the prompt, default style leans toward illustrations
 - photo: Gnereates more photo-realistic images
-- refinement: Designed to assist with iterative prompt engineering and refinement
-- storyteller: Retells plot of popular books and movies to appropriate for ~3 year olds with fun changes to characters
-- writer: Writing assistant to help with clarity and brevity
+- refine: Designed to assist with iterative prompt engineering and refinement
+- story: Retells plot of popular books and movies to appropriate for ~3 year olds with fun changes to characters
+- write: Writing assistant to help with clarity and brevity
 - game: Videogame developer with a focus on UI and player experience
 
 Example 1:
