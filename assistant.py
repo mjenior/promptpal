@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
-from src.core import assemble_query, submit_query
-from src.i_o import get_arguments, manage_arg_vars, save_query_json
+import argparse
+
+from src.core import QueryManager
+from src.api_handler import OpenAIInterface
+
 
 """
 ChatGPT API script for conversation with AI assistant in command line
@@ -30,7 +33,7 @@ code : bool
     Save detected code in responses as individual scripts.
     Default is True
 history : bool
-    Search for previous chat history for reflection prompting.
+    Search for previous chat history for reflection prompting for impr.
     Default is True
 dim : str
     Dimensions for Dall-e image generation
@@ -55,44 +58,41 @@ log : bool
     Default is False
 """
 
+def parse_arguments():
+    """
+    Parses command-line arguments.
+    """
+    parser = argparse.ArgumentParser(description="Manage and execute OpenAI queries.")
+    parser.add_argument("-p", "--prompt", type=str, required=True, help="User prompt text or path to a .txt file.")
+    parser.add_argument("-r", "--role", type=str, default="assistant", help="Assistant role text.")
+    parser.add_argument("-m", "--model", type=str, default="gpt-4o-mini", help="ChatGPT model.")
+    parser.add_argument("-t", "--chain_of_thought", default=True, help="Enable chain of thought reasoning.")
+    parser.add_argument("-c", "--code", default=True, help="Save detected code in responses.")
+    parser.add_argument("-g", "--history", default=True, help="Use previous chat logs for context.")
+    parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
+    parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
+    parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
+    parser.add_argument("-i", "--iterations", type=int, default=1, help="Number of response iterations.")
+    parser.add_argument("-v", "--verbose", default=True, help="Enable verbose output.")
+    parser.add_argument("-s", "--silent", default=False, help="Suppress output.")
+    parser.add_argument("-l", "--log", default=True, help="Save query log.")
+    return parser.parse_args()
+
+
+def main():
+    """
+    Main function for parsing inputs, managing queries, and handling API interactions.
+    """
+    # Parse arguments
+    args = parse_arguments()
+   
+    # Initialize the user argument and query manager
+    query_manager = QueryManager(args)
+
+    # Initialize the OpenAI API handler and submit query
+    query_handler = OpenAIInterface(query_manager)
+    query_handler.submit_query(query_manager)
+    
 
 if __name__ == "__main__":
-    
-    # Get important vars from arguments
-    args = get_arguments()
-    varDict = manage_arg_vars(args)
-
-    # Assemble query
-    varDict['query'] = assemble_query(varDict)
-    if args.query:
-        save_query_json(varDict)
-
-    
-
-    # Submit query and parse response
-    if varDict['silent'] == False:
-        print('Thinking...\n')
-    response = submit_query(varDict)
-    if varDict['silent'] == False:
-        print(response)
-
-    # Record current context
-    if args.history:
-        try:
-            outFile = open(varDict['histFile'], "a")
-        except FileNotFoundError:
-            outFile = open(varDict['histFile'], "w")
-
-        outFile.write(f"""
-<user msg>
-{varDict['prompt']}
-</user msg>
-
-<system msg to assistant>
-{varDict['role']}
-</system msg to assistant>
-""")
-        outFile.close()
-
-    if varDict['silent'] == False:
-        print('\nDone!\n')
+    main()
