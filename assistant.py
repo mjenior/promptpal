@@ -75,6 +75,7 @@ def parse_arguments():
     parser.add_argument("-i", "--iterations", type=int, default=1, help="Number of response iterations.")
     parser.add_argument("-v", "--verbose", default=True, help="Enable verbose output.")
     parser.add_argument("-s", "--silent", default=False, help="Suppress output.")
+    parser.add_argument("-l", "--log", default=True, help="Save query log.")
     parser.add_argument("-j", "--career", default=False, help="How important is this request?")
     return parser.parse_args()
 
