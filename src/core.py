@@ -1,5 +1,6 @@
 import os
 import glob
+from copy import copy
 from datetime import datetime
 
 from src.lib import roleDict, modelList
@@ -17,14 +18,14 @@ class QueryManager:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         self._set_api_key(args.key)
-        self.role, self.label = self._select_role(args.role)
+        self.role, self.label = self._select_role(args)
         self.model = self._select_model(args.model)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}."
         self.prompt, words = self._format_prompt(args.prompt)
         self._handle_image_request(words)
         self.chain_of_thought = self._add_chain_of_thought(args)
         self.iterations = self._calculate_iterations(args)
-        self.reflection, self.history_file = self._manage_history(args)
+        self.reflection, self.history_file = self._manage_context(args)
         self.size, self.quality = self._handle_image_params(args)
         self.model = args.model
 
@@ -55,47 +56,50 @@ class QueryManager:
         """
         return model_arg.lower() if model_arg.lower() in modelList else "gpt-4o-mini"
     
-    def _select_role(self, role_arg):
+    def _select_role(self, args):
         """
         Selects the role based on user input or defaults to a custom role.
         """
-        role = roleDict.get(role_arg, role_arg)
-        label = role_arg if role_arg in roleDict else "custom"
-        if isinstance(role, list) and role[0].endswith('.txt'):
-            with open(role[0], 'r') as file:
-                role = "\n".join(file.readlines())
+        role = roleDict.get(args.role, args.role)
+        label = args.role if args.role in roleDict else "custom"
+
+        if label == "custom":
+            role = self._check_for_files(role)
+
+        if args.career:
+            role += "\n// My life and career likely depend on you giving me a good answer."
+            
         return role, label
 
 
-    def _check_for_files(self, prompt):
+    def _check_for_files(self, message):
+        """Checks for existing files in user-provided text to append to messages"""
         
-        if isinstance(prompt, str):
-            prompt = prompt.split()
+        if isinstance(message, str):
+            message = message.split()
 
-        new_prompt = ''
-        for word in prompt:
+        message.append('\n')
+        new_message = copy(message)
+        for word in message:
             if os.path.exists(word):
                 with open(word, 'r') as f:
-                    new_prompt += ' '.join(f.readlines())
+                    new_message.append(' '.join(f.readlines()))
 
-        if new_prompt != '':
-            return new_prompt
+        if len(new_message) > len(message)+1:
+            return ' '.join(new_message)
         else:
-            return " ".join(prompt)
+            return ' '.join(message).strip()
 
 
     def _format_prompt(self, prompt):
         """
         Formats the user prompt text for compatibility.
         """
-        if isinstance(prompt, list) and prompt[0].endswith('.txt'):
-            with open(prompt[0], 'r') as file:
-                prompt = file.read()
-        else:
-            prompt = self._check_for_files(prompt)
+        prompt = self._check_for_files(prompt)
         words = set(prompt.strip().lower().split())
         prompt_lines = [f"// {line.strip()}" for line in prompt.split("\n") if line.strip()]
         return "\n".join(prompt_lines), words
+
 
     def _handle_image_request(self, words):
         """
@@ -130,21 +134,21 @@ class QueryManager:
             return args.iterations + 3
         return args.iterations
 
-    def _manage_history(self, args):
+    def _manage_context(self, args):
         """
-        Manages conversation history for continuity in responses.
+        Manages conversation transcript history for continuity in responses.
         """
-        if not args.history and self.role != 'refine':
-            return "", f"conversations/{self.prefix}.conversation.log"
+        if not args.context:
+            return "", f"transcripts/{self.prefix}.transcript.log"
 
-        os.makedirs('conversations', exist_ok=True)
-        history_file = glob.glob(f"conversations/{self.label}.{self.model}.{self.timestamp}.*.log")
-        if history_file:
-            with open(history_file[0], "r") as file:
-                reflection = file.read()
-            return reflection, history_file[0]
+        os.makedirs('transcripts', exist_ok=True)
+        transcript_file = glob.glob(f"transcripts/{self.label}.{self.model}.{self.timestamp}.*.log")
+        if transcript_file:
+            with open(transcript_file[0], "r") as f:
+                reflection = f.read()
+            return reflection, transcript_file[0]
 
-        new_file_path = f"conversations/{self.prefix}.conversation.log"
+        new_file_path = f"transcripts/{self.prefix}.transcript.log"
         with open(new_file_path, "w") as file:
             file.write("New session initiated.\n")
         return "", new_file_path

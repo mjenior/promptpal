@@ -139,7 +139,9 @@ class OpenAIInterface:
                 if "def " in line or "class " in line:
                     func_names.append(self._find_script_name(line))
 
+        # Lint python code
         self._format_python_scripts(outFiles)
+
         return outFiles
 
     @staticmethod

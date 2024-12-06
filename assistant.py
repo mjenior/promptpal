@@ -32,8 +32,8 @@ chain_of_thought : bool
 code : bool
     Save detected code in responses as individual scripts.
     Default is True
-history : bool
-    Search for previous chat history for reflection prompting for impr.
+context : bool
+    Search for previous chat history for reflection prompting.
     Default is True
 dim : str
     Dimensions for Dall-e image generation
@@ -68,7 +68,7 @@ def parse_arguments():
     parser.add_argument("-m", "--model", type=str, default="gpt-4o-mini", help="ChatGPT model.")
     parser.add_argument("-t", "--chain_of_thought", default=True, help="Enable chain of thought reasoning.")
     parser.add_argument("-c", "--code", default=True, help="Save detected code in responses.")
-    parser.add_argument("-g", "--history", default=True, help="Use previous chat logs for context.")
+    parser.add_argument("-x", "--context", default=True, help="Use previous chat transcripts for context.")
     parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
@@ -76,6 +76,7 @@ def parse_arguments():
     parser.add_argument("-v", "--verbose", default=True, help="Enable verbose output.")
     parser.add_argument("-s", "--silent", default=False, help="Suppress output.")
     parser.add_argument("-l", "--log", default=True, help="Save query log.")
+    parser.add_argument("-j", "--career", default=False, help="How important is this request?")
     return parser.parse_args()
 
 

@@ -89,8 +89,8 @@ chain_of_thought : bool
 code : bool
     Save detected code in responses as individual scripts.
     Default is True
-history : bool
-    Search for previous chat history for reflection prompting.
+context : bool
+    Search for previous chat transcripts for reflection prompting.
     Default is False
 dim : str
     Dimensions for Dall-e image generation
@@ -121,7 +121,7 @@ The --role option allows you to specify a system role for ChatGPT, which will op
 
 Available role shortcuts:
 
-- assist (default): Standard personal assistant with improved ability to prioritize important tasks
+- assist (default): Standard personal assistant with improved ability to help with tasks
 - compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
 - invest: Experience in technology stock investment and wealth management. Provides analyses for new stocks to invest in.
 - art: Creates an images described by the prompt, default style leans toward illustrations
@@ -129,7 +129,6 @@ Available role shortcuts:
 - refine: Designed to assist with iterative prompt engineering and refinement
 - story: Retells plot of popular books and movies to appropriate for ~3 year olds with fun changes to characters
 - write: Writing assistant to help with clarity and brevity
-- game: Videogame developer with a focus on UI and player experience
 
 Example 1:
 ```bash
