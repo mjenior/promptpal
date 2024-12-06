@@ -25,7 +25,7 @@ class QueryManager:
         self._handle_image_request(words)
         self.chain_of_thought = self._add_chain_of_thought(args)
         self.iterations = self._calculate_iterations(args)
-        self.reflection, self.history_file = self._manage_context(args)
+        self.reflection, self.transcript_file = self._manage_context(args)
         self.size, self.quality = self._handle_image_params(args)
         self.model = args.model
 

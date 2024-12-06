@@ -110,9 +110,6 @@ verbose : bool
 silent : bool
     Silences all StdOut
     Default is False
-log : bool
-    Save response to current query as a separate text file
-    Default is False
 ```
 
 ### System Role Selection

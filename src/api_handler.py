@@ -62,8 +62,8 @@ class OpenAIInterface:
                 for script in scripts:
                     print(f"\t{script}")
 
-        if manager.log:
-            self._save_response_text(message, manager)
+        #if manager.log:
+        #    self._save_response_text(message, manager)
 
     def _process_image_response(self, manager):
         """
@@ -98,7 +98,7 @@ class OpenAIInterface:
         """
         outFile = f"responses/{manager.label}.{manager.model.replace('-', '')}.{manager.timestamp}.{self.reponse_type}.txt"
         os.makedirs('responses', exist_ok=True)
-        with open(outFile, "w", encoding="utf-8") as file:
+        with open(manager.transcript_file, "a", encoding="utf-8") as file:
             file.write(message)
 
         if not manager.silent:
