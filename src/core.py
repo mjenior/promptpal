@@ -19,9 +19,10 @@ class QueryManager:
 
         self._set_api_key(args.key)
         self.role, self.label = self._select_role(args)
+        self.role, words = self._format_input_text(self.role)
         self.model = self._select_model(args.model)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}."
-        self.prompt, words = self._format_prompt(args.prompt)
+        self.prompt, words = self._format_input_text(args.prompt)
         self._handle_image_request(words)
         self.chain_of_thought = self._add_chain_of_thought(args)
         self.iterations = self._calculate_iterations(args)
@@ -81,7 +82,9 @@ class QueryManager:
         message.append('\n')
         new_message = copy(message)
         for word in message:
-            if os.path.exists(word):
+            if word == '.' or len(word) == 0:
+                continue
+            elif os.path.exists(word):
                 with open(word, 'r') as f:
                     new_message.append(' '.join(f.readlines()))
 
@@ -91,14 +94,15 @@ class QueryManager:
             return ' '.join(message).strip()
 
 
-    def _format_prompt(self, prompt):
+    def _format_input_text(self, text):
         """
-        Formats the user prompt text for compatibility.
+        Formats the user input text for compatibility.
         """
-        prompt = self._check_for_files(prompt)
-        words = set(prompt.strip().lower().split())
-        prompt_lines = [f"// {line.strip()}" for line in prompt.split("\n") if line.strip()]
-        return "\n".join(prompt_lines), words
+        text = self._check_for_files(text)
+        words = set(text.strip().lower().split())
+        text_lines = [f"// {line.strip()}" for line in text.split("\n") if line.strip()]
+
+        return "\n".join(text_lines), words
 
 
     def _handle_image_request(self, words):
