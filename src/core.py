@@ -23,6 +23,7 @@ class QueryManager:
         self.model = self._select_model(args.model)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}."
         self.prompt, words = self._format_input_text(args.prompt)
+        self.context = args.context
         self._handle_image_request(words)
         self.chain_of_thought = self._add_chain_of_thought(args)
         self.iterations = self._calculate_iterations(args)
@@ -190,7 +191,7 @@ class QueryManager:
         Model: {self.model}
         Role: {self.label}
         Chain of Thought: {self.chain_of_thought}
-        Reflection: {bool(self.reflection)}
+        Reflection: {self.context}
         Iterations: {self.iterations}
         Dimensions: {self.size}
         Quality: {self.quality}

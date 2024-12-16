@@ -3,7 +3,7 @@
 import argparse
 
 from src.core import QueryManager
-from src.api_handler import OpenAIInterface
+from src.api import OpenAIInterface
 
 
 """
@@ -63,7 +63,7 @@ def parse_arguments():
     Parses command-line arguments.
     """
     parser = argparse.ArgumentParser(description="Manage and execute OpenAI queries.")
-    parser.add_argument("-p", "--prompt", type=str, required=True, help="User prompt text or path to a .txt file.")
+    parser.add_argument("-p", "--prompt", type=str, default="what is the answer to life the universe and everything?", help="User prompt text or path to a .txt file.")
     parser.add_argument("-r", "--role", type=str, default="assistant", help="Assistant role text.")
     parser.add_argument("-m", "--model", type=str, default="gpt-4o-mini", help="ChatGPT model.")
     parser.add_argument("-t", "--chain_of_thought", default=True, help="Enable chain of thought reasoning.")
@@ -88,11 +88,11 @@ def main():
     args = parse_arguments()
    
     # Initialize the user argument and query manager
-    query_manager = QueryManager(args)
+    io_manager = QueryManager(args)
 
     # Initialize the OpenAI API handler and submit query
-    query_handler = OpenAIInterface(query_manager)
-    query_handler.submit_query(query_manager)
+    api_handler = OpenAIInterface(io_manager)
+    api_handler.submit_query(io_manager)
     
 
 if __name__ == "__main__":
