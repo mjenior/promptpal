@@ -135,7 +135,6 @@ class ChatGPTQueryApp:
 
     def submit_query(self):
         """
-        Process the user input, generate a response, and display the output.
 
         This simulates interaction with ChatGPT using the collected data.
         """

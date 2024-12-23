@@ -47,9 +47,6 @@ iterations : int
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
-verbose : bool
-    Print all additional information to StdOut
-    Default is False
 silent : bool
     Silences all StdOut
     Default is False
@@ -64,7 +61,7 @@ def parse_arguments():
     """
     parser = argparse.ArgumentParser(description="Manage and execute OpenAI queries.")
     parser.add_argument("-p", "--prompt", type=str, default="what is the answer to life the universe and everything?", help="User prompt text or path to a .txt file.")
-    parser.add_argument("-r", "--role", type=str, default="assistant", help="Assistant role text.")
+    parser.add_argument("-r", "--role", type=str, default="assist", help="Assistant role text.")
     parser.add_argument("-m", "--model", type=str, default="gpt-4o-mini", help="ChatGPT model.")
     parser.add_argument("-t", "--chain_of_thought", default=True, help="Enable chain of thought reasoning.")
     parser.add_argument("-c", "--code", default=True, help="Save detected code in responses.")
@@ -73,7 +70,6 @@ def parse_arguments():
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
     parser.add_argument("-i", "--iterations", type=int, default=1, help="Number of response iterations.")
-    parser.add_argument("-v", "--verbose", default=True, help="Enable verbose output.")
     parser.add_argument("-s", "--silent", default=False, help="Suppress output.")
     parser.add_argument("-l", "--log", default=True, help="Save query log.")
     parser.add_argument("-j", "--career", default=False, help="How important is this request?")
@@ -90,9 +86,13 @@ def main():
     # Initialize the user argument and query manager
     io_manager = QueryManager(args)
 
-    # Initialize the OpenAI API handler and submit query
+    # Initialize the OpenAI API handler
     api_handler = OpenAIInterface(io_manager)
+
+    # Submit query and parse response
     api_handler.submit_query(io_manager)
+    if not args.silent:
+        print("\nFinished.\n")
     
 
 if __name__ == "__main__":

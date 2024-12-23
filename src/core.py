@@ -1,11 +1,19 @@
 import os
 import glob
-from copy import copy
 from datetime import datetime
 
 from src.lib import roleDict, modelList
 
-            
+roleNames = {'assist': 'Assistant',
+            'compbio': 'Computational Biologist',
+            'dev': 'Python Developer',
+            'art': 'Artist',
+            'photo': 'Photographer',
+            'invest': 'Investor',
+            'story': 'Storyteller',
+            'write': 'Writer',
+            'custom': 'Custom'}
+  
 class QueryManager:
     """
     Manages the creation and formatting of queries for the OpenAI API.
@@ -15,11 +23,18 @@ class QueryManager:
         """
         Initialize the QueryManager with critical variables from parsed arguments.
         """
+        # Time stamp
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+        # Simple booleans
+        self.silent = args.silent
+        self.code = args.code
+        self.log = args.log
+
+        # Processed arguments
         self._set_api_key(args.key)
         self.role, self.label = self._select_role(args)
-        self.role, words = self._format_input_text(self.role)
+        self.role, words = self._format_input_text(self.role, 'role')
         self.model = self._select_model(args.model)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}."
         self.prompt, words = self._format_input_text(args.prompt)
@@ -31,14 +46,8 @@ class QueryManager:
         self.size, self.quality = self._handle_image_params(args)
         self.model = args.model
 
-        # Additional booleans
-        self.verbose = args.verbose
-        self.silent = args.silent
-        self.code = args.code
-        self.log = args.log
-
         if not self.silent:
-            self._print_status()
+            self._report_query_params()
 
     def _set_api_key(self, key):
         """
@@ -63,48 +72,58 @@ class QueryManager:
         Selects the role based on user input or defaults to a custom role.
         """
         role = roleDict.get(args.role, args.role)
-        label = args.role if args.role in roleDict else "custom"
+        label = args.role if args.role in roleDict.keys() else "custom"
 
         if label == "custom":
-            role = self._check_for_files(role)
+            role, check = self._file_text_scanner(role)
+            if not self.silent:
+                print(f'\nCustom system role:\n{role}\n')
+        elif not self.silent:
+            print(f'\nUsing default system role: {roleNames[label]}')
 
         if args.career:
             role += "\n// My life and career likely depend on you giving me a good answer."
             
         return role, label
 
-
-    def _check_for_files(self, message):
+    def _file_text_scanner(self, message):
         """Checks for existing files in user-provided text to append to messages"""
         
         if isinstance(message, str):
-            message = message.split()
-
-        message.append('\n')
-        new_message = copy(message)
-        for word in message:
-            if word == '.' or len(word) == 0:
-                continue
-            elif os.path.exists(word):
-                with open(word, 'r') as f:
-                    new_message.append(' '.join(f.readlines()))
-
-        if len(new_message) > len(message)+1:
-            return ' '.join(new_message)
+            sentences = [x.strip() for x in message.splitlines() if len(x.strip()) >= 1]
         else:
-            return ' '.join(message).strip()
+            sentences = message
+        
+        words = []
+        for sentence in sentences:
+            for word in sentence.split():
+                if len(word) >= 1:
+                    words.append(word.lower())
 
+        found = False
+        for word in words:
+            if os.path.isfile(word):
+                found = True
+                with open(word, 'r') as handle:
+                    sentences += [x.strip() for x in handle.readlines() if len(x.strip()) >= 1]
 
-    def _format_input_text(self, text):
+        return sentences, words, found
+
+    def _format_input_text(self, text, type="query"):
         """
-        Formats the user input text for compatibility.
+        Formats the user input text for interpretability.
         """
-        text = self._check_for_files(text)
-        words = set(text.strip().lower().split())
-        text_lines = [f"// {line.strip()}" for line in text.split("\n") if line.strip()]
+        check = True
+        while check:
+            text, wrds, check = self._file_text_scanner(text)
 
-        return "\n".join(text_lines), words
+        full_text = "\n".join([f"// {line.capitalize().replace('// ','')}" for line in text]) # Join with new line syntax
+        full_text += '.' if full_text[-1] not in ['.','!','?'] else '' # Add puncuation if needed
 
+        if not self.silent and full_text != text:
+            print(f'\nRefined {type} text:\n{full_text}')
+
+        return full_text, set(wrds)
 
     def _handle_image_request(self, words):
         """
@@ -135,7 +154,7 @@ class QueryManager:
         """
         Determines the number of response iterations based on user input and role.
         """
-        if self.role in {'refine', 'invest'}:
+        if self.role in {'refine', 'invest'} and args.iterations == 1:
             return args.iterations + 3
         return args.iterations
 
@@ -183,18 +202,19 @@ class QueryManager:
         quality = 'hd' if qual.lower() in {'h', 'hd', 'high', 'higher', 'highest'} else 'standard'
         return dims, quality
 
-    def _print_status(self):
+    def _report_query_params(self):
         """
         Prints the current status of the query configuration.
         """
         status = f"""
-        Model: {self.model}
-        Role: {self.label}
-        Chain of Thought: {self.chain_of_thought}
-        Reflection: {self.context}
-        Iterations: {self.iterations}
-        Dimensions: {self.size}
-        Quality: {self.quality}
-        """
+System parameters:
+    Model: {self.model}
+    Role: {roleNames[self.label]}
+    Chain of Thought: {self.chain_of_thought}
+    Reflection: {self.context}
+    Iterations: {self.iterations}
+    Dimensions: {self.size}
+    Quality: {self.quality}
+"""
         print(status)
 
