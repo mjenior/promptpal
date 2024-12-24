@@ -30,6 +30,7 @@ class OpenAIInterface():
         self.size = manager.size
         self.quality = manager.quality
         self.iterations = manager.iterations
+        self.print_response = True
 
         # Initialize client
         self.client = OpenAI()
@@ -85,7 +86,7 @@ class OpenAIInterface():
         else:
             message = responses[0]
 
-        if not self.silent:
+        if self.print_response:
             print(f"\nResponse:\n{message}\n")
 
         if self.code:
@@ -267,7 +268,7 @@ class OpenAIInterface():
         else:
             final = responses[0]
 
-        if not self.silent:
+        if self.print_response:
             print(f'\nRefined prompt:\n{final}')
         
         # Update the refined prompt with the response

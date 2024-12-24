@@ -46,7 +46,7 @@ qual : str
     Default int standard
 iterations : int
     Number of responses to generate and parse for highest quality
-    Default is 3
+    Default is 1
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.

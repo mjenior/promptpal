@@ -99,7 +99,7 @@ qual : str
     Default is standard
 iterations : int
     Number of responses to generate and parse for highest quality
-    Default is 3
+    Default is 1
 refine : bool
     Automatically refine user prompt to improve query specificity.
     Default is False
