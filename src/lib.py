@@ -2,7 +2,7 @@
 
 #-----------------------------------------------------------------------------------------------------------------------------#
 
-## Roles
+## System roles
 
 ### Text/code generation
 ASSISTANT = """
@@ -101,7 +101,7 @@ Format the analysis in these clear sections. If you cannot verify any factual cl
 
 #--------------------------------------#
 
-#### Image generation (i.e. DALL-E)
+#### Image generation (DALL-E)
 
 ARTIST = """
 Digital artwork
@@ -119,7 +119,7 @@ Camera used ARRI, SONY, Nikon.
 
 #--------------------------------------#
 
-### Modifiers (Also available as solo roles)
+### Modifiers
 
 CHAIN_OF_THOUGHT = """
 1. Begin with a <thinking> section which includes: 
@@ -175,7 +175,43 @@ roleDict = {'assist': ASSISTANT+HONESTY,
 
 #-----------------------------------------------------------------------------------------------------------------------------#
 
-### Misc
+# Prompt refinement
+
+rewrite_options = {
+    "paraphrase": "Rewrite the text to express the same meaning in different words to avoid plagiarism or duplicate phrasing.",
+    "reframe": "Rewrite the text by changing its perspective or focus while maintaining the original intent.",
+    "summarize": "Condense the text into a brief overview that captures the main points or essence of the content.",
+    "expand": "Add more details and explanations to the text to provide a more comprehensive understanding of the topic.",
+    "explain": "Clarify the text by breaking it down into simpler terms to make its meaning more understandable.",
+    "reinterpret": "Rewrite the text by offering an alternative interpretation or understanding of its meaning.",
+    "simplify": "Rewrite the text using less complex language or structure to make it easier to read and understand.",
+    "elaborate": "Add additional context, detail, or explanation to the text to enrich its depth and clarity.",
+    "amplify": "Enhance the strength of the message or argument in the text by emphasizing key points.",
+    "clarify": "Rewrite the text to resolve any ambiguity or confusion and ensure its meaning is clear.",
+    "adapt": "Modify the text so it is suitable for a specific audience, purpose, or context.",
+    "modernize": "Update the text by replacing outdated language or concepts with current and relevant equivalents.",
+    "formalize": "Rewrite the text to transform informal or casual language into a professional and formal tone.",
+    "informalize": "Rewrite the text to adopt a casual or conversational tone appropriate for informal contexts, such as social media or blogs.",
+    "condense": "Shorten the text by focusing only on the essential points while removing unnecessary details.",
+    "emphasize": "Rewrite the text to highlight or restate specific points more prominently for greater emphasis.",
+    "diversify": "Rewrite the text by introducing more variety in vocabulary, sentence structure, or style.",
+    "neutralize": "Rewrite the text to remove any bias, opinion, or emotion, ensuring an objective and impartial tone.",
+    "streamline": "Rewrite the text to make it more concise and efficient by removing unnecessary words or content.",
+    "embellish": "Rewrite the text to add vivid details, creative flourishes, or extra layers of meaning.",
+    "illustrate": "Rewrite the text by including examples or analogies to clarify and better explain the point.",
+    "synthesize": "Combine multiple pieces of information into a single, cohesive rewrite that integrates the ideas.",
+    "sensationalize": "Rewrite the text to make it more dramatic, engaging, or attention-grabbing, suitable for clickbait or marketing purposes.",
+    "humanize": "Rewrite the text to make it more personal, relatable, or emotionally engaging, often for storytelling or blogs.",
+    "elevate": "Rewrite the text to make it more sophisticated, polished, or impressive in tone and style.",
+    "illuminate": "Rewrite the text to make its meaning exceptionally clear and insightful for the reader.",
+    "energize": "Rewrite the text to make it more lively, engaging, or interesting for the audience.",
+    "soft-pedal": "Rewrite the text to downplay or reduce the intensity of its tone or message.",
+    "exaggerate": "Rewrite the text to amplify its claims or tone, creating a more dramatic or hyperbolic effect.",
+    "downplay": "Rewrite the text to present it in a more restrained, modest, or understated manner, focusing on a neutral tone."}
+
+#-----------------------------------------------------------------------------------------------------------------------------#
+
+### Utility
 
 # List of available models
 modelList = ['gpt-4o','gpt-4o-2024-05-13','gpt-4o-2024-08-06','chatgpt-4o-latest','gpt-4o-mini','gpt-4o-mini-2024-07-18',

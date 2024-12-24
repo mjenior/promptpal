@@ -10,7 +10,6 @@ Python based command line interface for prompted conversation using ChatGPT API
 
 ## Requirements
 - openai
-- black
 
 
 ## Key Features
@@ -86,6 +85,9 @@ model : str
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
     Default is False
+refine : bool
+    Automatically refine user prompt to improve query specificity.
+    Default is False
 code : bool
     Save detected code in responses as individual scripts.
     Default is True
@@ -98,9 +100,6 @@ dim : str
 qual : str
     Image quality for Dall-e output
     Default is standard
-iterations : int
-    Number of responses to generate and parse for highest quality
-    Default is 1
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.

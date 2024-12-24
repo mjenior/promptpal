@@ -1,4 +1,5 @@
 import os
+import re
 import glob
 from datetime import datetime
 
@@ -32,19 +33,19 @@ class QueryManager:
         self.log = args.log
 
         # Processed arguments
+        self.model = args.model
         self._set_api_key(args.key)
         self.role, self.label = self._select_role(args)
-        self.role, words = self._format_input_text(self.role, 'role')
+        self.role, words = self._format_input_text(text=self.role, type='role')
         self.model = self._select_model(args.model)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}."
-        self.prompt, words = self._format_input_text(args.prompt)
+        self.prompt, words = self._format_input_text(text=args.prompt, refine=args.refine, type="query")
+        self.refine = args.refine
         self.context = args.context
         self._handle_image_request(words)
         self.chain_of_thought = self._add_chain_of_thought(args)
-        self.iterations = self._calculate_iterations(args)
         self.reflection, self.transcript_file = self._manage_context(args)
         self.size, self.quality = self._handle_image_params(args)
-        self.model = args.model
 
         if not self.silent:
             self._report_query_params()
@@ -75,7 +76,7 @@ class QueryManager:
         label = args.role if args.role in roleDict.keys() else "custom"
 
         if label == "custom":
-            role, check = self._file_text_scanner(role)
+            role, wrds, check = self._file_text_scanner(role)
             if not self.silent:
                 print(f'\nCustom system role:\n{role}\n')
         elif not self.silent:
@@ -94,14 +95,13 @@ class QueryManager:
         else:
             sentences = message
         
+        # Isolate a cleanup words
         words = []
         for sentence in sentences:
-            for word in sentence.split():
-                if len(word) >= 1:
-                    words.append(word.lower())
+            words += [re.sub(r'[^\w\s]','', word).lower() for word in sentence.split() if len(word) >= 1]
 
         found = False
-        for word in words:
+        for word in set(words):
             if os.path.isfile(word):
                 found = True
                 with open(word, 'r') as handle:
@@ -109,7 +109,7 @@ class QueryManager:
 
         return sentences, words, found
 
-    def _format_input_text(self, text, type="query"):
+    def _format_input_text(self, text, refine=False, type="query"):
         """
         Formats the user input text for interpretability.
         """
@@ -121,7 +121,7 @@ class QueryManager:
         full_text += '.' if full_text[-1] not in ['.','!','?'] else '' # Add puncuation if needed
 
         if not self.silent and full_text != text:
-            print(f'\nRefined {type} text:\n{full_text}')
+            print(f'\nReformatted {type} text:\n{full_text}')
 
         return full_text, set(wrds)
 
@@ -149,14 +149,6 @@ class QueryManager:
             return "True"
         else:
             return "False"
-
-    def _calculate_iterations(self, args):
-        """
-        Determines the number of response iterations based on user input and role.
-        """
-        if self.role in {'refine', 'invest'} and args.iterations == 1:
-            return args.iterations + 3
-        return args.iterations
 
     def _manage_context(self, args):
         """
@@ -211,8 +203,8 @@ System parameters:
     Model: {self.model}
     Role: {roleNames[self.label]}
     Chain of Thought: {self.chain_of_thought}
+    Prompt Refinement: {self.refine}
     Reflection: {self.context}
-    Iterations: {self.iterations}
     Dimensions: {self.size}
     Quality: {self.quality}
 """

@@ -41,9 +41,6 @@ dim : str
 qual : str
     Image quality for Dall-e output
     Default int standard
-iterations : int
-    Number of responses to generate and parse for highest quality
-    Default is 1
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
@@ -64,12 +61,12 @@ def parse_arguments():
     parser.add_argument("-r", "--role", type=str, default="assist", help="Assistant role text.")
     parser.add_argument("-m", "--model", type=str, default="gpt-4o-mini", help="ChatGPT model.")
     parser.add_argument("-t", "--chain_of_thought", default=True, help="Enable chain of thought reasoning.")
+    parser.add_argument("-f", "--refine", default=False, help="Enable iterative input prompt refinement.")
     parser.add_argument("-c", "--code", default=True, help="Save detected code in responses.")
     parser.add_argument("-x", "--context", default=True, help="Use previous chat transcripts for context.")
     parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
-    parser.add_argument("-i", "--iterations", type=int, default=1, help="Number of response iterations.")
     parser.add_argument("-s", "--silent", default=False, help="Suppress output.")
     parser.add_argument("-l", "--log", default=True, help="Save query log.")
     parser.add_argument("-j", "--career", default=False, help="How important is this request?")
@@ -90,7 +87,7 @@ def main():
     api_handler = OpenAIInterface(io_manager)
 
     # Submit query and parse response
-    api_handler.submit_query(io_manager)
+    api_handler.submit_query()
     if not args.silent:
         print("\nFinished.\n")
     
