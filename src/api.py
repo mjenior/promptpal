@@ -29,6 +29,7 @@ class OpenAIInterface():
         self.transcript_file = manager.transcript_file
         self.size = manager.size
         self.quality = manager.quality
+        self.iterations = manager.iterations
 
         # Initialize client
         self.client = OpenAI()
@@ -61,13 +62,13 @@ class OpenAIInterface():
             return self._process_text_response()
         return self._process_image_response()
 
-    def _process_text_response(self, iters=3):
+    def _process_text_response(self):
         """
         Processes text-based responses from OpenAI's chat models.
         """
         self.reponse_type = "reponse"
         response = self.client.chat.completions.create(
-            model=self.model, messages=self.query, n=iters,
+            model=self.model, messages=self.query, n=self.iterations,
         )
         responses = [r.message.content.strip() for r in response.choices]
         if len(responses) > 1:
@@ -243,7 +244,7 @@ class OpenAIInterface():
         
         # Make an API call to refine the prompt over X iterations:
         response = self.client.chat.completions.create(
-            model=self.model, temperature=temp, n=iters,
+            model=self.model, temperature=temp, n=self.iterations,
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": self.prompt}])
@@ -253,6 +254,7 @@ class OpenAIInterface():
         if len(responses) > 1:
             system_message = "Synthesize all of the provided GPT prompts and return a single cohesive prompt containing the most informative elements of each.\n"
             system_message += "If there is any special formatting contained in the prompts, make sure it is included in the refined response.\n"
+            system_message += "Refined prompt text should be at least twice as long as the original.\n"
             system_message += f"Attempt to include words from the following list where appropriate: {', '.join(list(rewrite_options.keys()))}\n"
             all_prompts = "\n\n".join(responses)
 

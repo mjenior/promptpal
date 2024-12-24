@@ -44,6 +44,7 @@ class QueryManager:
         self.context = args.context
         self._handle_image_request(words)
         self.chain_of_thought = self._add_chain_of_thought(args)
+        self.iterations = self._calculate_iterations(args)
         self.reflection, self.transcript_file = self._manage_context(args)
         self.size, self.quality = self._handle_image_params(args)
 
@@ -150,6 +151,14 @@ class QueryManager:
         else:
             return "False"
 
+    def _calculate_iterations(self, args):
+        """
+        Determines the number of response iterations based on user input and role.
+        """
+        if self.role in {'refine', 'invest'} and args.iterations == 1:
+            return args.iterations + 3
+        return args.iterations
+
     def _manage_context(self, args):
         """
         Manages conversation transcript history for continuity in responses.
@@ -205,6 +214,7 @@ System parameters:
     Chain of Thought: {self.chain_of_thought}
     Prompt Refinement: {self.refine}
     Reflection: {self.context}
+    Iterations: {self.iterations}
     Dimensions: {self.size}
     Quality: {self.quality}
 """

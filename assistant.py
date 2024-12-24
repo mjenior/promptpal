@@ -32,6 +32,9 @@ chain_of_thought : bool
 code : bool
     Save detected code in responses as individual scripts.
     Default is True
+refine : bool
+    Automatically refine user prompt to improve query specificity.
+    Default is False
 context : bool
     Search for previous chat history for reflection prompting.
     Default is True
@@ -41,6 +44,9 @@ dim : str
 qual : str
     Image quality for Dall-e output
     Default int standard
+iterations : int
+    Number of responses to generate and parse for highest quality
+    Default is 3
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
@@ -67,6 +73,7 @@ def parse_arguments():
     parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
+    parser.add_argument("-i", "--iterations", type=int, default=1, help="Number of response iterations.")
     parser.add_argument("-s", "--silent", default=False, help="Suppress output.")
     parser.add_argument("-l", "--log", default=True, help="Save query log.")
     parser.add_argument("-j", "--career", default=False, help="How important is this request?")
