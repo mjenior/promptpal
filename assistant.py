@@ -44,7 +44,7 @@ dim : str
 qual : str
     Image quality for Dall-e output
     Default int standard
-iterations : int
+iters : int
     Number of responses to generate and parse for highest quality
     Default is 1
 key : str
@@ -54,7 +54,7 @@ silent : bool
     Silences all StdOut
     Default is False
 log : bool
-    Save response to query as a separate text file in current working directory
+    Save chat transcript as a text file in transcripts/
     Default is False
 """
 
@@ -73,9 +73,9 @@ def parse_arguments():
     parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
-    parser.add_argument("-i", "--iterations", type=int, default=1, help="Number of response iterations.")
+    parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations.")
     parser.add_argument("-s", "--silent", default=False, help="Suppress output.")
-    parser.add_argument("-l", "--log", default=True, help="Save query log.")
+    parser.add_argument("-l", "--log", default=False, help="Save query log.")
     parser.add_argument("-j", "--career", default=False, help="How important is this request?")
     return parser.parse_args()
 
@@ -95,6 +95,10 @@ def main():
 
     # Submit query and parse response
     api_handler.submit_query()
+
+    # Manage reporting
+    if args.log:
+        api_handler.save_chat_transcript()
     if not args.silent:
         print("\nFinished.\n")
     

@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from openai import OpenAI
 
-from src.lib import extDict, rewrite_options
+from src.lib import extDict, rewrite_options, system_message
 
 class OpenAIInterface():
     """
@@ -26,10 +26,12 @@ class OpenAIInterface():
         self.model = manager.model
         self.code = manager.code
         self.log = manager.log
+        self.log_text = manager.log_text
         self.transcript_file = manager.transcript_file
         self.size = manager.size
         self.quality = manager.quality
         self.iterations = manager.iterations
+        self.prefix = manager.prefix 
         self.print_response = True
 
         # Initialize client
@@ -59,9 +61,13 @@ class OpenAIInterface():
         """
         if not self.silent:
             print("\nSubmitting User query...\n")
+        if self.log:
+            self.log_text.append("\nSubmitting User query...\n")
+
         if self.label not in ["artist", "photo"]:
             return self._process_text_response()
-        return self._process_image_response()
+        else:
+            return self._process_image_response()
 
     def _process_text_response(self):
         """
@@ -71,20 +77,7 @@ class OpenAIInterface():
         response = self.client.chat.completions.create(
             model=self.model, messages=self.query, n=self.iterations,
         )
-        responses = [r.message.content.strip() for r in response.choices]
-        if len(responses) > 1:
-            system_message = "Synthesize all of the provided GPT responses and return a single cohesive answer containing the most informative elements of each.\n"
-            system_message += "If there is any special formatting contained in the prompts, make sure it is included in the refined response.\n"
-            responses = "\n\n".join(responses)
-
-            response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_message},
-                {"role": "user", "content": responses}])
-            message = response.choices[0].message.content.strip()
-        else:
-            message = responses[0]
+        message = self.condense_iterations(response)
 
         if self.print_response:
             print(f"\nResponse:\n{message}\n")
@@ -92,8 +85,11 @@ class OpenAIInterface():
         if self.code:
             os.makedirs('code', exist_ok=True)
             scripts = self._extract_code_from_reponse(message, self.timestamp)
-            if scripts and not self.silent:
-                print(f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n")
+            if scripts:
+                if not self.silent:
+                    print(f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n")
+                if self.log:
+                    self.log_text.append(f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n")
 
     def _process_image_response(self):
         """
@@ -102,37 +98,34 @@ class OpenAIInterface():
         self.reponse_type = "revised_prompt"
         os.makedirs('images', exist_ok=True)
         response = self.client.images.generate(
-            model=self.model,
-            prompt=self.prompt,
-            n=1,
-            size=self.size,
-            quality=self.quality
-        )
+            model=self.model, prompt=self.prompt,
+            n=1, size=self.size, quality=self.quality)
         revised_prompt = response.data[0].revised_prompt
         if not self.silent:
             print(f"Revised prompt:\n{revised_prompt}")
+        if self.log:
+            self.log_text.append(f"Revised prompt:\n{revised_prompt}")
 
         image_data = requests.get(response.data[0].url).content
-        image_file = f"images/{self.model.replace('-', '')}.{self.timestamp}.image.png"
+        image_file = f"images/{self.prefix}.image.png"
         with open(image_file, 'wb') as outFile:
             outFile.write(image_data)
         if not self.silent:
             print(f"\nGenerated image saved to: {image_file}")
-
         if self.log:
-            self._save_response_text(revised_prompt)
+            self.log_text.append(f"\nGenerated image saved to: {image_file}")
 
-    def _save_response_text(self, message):
+    def save_chat_transcript(self):
         """
         Saves the current response text to a file if specified.
         """
-        outFile = f"responses/{self.label}.{self.model.replace('-', '')}.{self.timestamp}.{self.reponse_type}.txt"
-        os.makedirs('responses', exist_ok=True)
+        outFile = f"transcripts/{self.prefix}.transcript.log"
+        os.makedirs('transcripts', exist_ok=True)
         with open(self.transcript_file, "a", encoding="utf-8") as file:
-            file.write(message)
+            file.write("\n".join(self.log_text))
 
         if not self.silent:
-            print(f"\nResponse text saved to: {outFile}")
+            print(f"\nResponse transcript text saved to: {outFile}")
 
     def _extract_code_from_reponse(self, response, timestamp):
         """
@@ -210,7 +203,22 @@ class OpenAIInterface():
 
         return func, clss
 
-    def refine_prompt(self, actions=['expand','amplify'], temp=0.7, iters=3):
+    def condense_iterations(self, api_response, sys_text=system_message):
+    
+        api_responses = [r.message.content.strip() for r in api_response.choices]
+        if len(api_responses) > 1:
+            condensed = self.client.chat.completions.create(
+                model=self.model,
+                messages = [
+                    {"role": "system", "content": sys_text},
+                    {"role": "user", "content": "\n\n".join(api_responses)}])
+            
+
+            return condensed.choices[0].message.content.strip()
+        else:
+            return api_responses[0]
+
+    def refine_prompt(self, actions=['expand','amplify'], temp=0.7):
         """
         Refines an LLM prompt using specified rewrite actions.
         
@@ -235,38 +243,19 @@ class OpenAIInterface():
             action_str += f"{a}; {rewrite_options[a]}\n"
 
         # Generate the system message for the action
-        system_message = f"Rewrite the input prompt based on the instruction: {action_str}"
-        system_message += "If there is any special formatting in the original prompt, make sure it is included in the refined response.\n"
-        system_message += "Refined prompt text should be at least twice as long as the original.\n"
-        system_message += "Code scaffolds or pseudo-code is useful when new code is requested.\n"
-        system_message += f"Attempt to include words from the following list where appropriate: {', '.join(list(rewrite_options.keys()))}\n"
+        refine_message = system_message + f"Rewrite the input prompt based on the instruction: {action_str}"
         if self.role: # Add specific expertise if provided
-            system_message += self.role
+            refine_message += self.role
         
         # Make an API call to refine the prompt over X iterations:
-        response = self.client.chat.completions.create(
+        refined = self.client.chat.completions.create(
             model=self.model, temperature=temp, n=self.iterations,
             messages=[
-                {"role": "system", "content": system_message},
+                {"role": "system", "content": refine_message},
                 {"role": "user", "content": self.prompt}])
-        responses = [r.message.content.strip() for r in response.choices]
 
         # Parse iterations and synthesize for more optimal response
-        if len(responses) > 1:
-            system_message = "Synthesize all of the provided GPT prompts and return a single cohesive prompt containing the most informative elements of each.\n"
-            system_message += "If there is any special formatting contained in the prompts, make sure it is included in the refined response.\n"
-            system_message += "Refined prompt text should be at least twice as long as the original.\n"
-            system_message += f"Attempt to include words from the following list where appropriate: {', '.join(list(rewrite_options.keys()))}\n"
-            all_prompts = "\n\n".join(responses)
-
-            response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_message},
-                {"role": "user", "content": all_prompts}])
-            final = response.choices[0].message.content.strip()
-        else:
-            final = responses[0]
+        final = self.condense_iterations(refined)
 
         if self.print_response:
             print(f'\nRefined prompt:\n{final}')

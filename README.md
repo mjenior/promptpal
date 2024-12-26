@@ -14,10 +14,11 @@ Python based command line interface for prompted conversation using ChatGPT API
 
 ## Key Features
 
-- **Automated System Role Selection**: Automatically assign system roles for your ChatGPT interaction, optimizing the model's responses based on your desired use case (e.g., compbio, investor, artist).
+- **Automated System Role Selection**: Automatically assign system roles for your ChatGPT interaction, optimizing the model's responses based on your desired use case 
 - **Code Detection**: The tool automatically identifies code snippets in the responses from the ChatGPT model and formats them properly.
 - **Save Code as Separate Scripts**: Detected code snippets can be saved as separate script files in your working directory for future use or execution.
 - **Flexible Command-Line Interface**: Simple, yet powerful, CLI commands allow easy interaction with the OpenAI ChatGPT API.
+- **Iterative Response Iterpretation**: Collects multiple responses to each query and condenses the best components into a single, higher quality response
 - **Contextual History Integration**: The tool can scan and incorporate previous conversation history from text files for added context in current requests.
 - **Chain of Thought Tracking**: Adds prompts that track reasoning and thought process, improving responses in scenarios requiring step-by-step reasoning.
 
@@ -97,7 +98,7 @@ dim : str
 qual : str
     Image quality for Dall-e output
     Default is standard
-iterations : int
+iters : int
     Number of responses to generate and parse for highest quality
     Default is 1
 refine : bool

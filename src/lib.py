@@ -158,10 +158,11 @@ Please consider: edge cases, error handling, perfomance optimization, memory usa
 If a file containing code is provided, read and refactor the contents to optimize function, readability, and modularity
 """
 
-HONESTY = "\nAdditionally prioritize honesty, and indicate when you are unable to answer confidently."
+HONESTY = "\nAdditionally prioritize honesty, and indicate when you are unable to answer confidently."        
 
-#--------------------------------------#
+#------------#
 
+# Collected default role text for easy import
 roleDict = {'assist': ASSISTANT+HONESTY,
             'compbio': COMPBIO+PYTHON+HONESTY,
             'dev': PYTHON+HONESTY,
@@ -172,6 +173,17 @@ roleDict = {'assist': ASSISTANT+HONESTY,
             'invest': INVESTING+HONESTY,
             'story': STORYTIME,
             'write': WRITING}
+
+# More human readable name for default roles
+roleNames = {'assist': 'Assistant',
+            'compbio': 'Computational Biologist',
+            'dev': 'Python Developer',
+            'art': 'Artist',
+            'photo': 'Photographer',
+            'invest': 'Investor',
+            'story': 'Storyteller',
+            'write': 'Writer',
+            'custom': 'Custom'}
 
 #-----------------------------------------------------------------------------------------------------------------------------#
 
@@ -208,6 +220,13 @@ rewrite_options = {
     "soft-pedal": "Rewrite the text to downplay or reduce the intensity of its tone or message.",
     "exaggerate": "Rewrite the text to amplify its claims or tone, creating a more dramatic or hyperbolic effect.",
     "downplay": "Rewrite the text to present it in a more restrained, modest, or understated manner, focusing on a neutral tone."}
+
+system_message = f"""Condense and synthesize all of the provided GPT responses to return a single cohesive answer containing the most informative elements of each.
+Refined prompt text should be at least twice as long as the original.
+If there is any special formatting contained in the prompts, make sure it is included in the refined response.
+Providing examples in queries is extremely useful when new code is requested.
+Attempt to include words from the following list where appropriate: {', '.join(list(rewrite_options.keys()))}.
+"""
 
 #-----------------------------------------------------------------------------------------------------------------------------#
 

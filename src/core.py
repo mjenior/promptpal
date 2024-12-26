@@ -3,17 +3,8 @@ import re
 import glob
 from datetime import datetime
 
-from src.lib import roleDict, modelList
+from src.lib import roleDict, modelList, roleNames
 
-roleNames = {'assist': 'Assistant',
-            'compbio': 'Computational Biologist',
-            'dev': 'Python Developer',
-            'art': 'Artist',
-            'photo': 'Photographer',
-            'invest': 'Investor',
-            'story': 'Storyteller',
-            'write': 'Writer',
-            'custom': 'Custom'}
   
 class QueryManager:
     """
@@ -31,6 +22,7 @@ class QueryManager:
         self.silent = args.silent
         self.code = args.code
         self.log = args.log
+        self.log_text = []
 
         # Processed arguments
         self.model = args.model
@@ -80,8 +72,13 @@ class QueryManager:
             role, wrds, check = self._file_text_scanner(role)
             if not self.silent:
                 print(f'\nCustom system role:\n{role}\n')
-        elif not self.silent:
-            print(f'\nUsing default system role: {roleNames[label]}')
+            if self.log:
+                self.log_text.append(f'\nCustom system role:\n{role}\n')
+        else:
+            if not self.silent:
+                print(f'\nUsing default system role: {roleNames[label]}')
+            if self.log:
+                self.log_text.append(f'\nUsing default system role: {roleNames[label]}')
 
         if args.career:
             role += "\n// My life and career likely depend on you giving me a good answer."
@@ -121,8 +118,12 @@ class QueryManager:
         full_text = "\n".join([f"// {line.capitalize().replace('// ','')}" for line in text]) # Join with new line syntax
         full_text += '.' if full_text[-1] not in ['.','!','?'] else '' # Add puncuation if needed
 
-        if not self.silent and full_text != text:
-            print(f'\nReformatted {type} text:\n{full_text}')
+        if full_text != text:
+            if not self.silent:
+                print(f'\nReformatted {type} text:\n{full_text}')
+            if self.log:
+                self.log_text.append(f'\nReformatted {type} text:\n{full_text}')
+
 
         return full_text, set(wrds)
 
@@ -155,8 +156,8 @@ class QueryManager:
         """
         Determines the number of response iterations based on user input and role.
         """
-        if self.role in {'refine', 'invest'} and args.iterations == 1:
-            return args.iterations + 3
+        if self.role in {'refine', 'invest'} and args.iters == 1:
+            return args.iterations + 2
         return args.iterations
 
     def _manage_context(self, args):
@@ -167,7 +168,7 @@ class QueryManager:
             return "", f"transcripts/{self.prefix}.transcript.log"
 
         os.makedirs('transcripts', exist_ok=True)
-        transcript_file = glob.glob(f"transcripts/{self.label}.{self.model}.{self.timestamp}.*.log")
+        transcript_file = glob.glob(f"transcripts/{self.label}.{self.model}.*.log")
         if transcript_file:
             with open(transcript_file[0], "r") as f:
                 reflection = f.read()
@@ -219,4 +220,7 @@ System parameters:
     Quality: {self.quality}
 """
         print(status)
+
+        if self.log:
+            self.log_text.append(status)
 
