@@ -166,7 +166,7 @@ You can scan previous chat conversation history stored as text files to provide 
 
 Example:
 ```bash
-assistant.py --history True --prompt "Where are they playing this week?" 
+assistant.py --context True --prompt "Where are they playing this week?" 
 ```
 
 ### Chain of Thought Tracking
@@ -184,7 +184,7 @@ This feature helps to increase the creative ability of a model thorugh multiple 
 
 Example:
 ```bash
-assistant.py --iterations 3 --prompt "Create a python script to download DNA sequence data from the SRA, preprocess the data for maximum comparibility, and idenify putative gene sequences." 
+assistant.py --iters 3 --prompt "Create a python script to download DNA sequence data from the SRA, preprocess the data for maximum comparibility, and idenify putative gene sequences." 
 ```
 
 ### Image Generation Parameters
@@ -222,5 +222,4 @@ We welcome contributions! If you'd like to contribute to this project, please fo
 ## License
 
 This project is licensed under the [MIT](http://opensource.org/licenses/MIT) License. See the [LICENSE](https://raw.githubusercontent.com/mjenior/cli_assistant/refs/heads/main/LICENSE.txt) file for more details.
-
 

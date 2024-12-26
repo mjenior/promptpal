@@ -157,8 +157,8 @@ class QueryManager:
         Determines the number of response iterations based on user input and role.
         """
         if self.role in {'refine', 'invest'} and args.iters == 1:
-            return args.iterations + 2
-        return args.iterations
+            return args.iters + 2
+        return args.iters
 
     def _manage_context(self, args):
         """
