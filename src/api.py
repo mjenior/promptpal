@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from openai import OpenAI
 
-from src.lib import extDict, rewrite_options, system_message
+from src.lib import extDict, rewrite_options, refine_message
 
 class OpenAIInterface():
     """
@@ -203,7 +203,7 @@ class OpenAIInterface():
 
         return func, clss
 
-    def condense_iterations(self, api_response, sys_text=system_message):
+    def condense_iterations(self, api_response, sys_text=refine_message):
     
         api_responses = [r.message.content.strip() for r in api_response.choices]
         if len(api_responses) > 1:
@@ -243,15 +243,15 @@ class OpenAIInterface():
             action_str += f"{a}; {rewrite_options[a]}\n"
 
         # Generate the system message for the action
-        refine_message = system_message + f"Rewrite the input prompt based on the instruction: {action_str}"
+        updated_message = refine_message + f"Rewrite the input prompt based on the instruction: {action_str}"
         if self.role: # Add specific expertise if provided
-            refine_message += self.role
+            updated_message += self.role
         
         # Make an API call to refine the prompt over X iterations:
         refined = self.client.chat.completions.create(
             model=self.model, temperature=temp, n=self.iterations,
             messages=[
-                {"role": "system", "content": refine_message},
+                {"role": "system", "content": updated_message},
                 {"role": "user", "content": self.prompt}])
 
         # Parse iterations and synthesize for more optimal response

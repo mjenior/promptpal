@@ -221,9 +221,10 @@ rewrite_options = {
     "exaggerate": "Rewrite the text to amplify its claims or tone, creating a more dramatic or hyperbolic effect.",
     "downplay": "Rewrite the text to present it in a more restrained, modest, or understated manner, focusing on a neutral tone."}
 
-system_message = f"""Condense and synthesize all of the provided GPT responses to return a single cohesive answer containing the most informative elements of each.
-Refined prompt text should be at least twice as long as the original.
-If there is any special formatting contained in the prompts, make sure it is included in the refined response.
+refine_message = f"""Condense and synthesize all of the text provided into return a single cohesive response. 
+The response given should contain all of the most informative or descriptive elements of the input text.
+Refined prompt text should be at least three sentences in length.
+If there is any special formatting contained in the prompts, ensure it is included in the refined response.
 Providing examples in queries is extremely useful when new code is requested.
 Attempt to include words from the following list where appropriate: {', '.join(list(rewrite_options.keys()))}.
 """
