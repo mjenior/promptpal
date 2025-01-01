@@ -223,6 +223,7 @@ rewrite_options = {
 
 refine_message = f"""Condense and synthesize all of the text provided into return a single cohesive response. 
 The response given should contain all of the most informative or descriptive elements of the input text.
+Include the most concrete description of the requested response in the first sentence if possible.
 Refined prompt text should be at least three sentences in length.
 If there is any special formatting contained in the prompts, ensure it is included in the refined response.
 Providing examples in queries is extremely useful when new code is requested.
