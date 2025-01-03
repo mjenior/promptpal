@@ -32,6 +32,9 @@ chain_of_thought : bool
 code : bool
     Save detected code in responses as individual scripts.
     Default is True
+unit_testing : bool
+    rite comprehesive unit tests for any generated code.
+    Default is False
 refine : bool
     Automatically refine user prompt to improve query specificity.
     Default is False
@@ -69,6 +72,7 @@ def parse_arguments():
     parser.add_argument("-t", "--chain_of_thought", default=True, help="Enable chain of thought reasoning.")
     parser.add_argument("-f", "--refine", default=False, help="Enable iterative input prompt refinement.")
     parser.add_argument("-c", "--code", default=True, help="Save detected code in responses.")
+    parser.add_argument("-u", "--unit_testing", default=False, help="Write comprehesive unit tests for any generated code.")
     parser.add_argument("-x", "--context", default=True, help="Use previous chat transcripts for context.")
     parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")

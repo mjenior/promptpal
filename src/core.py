@@ -3,7 +3,7 @@ import re
 import glob
 from datetime import datetime
 
-from src.lib import roleDict, modelList, roleNames
+from src.lib import roleDict, modelList, roleNames, unit_tests
 
   
 class QueryManager:
@@ -18,22 +18,25 @@ class QueryManager:
         # Time stamp
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-        # Simple booleans
+        # Simple arguments
         self.silent = args.silent
         self.code = args.code
         self.log = args.log
         self.log_text = []
+        self.model = args.model
+        self.refine = args.refine
+        if self.refine == True:
+            self.context = True
+        else:
+            self.context = args.context
 
         # Processed arguments
-        self.model = args.model
         self._set_api_key(args.key)
         self.role, self.label = self._select_role(args)
         self.role, words = self._format_input_text(text=self.role, type='role')
         self.model = self._select_model(args.model)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}."
         self.prompt, words = self._format_input_text(text=args.prompt, refine=args.refine, type="query")
-        self.refine = args.refine
-        self.context = args.context
         self._handle_image_request(words)
         self.chain_of_thought = self._add_chain_of_thought(args)
         self.iterations = self._calculate_iterations(args)
@@ -80,6 +83,11 @@ class QueryManager:
             if self.log:
                 self.log_text.append(f'\nUsing default system role: {roleNames[label]}')
 
+        # Add unit testing to prompt
+        if args.unit_testing and args.role != 'dev':
+            role += unit_tests
+
+        # Add urgency if necessary
         if args.career:
             role += "\n// My life and career likely depend on you giving me a good answer."
             

@@ -89,6 +89,9 @@ chain_of_thought : bool
 code : bool
     Save detected code in responses as individual scripts.
     Default is True
+unit_testing : bool
+    rite comprehesive unit tests for any generated code.
+    Default is False
 context : bool
     Search for previous chat transcripts for reflection prompting.
     Default is False
