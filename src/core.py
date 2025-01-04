@@ -45,17 +45,18 @@ class QueryManager:
         Sets the OpenAI API key.
         """
         if key == "system":
+            self.api_key = os.environ.get("OPENAI_API_KEY")
             if self.model == 'deepseek-chat':
-                self.api_key = os.environ.get("DEEPSEEK_API_KEY")
-            else:
-                self.api_key = os.environ.get("OPENAI_API_KEY")
+                self.api_key = os.environ.get("DEEPSEEK_API_KEY")                
             
             if not self.api_key:
                 raise EnvironmentError("OPENAI_API_KEY environment variable not found!")
         else:
             self.api_key = key
-            os.environ["OPENAI_API_KEY"] = self.api_key
-            #os.environ["DEEPSEEK_API_KEY"] = self.api_key
+            if self.model == 'deepseek-chat':
+                os.environ["DEEPSEEK_API_KEY"] = self.api_key
+            else:
+                os.environ["OPENAI_API_KEY"] = self.api_key
 
     def _select_model(self, model_arg):
         """
