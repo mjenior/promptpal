@@ -3,7 +3,7 @@ import re
 import glob
 from datetime import datetime
 
-from src.lib import roleDict, chatgptList, roleNames, unit_tests
+from src.lib import roleDict, chatgptList, unit_tests
 
   
 class QueryManager:
@@ -80,16 +80,19 @@ class QueryManager:
         label = args.role if args.role in roleDict.keys() else "custom"
 
         if label == "custom":
+            self.role_name = "Custom"
             role, wrds, check = self._file_text_scanner(role)
             if not self.silent:
                 print(f'\nCustom system role:\n{role}\n')
             if self.log:
                 self.log_text.append(f'\nCustom system role:\n{role}\n')
         else:
+            role = role["prompt"]
+            self.role_name = role['name']
             if not self.silent:
-                print(f'\nUsing default system role: {roleNames[label]}')
+                print(f'\nUsing default system role: {self.role_name}')
             if self.log:
-                self.log_text.append(f'\nUsing default system role: {roleNames[label]}')
+                self.log_text.append(f'\nUsing default system role: {self.role_name}')
 
         # Add unit testing to prompt
         if args.unit_testing and args.role != 'dev':
@@ -227,7 +230,7 @@ class QueryManager:
         status = f"""
 System parameters:
     Model: {self.model}
-    Role: {roleNames[self.label]}
+    Role: {self.role_name}
     Chain of Thought: {self.chain_of_thought}
     Prompt Refinement: {self.refine}
     Reflection: {self.context}

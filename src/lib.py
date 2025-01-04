@@ -180,16 +180,16 @@ Follow these guidelines for an effective testing process:
 #------------#
 
 # Collected default role text for easy import
-roleDict = {'assist': ASSISTANT+HONESTY,
-            'compbio': COMPBIO+HONESTY,
-            'dev': refactor+unit_tests,
-            'image': IMAGE,
-            'chain': CHAIN_OF_THOUGHT,
-            'art': ARTIST+IMAGE,
-            'photo': PHOTOGRAPHER+IMAGE,
-            'invest': INVESTING+HONESTY,
-            'story': STORYTIME,
-            'write': WRITING}
+roleDict = {'assist': {'prompt':ASSISTANT+HONESTY, 'name':},
+            'compbio': {'prompt':COMPBIO+HONESTY, 'name':},
+            'dev': {'prompt':refactor+unit_tests, 'name':},
+            'image': {'prompt':IMAGE, 'name':},
+            'chain': {'prompt':CHAIN_OF_THOUGHT, 'name':},
+            'art': {'prompt':ARTIST+IMAGE, 'name':},
+            'photo': {'prompt':PHOTOGRAPHER+IMAGE, 'name':},
+            'invest': {'prompt':INVESTING+HONESTY, 'name':},
+            'story': {'prompt':STORYTIME, 'name':},
+            'write': {'prompt':WRITING, 'name':}}
 
 # More human readable name for default roles
 roleNames = {'assist': 'Assistant',
