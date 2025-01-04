@@ -19,13 +19,13 @@ class OpenAIInterface():
         # Inherit core properties
         attributes = ["prompt", "role", "label", "reflection", "silent", 
             "timestamp", "model", "code", "log", "log_text", "transcript_file", 
-            "size", "quality", "iterations", "prefix"]
+            "size", "quality", "iterations", "prefix", "base_url"]
         for attr in attributes:
             setattr(self, attr, getattr(manager, attr))
         self.print_response = True
 
         # Initialize client
-        self.client = OpenAI() # need to change base_url for deepseek in the future
+        self.client = OpenAI() # need to change api_key and base_url for deepseek in the future
 
         # Finalize query
         if manager.refine:

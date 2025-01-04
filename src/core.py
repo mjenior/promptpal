@@ -19,16 +19,10 @@ class QueryManager:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Simple arguments
-        self.silent = args.silent
-        self.code = args.code
-        self.log = args.log
+        for attr in ["silent", "code", "log", "model", "refine", "context"]:
+            setattr(self, attr, getattr(args, attr))
+        self.context = True if self.refine == True
         self.log_text = []
-        self.model = args.model
-        self.refine = args.refine
-        if self.refine == True:
-            self.context = True
-        else:
-            self.context = args.context
 
         # Processed arguments
         self._set_api_key(args.key)
@@ -52,16 +46,15 @@ class QueryManager:
         """
         if key == "system":
             self.api_key = os.environ.get("OPENAI_API_KEY")
+            self.api_key = os.environ.get("DEEPSEEK_API_KEY")
+            
+
             if not self.api_key:
                 raise EnvironmentError("OPENAI_API_KEY environment variable not found!")
         else:
             self.api_key = key
             os.environ["OPENAI_API_KEY"] = self.api_key
-
-
-    #client = OpenAI(api_key="<DeepSeek API Key>", base_url="https://api.deepseek.com")
-    #response = client.chat.completions.create(
-    #model="deepseek-chat",
+            #os.environ["DEEPSEEK_API_KEY"] = self.api_key
 
     def _select_model(self, model_arg):
         """
