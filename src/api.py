@@ -17,21 +17,11 @@ class OpenAIInterface():
         Initializes the query handler with the provided variables.
         """
         # Inherit core properties
-        self.prompt = manager.prompt
-        self.role = manager.role
-        self.label = manager.label
-        self.reflection = manager.reflection
-        self.silent = manager.silent
-        self.timestamp = manager.timestamp
-        self.model = manager.model
-        self.code = manager.code
-        self.log = manager.log
-        self.log_text = manager.log_text
-        self.transcript_file = manager.transcript_file
-        self.size = manager.size
-        self.quality = manager.quality
-        self.iterations = manager.iterations
-        self.prefix = manager.prefix 
+        attributes = ["prompt", "role", "label", "reflection", "silent", 
+            "timestamp", "model", "code", "log", "log_text", "transcript_file", 
+            "size", "quality", "iterations", "prefix"]
+        for attr in attributes:
+            setattr(self, attr, getattr(manager, attr))
         self.print_response = True
 
         # Initialize client
