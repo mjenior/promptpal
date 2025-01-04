@@ -25,7 +25,7 @@ class OpenAIInterface():
         self.print_response = True
 
         # Initialize client
-        self.client = OpenAI(base_url=manager.base_url)
+        self.client = OpenAI() # need to change base_url for deepseek in the future
 
         # Finalize query
         if manager.refine:
