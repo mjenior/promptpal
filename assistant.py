@@ -57,7 +57,10 @@ silent : bool
     Silences all StdOut
     Default is False
 log : bool
-    Save chat transcript as a text file in transcripts/
+    Save chat transcript as a text file in transcripts.
+    Default is False
+urgent : bool
+    Add urgency to the request [UNTESTED].
     Default is False
 """
 
@@ -69,18 +72,18 @@ def parse_arguments():
     parser.add_argument("-p", "--prompt", type=str, default="what is the answer to life the universe and everything?", help="User prompt text or path to a .txt file.")
     parser.add_argument("-r", "--role", type=str, default="assist", help="Assistant role text.")
     parser.add_argument("-m", "--model", type=str, default="gpt-4o-mini", help="ChatGPT model.")
-    parser.add_argument("-t", "--chain_of_thought", default=True, help="Enable chain of thought reasoning.")
+    parser.add_argument("-c", "--chain_of_thought", default=True, help="Enable chain of thought reasoning.")
     parser.add_argument("-f", "--refine", default=False, help="Enable iterative input prompt refinement.")
-    parser.add_argument("-c", "--code", default=True, help="Save detected code in responses.")
+    parser.add_argument("-x", "--code", default=True, help="Save detected code in responses.")
     parser.add_argument("-u", "--unit_testing", default=False, help="Write comprehesive unit tests for any generated code.")
-    parser.add_argument("-x", "--context", default=True, help="Use previous chat transcripts for context.")
+    parser.add_argument("-o", "--context", default=True, help="Use previous chat transcripts for context.")
     parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
     parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations.")
     parser.add_argument("-s", "--silent", default=False, help="Suppress output.")
     parser.add_argument("-l", "--log", default=False, help="Save query log.")
-    parser.add_argument("-j", "--career", default=False, help="How important is this request?")
+    parser.add_argument("-g", "--urgent", default=False, help="Add urgency to the request [UNTESTED]")
     return parser.parse_args()
 
 

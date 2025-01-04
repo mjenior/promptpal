@@ -99,8 +99,8 @@ class QueryManager:
             role += unit_tests
 
         # Add urgency if necessary
-        if args.career:
-            role += "\n// My life and career likely depend on you giving me a good answer."
+        if args.urgent:
+            role += "\n// My life or career likely depend on you giving me a high quality answer."
             
         return role, label
 

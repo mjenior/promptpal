@@ -119,6 +119,9 @@ silent : bool
 log : bool
     Save response to current query as a separate text file
     Default is False
+urgent : bool
+    Add urgency to the request [UNTESTED].
+    Default is False
 ```
 
 ### System Role Selection
