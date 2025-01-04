@@ -25,10 +25,10 @@ class QueryManager:
         self.log_text = []
 
         # Processed arguments
-        self._set_api_key(args.key)
         self.role, self.label = self._select_role(args)
         self.role, words = self._format_input_text(text=self.role, type='role')
         self.model, self.base_url = self._select_model(args.model)
+        self._set_api_key(args.key)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}."
         self.prompt, words = self._format_input_text(text=args.prompt, refine=args.refine, type="query")
         self._handle_image_request(words)
@@ -45,10 +45,11 @@ class QueryManager:
         Sets the OpenAI API key.
         """
         if key == "system":
-            self.api_key = os.environ.get("OPENAI_API_KEY")
-            self.api_key = os.environ.get("DEEPSEEK_API_KEY")
+            if self.model == 'deepseek-chat':
+                self.api_key = os.environ.get("DEEPSEEK_API_KEY")
+            else:
+                self.api_key = os.environ.get("OPENAI_API_KEY")
             
-
             if not self.api_key:
                 raise EnvironmentError("OPENAI_API_KEY environment variable not found!")
         else:
