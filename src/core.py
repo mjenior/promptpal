@@ -20,7 +20,7 @@ class QueryManager:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Simple arguments
-        for attr in ["silent", "code", "log", "model", "refine", "context"]:
+        for attr in ["silent", "code", "log", "model", "refine", "context", "chain_of_thought"]:
             setattr(self, attr, getattr(args, attr))
         self.context = True if self.refine == True else self.context
         self.log_text = []
@@ -28,12 +28,12 @@ class QueryManager:
         # Processed arguments
         self.role, self.label = self._select_role(args)
         self.role, words = self.format_input_text(text=self.role, type='role')
+        if self.chain_of_thought: self.role += roleDict['chain']
         self.model, self.base_url = self._select_model(args.model)
         self.api_key = self._set_api_key(args.key)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"
         self.prompt, words = self.format_input_text(text=args.prompt, type="query")
         self._handle_image_request(words)
-        self.chain_of_thought = self._add_chain_of_thought(args)
         self.iterations = self._calculate_iterations(args)
         self.reflection, self.transcript_file = self._manage_context(args)
         self.size, self.quality = self._handle_image_params(args)
@@ -169,16 +169,6 @@ class QueryManager:
             self.role = roleDict['photo']["prompt"]
             self.label = "photo"
             self.model = "dall-e-3"
-
-    def _add_chain_of_thought(self, args):
-        """
-        Adds chain-of-thought reasoning to the role if applicable.
-        """
-        if args.chain_of_thought and self.label not in {"art", "story", "photo"}:
-            self.role += roleDict['chain']["prompt"]
-            return "True"
-        else:
-            return "False"
 
     def _calculate_iterations(self, args):
         """
