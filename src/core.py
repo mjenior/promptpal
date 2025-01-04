@@ -65,11 +65,9 @@ class QueryManager:
         url="https://api.openai.com"
         mod = model_arg.lower()
         
-        if mod in chatgptList:
-            pass
-        elif mod == 'deepseek-chat':
+        if mod == 'deepseek-chat': # ready if new deepseek models become available
             url="https://api.deepseek.com"
-        else:
+        elif mode not in chatgptList:
             mod = "gpt-4o-mini"
 
         return mod, url
