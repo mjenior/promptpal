@@ -1,6 +1,7 @@
 import os
 import re
 import glob
+from copy import copy
 from datetime import datetime
 
 from src.lib import roleDict, chatgptList, unit_tests
@@ -26,11 +27,11 @@ class QueryManager:
 
         # Processed arguments
         self.role, self.label = self._select_role(args)
-        self.role, words = self._format_input_text(text=self.role, type='role')
+        self.role, words = self.format_input_text(text=self.role, type='role')
         self.model, self.base_url = self._select_model(args.model)
         self.api_key = self._set_api_key(args.key)
-        self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}."
-        self.prompt, words = self._format_input_text(text=args.prompt, refine=args.refine, type="query")
+        self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"
+        self.prompt, words = self.format_input_text(text=args.prompt, type="query")
         self._handle_image_request(words)
         self.chain_of_thought = self._add_chain_of_thought(args)
         self.iterations = self._calculate_iterations(args)
@@ -100,7 +101,7 @@ class QueryManager:
 
         # Add urgency if necessary
         if args.urgent:
-            role += "\n// My life or career likely depend on you giving me a high quality answer."
+            role += "\nMy life or career likely depend on you giving me a high quality answer."
             
         return role, label
 
@@ -124,27 +125,35 @@ class QueryManager:
                 with open(word, 'r') as handle:
                     sentences += [x.strip() for x in handle.readlines() if len(x.strip()) >= 1]
 
-        return sentences, words, found
+        return '\n'.join(sentences), set(words), found
 
-    def _format_input_text(self, text, refine=False, type="query"):
+    def format_input_text(self, text, type="query"):
         """
         Formats the user input text for interpretability.
         """
+        wrds = [x.strip() for x in text.split()]
+        for p in ['.','!','?']:
+            wrds = [y.replace(p, '') for y in wrds]
+        wrds = set(wrds)
+
         check = True
         while check:
-            text, wrds, check = self._file_text_scanner(text)
+            text, w, check = self._file_text_scanner(text)
+            wrds |= w
 
-        full_text = "\n".join([f"// {line.capitalize().replace('// ','')}" for line in text]) # Join with new line syntax
-        full_text += '.' if full_text[-1] not in ['.','!','?'] else '' # Add puncuation if needed
+        fixed = copy(text)
+        for p in ['.', '?', '!']:
+            if p in fixed:
+                lines = fixed.split(p)
+                lines = [x.strip().capitalize() for x in lines if len(x.strip()) > 0]
+                fixed = f"{p}\n".join(lines)
+        fixed += '.' if fixed[-1] not in ['.','!','?'] else '' # Add puncuation if needed
 
-        if full_text != text:
-            if not self.silent:
-                print(f'\nReformatted {type} text:\n{full_text}')
+        if fixed != text:
             if self.log:
-                self.log_text.append(f'\nReformatted {type} text:\n{full_text}')
+                self.log_text.append(f'\nReformatted {type} text:\n{fixed}')
 
-
-        return full_text, set(wrds)
+        return fixed, wrds
 
     def _handle_image_request(self, words):
         """

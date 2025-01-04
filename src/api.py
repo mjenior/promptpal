@@ -1,6 +1,7 @@
 import re
 import os
 import requests
+from copy import copy
 from collections import defaultdict
 
 from openai import OpenAI
@@ -53,9 +54,9 @@ class OpenAIInterface():
         Submits the query to OpenAI's API and processes the response.
         """
         if not self.silent:
-            print("\nSubmitting User query...\n")
+            print("\nProcessing finalized user query...\n")
         if self.log:
-            self.log_text.append("\nSubmitting User query...\n")
+            self.log_text.append("\nProcessing finalized user query...\n")
 
         if self.label not in ["artist", "photo"]:
             return self._process_text_response()
@@ -95,7 +96,7 @@ class OpenAIInterface():
             n=1, size=self.size, quality=self.quality)
         revised_prompt = response.data[0].revised_prompt
         if not self.silent:
-            print(f"Revised prompt:\n{revised_prompt}")
+            print(f"Revised initial initial prompt:\n{revised_prompt}")
         if self.log:
             self.log_text.append(f"Revised prompt:\n{revised_prompt}")
 
@@ -247,10 +248,10 @@ class OpenAIInterface():
                 {"role": "user", "content": self.prompt}])
 
         # Parse iterations and synthesize for more optimal response
-        final = self.condense_iterations(refined)
+        refined = self.condense_iterations(refined)
 
         if self.print_response:
-            print(f'\nRefined prompt:\n{final}')
+            print(f'\nRefined prompt:\n{refined}')
         
         # Update the refined prompt with the response
-        return final
+        return refined
