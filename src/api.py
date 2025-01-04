@@ -19,13 +19,16 @@ class OpenAIInterface():
         # Inherit core properties
         attributes = ["prompt", "role", "label", "reflection", "silent", 
             "timestamp", "model", "code", "log", "log_text", "transcript_file", 
-            "size", "quality", "iterations", "prefix", "base_url"]
+            "size", "quality", "iterations", "prefix", "base_url", "api_key"]
         for attr in attributes:
             setattr(self, attr, getattr(manager, attr))
         self.print_response = True
 
         # Initialize client
-        self.client = OpenAI() # need to change api_key and base_url for deepseek in the future
+        if self.model == 'deepseek-chat':
+            self.client = OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com")
+        else:
+            self.client = OpenAI(api_key=self.api_key)
 
         # Finalize query
         if manager.refine:

@@ -28,7 +28,7 @@ class QueryManager:
         self.role, self.label = self._select_role(args)
         self.role, words = self._format_input_text(text=self.role, type='role')
         self.model, self.base_url = self._select_model(args.model)
-        self._set_api_key(args.key)
+        self.api_key = self._set_api_key(args.key)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}."
         self.prompt, words = self._format_input_text(text=args.prompt, refine=args.refine, type="query")
         self._handle_image_request(words)
