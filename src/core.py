@@ -21,7 +21,7 @@ class QueryManager:
         # Simple arguments
         for attr in ["silent", "code", "log", "model", "refine", "context"]:
             setattr(self, attr, getattr(args, attr))
-        self.context = True if self.refine == True
+        self.context = True if self.refine == True else self.context
         self.log_text = []
 
         # Processed arguments
@@ -67,7 +67,7 @@ class QueryManager:
         
         if mod == 'deepseek-chat': # ready if new deepseek models become available
             url="https://api.deepseek.com"
-        elif mode not in chatgptList:
+        elif mod not in chatgptList:
             mod = "gpt-4o-mini"
 
         return mod, url
@@ -87,12 +87,12 @@ class QueryManager:
             if self.log:
                 self.log_text.append(f'\nCustom system role:\n{role}\n')
         else:
-            role = role["prompt"]
             self.role_name = role['name']
             if not self.silent:
                 print(f'\nUsing default system role: {self.role_name}')
             if self.log:
                 self.log_text.append(f'\nUsing default system role: {self.role_name}')
+            role = role["prompt"]
 
         # Add unit testing to prompt
         if args.unit_testing and args.role != 'dev':
@@ -153,11 +153,11 @@ class QueryManager:
         art_keywords = {'create', 'generate', 'image', 'picture', 'draw', 'paint', 'painting', 'illustration'}
         photo_keywords = {'create', 'generate', 'photo', 'photograph'}
         if len(words & art_keywords) > 1:
-            self.role = roleDict['art']
+            self.role = roleDict['art']["prompt"]
             self.label = "art"
             self.model = "dall-e-3"
         elif len(words & photo_keywords) > 1:
-            self.role = roleDict['photo']
+            self.role = roleDict['photo']["prompt"]
             self.label = "photo"
             self.model = "dall-e-3"
 
@@ -166,7 +166,7 @@ class QueryManager:
         Adds chain-of-thought reasoning to the role if applicable.
         """
         if args.chain_of_thought and self.label not in {"art", "story", "photo"}:
-            self.role += roleDict['chain']
+            self.role += roleDict['chain']["prompt"]
             return "True"
         else:
             return "False"

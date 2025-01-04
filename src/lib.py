@@ -184,23 +184,12 @@ roleDict = {'assist': {'prompt':ASSISTANT+HONESTY, 'name':'Assistant'},
             'compbio': {'prompt':COMPBIO+HONESTY, 'name':'Computational Biologist'},
             'dev': {'prompt':refactor+unit_tests, 'name':'Python Developer'},
             'image': {'prompt':IMAGE, 'name':'Image'},
-            'chain': {'prompt':CHAIN_OF_THOUGHT, 'name':},
+            'chain': {'prompt':CHAIN_OF_THOUGHT, 'name':'Chain of Thought'},
             'art': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
             'photo': {'prompt':PHOTOGRAPHER+IMAGE, 'name':'Photographer'},
             'invest': {'prompt':INVESTING+HONESTY, 'name':'Investor'},
             'story': {'prompt':STORYTIME, 'name':'Storyteller'},
             'write': {'prompt':WRITING, 'name':'Writer'}}
-
-# More human readable name for default roles
-roleNames = {'assist': 'Assistant',
-            'compbio': 'Computational Biologist',
-            'dev': 'Python Developer',
-            'art': 'Artist',
-            'photo': 'Photographer',
-            'invest': 'Investor',
-            'story': 'Storyteller',
-            'write': 'Writer',
-            'custom': 'Custom'}
 
 #-----------------------------------------------------------------------------------------------------------------------------#
 

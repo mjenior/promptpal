@@ -130,13 +130,12 @@ class OpenAIInterface():
 
         # Split response into lines and process
         for line in response.splitlines():
-            line = line.strip()
 
             # Start or end of a code block
             counter = 0
             if line.startswith("```"):
                 if len(pyObjects["current_code"]) > 2:  # End of a code block
-                    pyObjects["code"] = "\n".join(pyObjects["current_code"])
+                    pyObjects["code"] = "\n".join(pyObjects["current_code"]) + "\n"
 
                     # Determine output filename
                     counter += 1
@@ -154,7 +153,7 @@ class OpenAIInterface():
 
                 else:  # Start of a new code block
                     lang = line.replace("```", "").lower()
-                    pyObjects["current_code"].append(lang.capitalize())
+                    pyObjects["current_code"].append(f"# {lang}\n")
 
             # Process lines within a code block
             elif len(pyObjects["current_code"]) > 1:
