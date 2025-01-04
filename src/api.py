@@ -77,9 +77,9 @@ class OpenAIInterface():
             print(f"\nResponse:\n{message}\n")
 
         if self.code:
-            os.makedirs('code', exist_ok=True)
             scripts = self._extract_code_from_reponse(message, self.timestamp)
             if scripts:
+                os.makedirs('code', exist_ok=True)
                 if not self.silent:
                     print(f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n")
                 if self.log:
