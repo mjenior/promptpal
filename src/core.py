@@ -3,7 +3,7 @@ import re
 import glob
 from datetime import datetime
 
-from src.lib import roleDict, modelList, roleNames, unit_tests
+from src.lib import roleDict, chatgptList, roleNames, unit_tests
 
   
 class QueryManager:
@@ -34,7 +34,7 @@ class QueryManager:
         self._set_api_key(args.key)
         self.role, self.label = self._select_role(args)
         self.role, words = self._format_input_text(text=self.role, type='role')
-        self.model = self._select_model(args.model)
+        self.model, self.base_url = self._select_model(args.model)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}."
         self.prompt, words = self._format_input_text(text=args.prompt, refine=args.refine, type="query")
         self._handle_image_request(words)
@@ -58,11 +58,26 @@ class QueryManager:
             self.api_key = key
             os.environ["OPENAI_API_KEY"] = self.api_key
 
+
+    #client = OpenAI(api_key="<DeepSeek API Key>", base_url="https://api.deepseek.com")
+    #response = client.chat.completions.create(
+    #model="deepseek-chat",
+
     def _select_model(self, model_arg):
         """
         Validates and selects the model based on user input or defaults to `gpt-4o-mini`.
         """
-        return model_arg.lower() if model_arg.lower() in modelList else "gpt-4o-mini"
+        url="https://api.openai.com"
+        mod = model_arg.lower()
+        
+        if mod in chatgptList:
+            pass
+        elif mod == 'deepseek-chat':
+            url="https://api.deepseek.com"
+        else:
+            mod = "gpt-4o-mini"
+
+        return mod, url
     
     def _select_role(self, args):
         """

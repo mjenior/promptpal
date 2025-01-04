@@ -35,7 +35,7 @@ class OpenAIInterface():
         self.print_response = True
 
         # Initialize client
-        self.client = OpenAI()
+        self.client = OpenAI(base_url=manager.base_url)
 
         # Finalize query
         if manager.refine:
