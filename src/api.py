@@ -18,8 +18,8 @@ class OpenAIInterface():
         Initializes the query handler with the provided variables.
         """
         # Inherit core properties
-        attributes = ["prompt", "role", "label", "reflection", "silent", 
-            "timestamp", "model", "code", "log", "log_text", "transcript_file", 
+        attributes = ["prompt", "role", "label", "silent", 
+            "timestamp", "model", "code", "log", "log_text", "log_file", 
             "size", "quality", "iterations", "prefix", "base_url", "api_key"]
         for attr in attributes:
             setattr(self, attr, getattr(manager, attr))
@@ -44,9 +44,7 @@ class OpenAIInterface():
             {"role": "user", "content": self.prompt},
             {"role": "system", "content": self.role}
         ]
-        if self.reflection:
-            query.append({"role": "assistant", "content": self.reflection})
-        
+
         return query
 
     def submit_query(self):
@@ -113,13 +111,11 @@ class OpenAIInterface():
         """
         Saves the current response text to a file if specified.
         """
-        outFile = f"transcripts/{self.prefix}.transcript.log"
-        os.makedirs('transcripts', exist_ok=True)
-        with open(self.transcript_file, "a", encoding="utf-8") as file:
-            file.write("\n".join(self.log_text))
+        with open(self.log_file, "a", encoding="utf-8") as f:
+            f.write("\n".join(self.log_text))
 
         if not self.silent:
-            print(f"\nResponse transcript text saved to: {outFile}")
+            print(f"\nResponse transcript text saved to: {self.log_file}")
 
     def _extract_code_from_reponse(self, response, timestamp):
         """

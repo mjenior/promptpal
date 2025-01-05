@@ -19,7 +19,6 @@ Python based command line interface for prompted conversation using ChatGPT API
 - **Save Code as Separate Scripts**: Detected code snippets can be saved as separate script files in your working directory for future use or execution.
 - **Flexible Command-Line Interface**: Simple, yet powerful, CLI commands allow easy interaction with the OpenAI ChatGPT API.
 - **Iterative Response Iterpretation**: Collects multiple responses to each query and condenses the best components into a single, higher quality response
-- **Contextual History Integration**: The tool can scan and incorporate previous conversation history from text files for added context in current requests.
 - **Chain of Thought Tracking**: Adds prompts that track reasoning and thought process, improving responses in scenarios requiring step-by-step reasoning.
 
 
@@ -92,9 +91,6 @@ code : bool
 unit_testing : bool
     rite comprehesive unit tests for any generated code.
     Default is False
-context : bool
-    Search for previous chat transcripts for reflection prompting.
-    Default is False
 dim : str
     Dimensions for Dall-e image generation
     Default is 1024x1024
@@ -132,12 +128,12 @@ Available role shortcuts:
 
 - assist (default): Standard personal assistant with improved ability to help with tasks
 - compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
+- dev: Senior python full stack developer with emphases in correct syntex, code brevity, full documentation, and unit testing.
 - invest: Experience in technology stock investment and wealth management. Provides analyses for new stocks to invest in.
 - art: Creates an images described by the prompt, default style leans toward illustrations
 - photo: Gnereates more photo-realistic images
-- refine: Designed to assist with iterative prompt engineering and refinement
-- story: Retells plot of popular books and movies to appropriate for ~3 year olds with fun changes to characters
-- write: Writing assistant to help with clarity and brevity
+- story: Retells plot of popular books and movies to appropriate for ~3 year olds with fun changes to characters.
+- rewrite: Writing assistant to help with clarity and brevity
 
 Example 1:
 ```bash
@@ -165,15 +161,6 @@ def find_max(lst):
 ```
 
 This assistant will then automatically save the generated code into find_max.time_stamp.py in the current working directory. Set to [True] by default.
-
-### Scanning Conversation History for Improved Context (Reflection)
-
-You can scan previous chat conversation history stored as text files to provide additional context for your current prompt. This helps improve continuity between sessions or when referring to previous discussions. The default scans the current working directory, but can also be set to [False] to skip this entirely.
-
-Example:
-```bash
-assistant.py --context True --prompt "Where are they playing this week?" 
-```
 
 ### Chain of Thought Tracking
 

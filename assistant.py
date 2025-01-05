@@ -38,9 +38,6 @@ unit_testing : bool
 refine : bool
     Automatically refine user prompt to improve query specificity.
     Default is False
-context : bool
-    Search for previous chat history for reflection prompting.
-    Default is True
 dim : str
     Dimensions for Dall-e image generation
     Default is 1024x1024
@@ -76,7 +73,6 @@ def parse_arguments():
     parser.add_argument("-f", "--refine", default=False, help="Enable iterative input prompt refinement.")
     parser.add_argument("-x", "--code", default=True, help="Save detected code in responses.")
     parser.add_argument("-u", "--unit_testing", default=False, help="Write comprehesive unit tests for any generated code.")
-    parser.add_argument("-o", "--context", default=False, help="Use previous chat transcripts for context.")
     parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")

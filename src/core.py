@@ -20,9 +20,8 @@ class QueryManager:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Simple arguments
-        for attr in ["silent", "code", "log", "model", "refine", "context", "chain_of_thought"]:
+        for attr in ["silent", "code", "log", "model", "refine", "chain_of_thought"]:
             setattr(self, attr, getattr(args, attr))
-        self.context = True if self.refine == True else self.context
         self.log_text = []
 
         # Processed arguments
@@ -35,8 +34,10 @@ class QueryManager:
         self.prompt, words = self.format_input_text(text=args.prompt, type="query")
         self._handle_image_request(words)
         self.iterations = self._calculate_iterations(args)
-        self.reflection, self.transcript_file = self._manage_context(args)
         self.size, self.quality = self._handle_image_params(args)
+
+        if self.log:
+            self.transcript_file = self._manage_logging(args)
 
         if not self.silent:
             self._report_query_params()
@@ -178,24 +179,17 @@ class QueryManager:
             return args.iters + 2
         return args.iters
 
-    def _manage_context(self, args):
+    def _manage_logging(self, args):
         """
         Manages conversation transcript history for continuity in responses.
         """
-        if not args.context:
-            return "", f"transcripts/{self.prefix}.transcript.log"
+        os.makedirs('logs', exist_ok=True)
+        log_file = f"logs/{self.prefix}.transcript.log"
 
-        os.makedirs('transcripts', exist_ok=True)
-        transcript_file = glob.glob(f"transcripts/{self.label}.{self.model}.*.log")
-        if transcript_file:
-            with open(transcript_file[0], "r") as f:
-                reflection = f.read()
-            return reflection, transcript_file[0]
-
-        new_file_path = f"transcripts/{self.prefix}.transcript.log"
-        with open(new_file_path, "w") as file:
-            file.write("New session initiated.\n")
-        return "", new_file_path
+        with open(log_file, "w") as f:
+            f.write("New session initiated.\n")
+        
+        return log_file
 
     def _handle_image_params(self, args):
         """
@@ -232,11 +226,9 @@ System parameters:
     Role: {self.role_name}
     Chain of Thought: {self.chain_of_thought}
     Prompt Refinement: {self.refine}
-    Reflection: {self.context}
     Iterations: {self.iterations}
     Dimensions: {self.size}
-    Quality: {self.quality}
-"""
+    Quality: {self.quality}"""
         print(status)
 
         if self.log:

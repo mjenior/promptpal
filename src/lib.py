@@ -189,7 +189,7 @@ roleDict = {'assist': {'prompt':ASSISTANT+HONESTY, 'name':'Assistant'},
             'photo': {'prompt':PHOTOGRAPHER+IMAGE, 'name':'Photographer'},
             'invest': {'prompt':INVESTING+HONESTY, 'name':'Investor'},
             'story': {'prompt':STORYTIME, 'name':'Storyteller'},
-            'write': {'prompt':WRITING, 'name':'Writer'}}
+            'rewrite': {'prompt':WRITING, 'name':'Writer'}}
 
 #-----------------------------------------------------------------------------------------------------------------------------#
 
