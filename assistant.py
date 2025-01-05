@@ -28,7 +28,7 @@ model : str
     Default is gpt-4o-mini
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
-    Default is False
+    Default is True
 code : bool
     Save detected code in responses as individual scripts.
     Default is True
@@ -55,7 +55,7 @@ silent : bool
     Default is False
 log : bool
     Save chat transcript as a text file in transcripts.
-    Default is False
+    Default is True
 urgent : bool
     Add urgency to the request [UNTESTED].
     Default is False
@@ -78,7 +78,7 @@ def parse_arguments():
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
     parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations.")
     parser.add_argument("-s", "--silent", default=False, help="Suppress output.")
-    parser.add_argument("-l", "--log", default=False, help="Save query log.")
+    parser.add_argument("-l", "--log", default=True, help="Save query log.")
     parser.add_argument("-g", "--urgent", default=False, help="Add urgency to the request [UNTESTED]")
     return parser.parse_args()
 

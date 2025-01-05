@@ -85,7 +85,7 @@ model : str
     Default is gpt-4o-mini
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
-    Default is False
+    Default is True
 code : bool
     Save detected code in responses as individual scripts.
     Default is True
@@ -115,7 +115,7 @@ silent : bool
     Default is False
 log : bool
     Save response to current query as a separate text file
-    Default is False
+    Default is True
 urgent : bool
     Add urgency to the request [UNTESTED].
     Default is False
