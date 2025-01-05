@@ -37,7 +37,7 @@ class QueryManager:
         self.size, self.quality = self._handle_image_params(args)
 
         if self.log:
-            self.transcript_file = self._manage_logging(args)
+            self.log_file = self._manage_logging(args)
 
         if not self.silent:
             self._report_query_params()
