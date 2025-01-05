@@ -27,7 +27,7 @@ class QueryManager:
         # Processed arguments
         self.role, self.label = self._select_role(args)
         new_role, words = self.format_input_text(text=self.role, type='role')
-        if self.chain_of_thought: self.role += roleDict['chain']
+        if self.chain_of_thought == True: self.role += roleDict['chain']
         self.model, self.base_url = self._select_model(args.model)
         self.api_key = self._set_api_key(args.key)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"
@@ -36,10 +36,10 @@ class QueryManager:
         self.iterations = self._calculate_iterations(args)
         self.size, self.quality = self._handle_image_params(args)
 
-        if self.log:
+        if self.log == True:
             self.log_file = self._manage_logging(args)
 
-        if not self.silent:
+        if self.silent == False:
             self._report_query_params()
 
     def _set_api_key(self, key):
@@ -84,24 +84,24 @@ class QueryManager:
         if label == "custom":
             self.role_name = "Custom"
             role, wrds, check = self._file_text_scanner(role)
-            if not self.silent:
+            if self.silent == False:
                 print(f'\nCustom system role:\n{role}\n')
-            if self.log:
+            if self.log == True:
                 self.log_text.append(f'\nCustom system role:\n{role}\n')
         else:
             self.role_name = role['name']
-            if not self.silent:
+            if self.silent == False:
                 print(f'\nUsing default system role: {self.role_name}')
-            if self.log:
+            if self.log == True:
                 self.log_text.append(f'\nUsing default system role: {self.role_name}')
             role = role["prompt"]
 
         # Add unit testing to prompt
-        if args.unit_testing and args.role != 'dev':
+        if args.unit_testing == True and args.role != 'dev':
             role += unit_tests
 
         # Add urgency if necessary
-        if args.urgent:
+        if args.urgent == True:
             role += "\nMy life or career likely depend on you giving me a high quality answer."
             
         return role, label
@@ -150,7 +150,7 @@ class QueryManager:
         fixed += '.' if fixed[-1] not in ['.','!','?'] else '' # Add puncuation if needed
 
         #if fixed != text:
-        #    if self.log:
+        #    if self.log == True:
         #        self.log_text.append(f'\nReformatted {type} text:\n{fixed}')
 
         return fixed, wrds
@@ -231,6 +231,6 @@ System parameters:
     """
         print(status)
 
-        if self.log:
+        if self.log == True:
             self.log_text.append(status)
 

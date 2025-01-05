@@ -21,11 +21,11 @@ class OpenAIInterface():
         attributes = ["prompt", "role", "label", "silent", 
             "timestamp", "model", "code", "log", "log_text", 
             "size", "quality", "iterations", "prefix", 
-            "base_url", "api_key"]
+            "base_url", "api_key", "refine"]
         for attr in attributes:
             setattr(self, attr, getattr(manager, attr))
         self.print_response = True
-        if self.log:
+        if self.log == True:
             self.log_file = manager.log_file
 
         # Initialize client
@@ -35,7 +35,7 @@ class OpenAIInterface():
             self.client = OpenAI(api_key=self.api_key)
 
         # Finalize query
-        if manager.refine:
+        if self.refine == True:
             self.prompt = self.refine_prompt()
         self.query = self._assemble_query()
         
@@ -54,9 +54,9 @@ class OpenAIInterface():
         """
         Submits the query to OpenAI's API and processes the response.
         """
-        if not self.silent:
+        if self.silent == False:
             print("\nProcessing finalized user query...\n")
-        if self.log:
+        if self.log == True:
             self.log_text.append("\nProcessing finalized user query...\n")
 
         if self.label not in ["artist", "photo"]:
@@ -74,16 +74,16 @@ class OpenAIInterface():
         )
         message = self.condense_iterations(response)
 
-        if self.print_response:
+        if self.print_response == True:
             print(f"\nResponse:\n{message}\n")
 
         if self.code:
             scripts = self._extract_code_from_reponse(message, self.timestamp)
             if scripts:
                 os.makedirs('code', exist_ok=True)
-                if not self.silent:
+                if self.silent == False:
                     print(f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n")
-                if self.log:
+                if self.log == True:
                     self.log_text.append(f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n")
 
     def _process_image_response(self):
@@ -96,18 +96,18 @@ class OpenAIInterface():
             model=self.model, prompt=self.prompt,
             n=1, size=self.size, quality=self.quality)
         revised_prompt = response.data[0].revised_prompt
-        if not self.silent:
+        if self.silent == False:
             print(f"Revised initial initial prompt:\n{revised_prompt}")
-        if self.log:
+        if self.log == True:
             self.log_text.append(f"Revised prompt:\n{revised_prompt}")
 
         image_data = requests.get(response.data[0].url).content
         image_file = f"images/{self.prefix}.image.png"
         with open(image_file, 'wb') as outFile:
             outFile.write(image_data)
-        if not self.silent:
+        if self.silent == False:
             print(f"\nGenerated image saved to: {image_file}")
-        if self.log:
+        if self.log == True:
             self.log_text.append(f"\nGenerated image saved to: {image_file}")
 
     def save_chat_transcript(self):
@@ -117,7 +117,7 @@ class OpenAIInterface():
         with open(self.log_file, "a", encoding="utf-8") as f:
             f.write("\n".join(self.log_text))
 
-        if not self.silent:
+        if self.silent == False:
             print(f"\nResponse transcript text saved to: {self.log_file}")
 
     def _extract_code_from_reponse(self, response, timestamp):
@@ -223,7 +223,7 @@ class OpenAIInterface():
         Returns:
             dict: A string containing the refined prompt
         """
-        if not self.silent:
+        if self.silent == False:
             print("\nRefining initial prompt...")
         
         # Check prompt for additional action keywords
@@ -249,7 +249,7 @@ class OpenAIInterface():
         # Parse iterations and synthesize for more optimal response
         refined = self.condense_iterations(refined)
 
-        if self.print_response:
+        if self.print_response == True:
             print(f'\nRefined prompt:\n{refined}')
         
         # Update the refined prompt with the response
