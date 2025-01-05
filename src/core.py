@@ -228,7 +228,8 @@ System parameters:
     Prompt Refinement: {self.refine}
     Iterations: {self.iterations}
     Dimensions: {self.size}
-    Quality: {self.quality}"""
+    Quality: {self.quality}
+    """
         print(status)
 
         if self.log:

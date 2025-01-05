@@ -19,11 +19,14 @@ class OpenAIInterface():
         """
         # Inherit core properties
         attributes = ["prompt", "role", "label", "silent", 
-            "timestamp", "model", "code", "log", "log_text", "log_file", 
-            "size", "quality", "iterations", "prefix", "base_url", "api_key"]
+            "timestamp", "model", "code", "log", "log_text", 
+            "size", "quality", "iterations", "prefix", 
+            "base_url", "api_key"]
         for attr in attributes:
             setattr(self, attr, getattr(manager, attr))
         self.print_response = True
+        if self.log:
+            self.log_file = manager.log_file
 
         # Initialize client
         if self.model == 'deepseek-chat':
