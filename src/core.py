@@ -20,18 +20,18 @@ class QueryManager:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Simple arguments
-        for attr in ["silent", "code", "log", "model", "refine", "chain_of_thought"]:
+        for attr in ["silent", "code", "log", "model", "refine", "chain_of_thought", "prompt"]:
             setattr(self, attr, getattr(args, attr))
         self.log_text = []
 
         # Processed arguments
         self.role, self.label = self._select_role(args)
-        self.role, words = self.format_input_text(text=self.role, type='role')
+        new_role, words = self.format_input_text(text=self.role, type='role')
         if self.chain_of_thought: self.role += roleDict['chain']
         self.model, self.base_url = self._select_model(args.model)
         self.api_key = self._set_api_key(args.key)
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"
-        self.prompt, words = self.format_input_text(text=args.prompt, type="query")
+        new_prompt, words = self.format_input_text(text=args.prompt, type="query")
         self._handle_image_request(words)
         self.iterations = self._calculate_iterations(args)
         self.size, self.quality = self._handle_image_params(args)
@@ -110,13 +110,13 @@ class QueryManager:
         """Checks for existing files in user-provided text to append to messages"""
         
         if isinstance(message, str):
-            sentences = [x.strip() for x in message.splitlines() if len(x.strip()) >= 1]
+            lines = [x for x in message.splitlines() if len(x.strip()) >= 1]
         else:
-            sentences = message
+            lines = message
         
         # Isolate a cleanup words
         words = []
-        for sentence in sentences:
+        for sentence in lines:
             words += [re.sub(r'[^\w\s]','', word).lower() for word in sentence.split() if len(word) >= 1]
 
         found = False
@@ -124,9 +124,9 @@ class QueryManager:
             if os.path.isfile(word):
                 found = True
                 with open(word, 'r') as handle:
-                    sentences += [x.strip() for x in handle.readlines() if len(x.strip()) >= 1]
+                    lines += [x for x in handle.readlines() if len(x.strip()) >= 1]
 
-        return '\n'.join(sentences), set(words), found
+        return '\n'.join(lines), set(words), found
 
     def format_input_text(self, text, type="query"):
         """
@@ -145,14 +145,13 @@ class QueryManager:
         fixed = copy(text)
         for p in ['.', '?', '!']:
             if p in fixed:
-                lines = fixed.split(p)
-                lines = [x.strip().capitalize() for x in lines if len(x.strip()) > 0]
+                lines = [x for x in fixed.split(p) if len(x.strip()) >= 1]
                 fixed = f"{p}\n".join(lines)
         fixed += '.' if fixed[-1] not in ['.','!','?'] else '' # Add puncuation if needed
 
-        if fixed != text:
-            if self.log:
-                self.log_text.append(f'\nReformatted {type} text:\n{fixed}')
+        #if fixed != text:
+        #    if self.log:
+        #        self.log_text.append(f'\nReformatted {type} text:\n{fixed}')
 
         return fixed, wrds
 
