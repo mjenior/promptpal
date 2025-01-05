@@ -55,6 +55,7 @@ Set the OPENAI_API_KEY as an environment variable:
 ```bash
 export OPENAI_API_KEY="your_openai_api_key"
 ```
+Also will parse <DEEPSEEK_API_KEY> if <deepseek-chat> is the requested model. Can also be provided directly, identical to OpenAI key.
 
 That's it! The assistant API is ready to use in the termal, below are some example uses and additional arguments that further tailor responses.
 
@@ -128,7 +129,7 @@ Available role shortcuts:
 
 - assist (default): Standard personal assistant with improved ability to help with tasks
 - compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
-- dev: Senior python full stack developer with emphases in correct syntex, code brevity, full documentation, and unit testing.
+- dev: Senior python full stack developer with emphases in correct syntax, documentation, and unit testing.
 - invest: Experience in technology stock investment and wealth management. Provides analyses for new stocks to invest in.
 - art: Creates an images described by the prompt, default style leans toward illustrations
 - photo: Gnereates more photo-realistic images
