@@ -21,7 +21,7 @@ class OpenAIInterface():
         attributes = ["prompt", "role", "label", "silent", 
             "timestamp", "model", "code", "logging", "log_text", 
             "size", "quality", "iterations", "prefix", 
-            "base_url", "api_key", "refine"]
+            "base_url", "api_key", "refine", "added_query"]
         for attr in attributes:
             setattr(self, attr, getattr(manager, attr))
         if self.logging == True:
@@ -42,6 +42,9 @@ class OpenAIInterface():
         """
         if self.refine == "True":
             self.prompt = self._refine_prompt()
+            self.prompt += "\n\nRefactor the following code:\n"
+            self.prompt += self.added_query
+            print(f'\nRefined prompt:\n{self.prompt}')
 
         query = [
             {"role": "user", "content": self.prompt},
@@ -209,7 +212,6 @@ class OpenAIInterface():
                     {"role": "system", "content": sys_text},
                     {"role": "user", "content": "\n\n".join(api_responses)}])
             
-
             return condensed.choices[0].message.content.strip()
         else:
             return api_responses[0]
@@ -251,9 +253,4 @@ class OpenAIInterface():
                 {"role": "user", "content": self.prompt}])
 
         # Parse iterations and synthesize for more optimal response
-        refined = self.condense_iterations(refined)
-
-        print(f'\nRefined prompt:\n{refined}')
-        
-        # Update the refined prompt with the response
-        return refined
+        return self.condense_iterations(refined)

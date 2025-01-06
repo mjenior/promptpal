@@ -18,7 +18,7 @@ Python based command line interface for prompted conversation using ChatGPT API
 - **Code Detection**: The tool automatically identifies code snippets in the responses from the ChatGPT model and formats them properly.
 - **Save Code as Separate Scripts**: Detected code snippets can be saved as separate script files in your working directory for future use or execution.
 - **Flexible Command-Line Interface**: Simple, yet powerful, CLI commands allow easy interaction with the OpenAI ChatGPT API.
-- **Iterative Response Iterpretation**: Collects multiple responses to each query and condenses the best components into a single, higher quality response
+- **Iterative Response Iterpretation**: Collects multiple responses to each query for model reflection, and condenses the best components into a single, higher quality response
 - **Chain of Thought Tracking**: Adds prompts that track reasoning and thought process, improving responses in scenarios requiring step-by-step reasoning.
 
 
@@ -86,9 +86,6 @@ model : str
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
     Default is True
-code : bool
-    Save detected code in responses as individual scripts.
-    Default is True
 unit_testing : bool
     rite comprehesive unit tests for any generated code.
     Default is False
@@ -99,7 +96,7 @@ qual : str
     Image quality for Dall-e output
     Default is standard
 iters : int
-    Number of responses to generate and parse for highest quality
+    Number of responses to generate and parse for model reflection
     Default is 1
 refine : bool
     Automatically refine user prompt to improve query specificity.
@@ -113,9 +110,6 @@ verbose : bool
 silent : bool
     Silences all StdOut
     Default is False
-log : bool
-    Save response to current query as a separate text file
-    Default is True
 urgent : bool
     Add urgency to the request [UNTESTED].
     Default is False

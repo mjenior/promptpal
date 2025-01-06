@@ -233,6 +233,7 @@ Include the most concrete description of the requested response in the first sen
 Refined prompt text should be at least three sentences in length.
 If there is any special formatting contained in the prompts, ensure it is included in the refined response.
 Providing examples in queries is extremely useful when new code is requested.
+If any specific code is provided for refactoring in the the initial query, include it in your reponse as well.
 Attempt to include words from the following list where appropriate: {', '.join(list(rewrite_options.keys()))}.
 """
 

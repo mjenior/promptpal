@@ -29,9 +29,6 @@ model : str
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
     Default is True
-code : bool
-    Save detected code in responses as individual scripts.
-    Default is True
 unit_testing : bool
     rite comprehesive unit tests for any generated code.
     Default is False
@@ -45,7 +42,7 @@ qual : str
     Image quality for Dall-e output
     Default int standard
 iters : int
-    Number of responses to generate and parse for highest quality
+    Number of responses to generate and parse for model reflection
     Default is 1
 key : str
     User-specific OpenAI API key. 
@@ -53,9 +50,6 @@ key : str
 silent : bool
     Silences all StdOut
     Default is False
-log : bool
-    Save chat transcript as a text file in transcripts.
-    Default is True
 urgent : bool
     Add urgency to the request [UNTESTED].
     Default is False
@@ -76,7 +70,7 @@ def parse_arguments():
     parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
-    parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations.")
+    parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations for model reflection.")
     parser.add_argument("-s", "--silent", default=False, help="Suppress output.")
     parser.add_argument("-l", "--logging", default=True, help="Save query log.")
     parser.add_argument("-g", "--urgent", default=False, help="Add urgency to the request [UNTESTED]")
