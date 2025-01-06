@@ -20,11 +20,11 @@ class QueryManager:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Simple arguments
-        for attr in ["silent", "code", "log", "model", "refine", "chain_of_thought", "prompt"]:
+        for attr in ["model", "prompt","silent", "code", "logging", "refine", "chain_of_thought"]:
             setattr(self, attr, getattr(args, attr))
-        self.log_text = []
 
         # Processed arguments
+        self.log_text = []
         self.role, self.label = self._select_role(args)
         new_role, words = self.format_input_text(text=self.role, type='role')
         if self.chain_of_thought == True: self.role += roleDict['chain']
@@ -36,9 +36,10 @@ class QueryManager:
         self.iterations = self._calculate_iterations(args)
         self.size, self.quality = self._handle_image_params(args)
 
-        if self.log == True:
-            self.log_file = self._manage_logging(args)
-
+        # Manage reporting
+        self.log_file = f"logs/{self.prefix}.transcript.log"
+        if self.logging == True:
+            self._begin_logging()
         if self.silent == False:
             self._report_query_params()
 
@@ -86,13 +87,13 @@ class QueryManager:
             role, wrds, check = self._file_text_scanner(role)
             if self.silent == False:
                 print(f'\nCustom system role:\n{role}\n')
-            if self.log == True:
+            if self.logging == True:
                 self.log_text.append(f'\nCustom system role:\n{role}\n')
         else:
             self.role_name = role['name']
             if self.silent == False:
                 print(f'\nUsing default system role: {self.role_name}')
-            if self.log == True:
+            if self.logging == True:
                 self.log_text.append(f'\nUsing default system role: {self.role_name}')
             role = role["prompt"]
 
@@ -149,10 +150,6 @@ class QueryManager:
                 fixed = f"{p}\n".join(lines)
         fixed += '.' if fixed[-1] not in ['.','!','?'] else '' # Add puncuation if needed
 
-        #if fixed != text:
-        #    if self.log == True:
-        #        self.log_text.append(f'\nReformatted {type} text:\n{fixed}')
-
         return fixed, wrds
 
     def _handle_image_request(self, words):
@@ -178,18 +175,14 @@ class QueryManager:
             return args.iters + 2
         return args.iters
 
-    def _manage_logging(self, args):
+    def _begin_logging(self):
         """
         Manages conversation transcript history for continuity in responses.
         """
         os.makedirs('logs', exist_ok=True)
-        log_file = f"logs/{self.prefix}.transcript.log"
-
-        with open(log_file, "w") as f:
+        with open(self.log_file, "w") as f:
             f.write("New session initiated.\n")
         
-        return log_file
-
     def _handle_image_params(self, args):
         """
         Validates and sets image dimensions and quality parameters.
@@ -231,6 +224,6 @@ System parameters:
     """
         print(status)
 
-        if self.log == True:
+        if self.logging == True:
             self.log_text.append(status)
 

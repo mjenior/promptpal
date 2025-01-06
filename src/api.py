@@ -19,14 +19,13 @@ class OpenAIInterface():
         """
         # Inherit core properties
         attributes = ["prompt", "role", "label", "silent", 
-            "timestamp", "model", "code", "log", "log_text", 
+            "timestamp", "model", "code", "logging", "log_text", 
             "size", "quality", "iterations", "prefix", 
             "base_url", "api_key", "refine"]
         for attr in attributes:
             setattr(self, attr, getattr(manager, attr))
-        self.print_response = True
-        if self.log == True:
-            self.log_file = manager.log_file
+        if self.logging == True:
+            setattr(self, "log_file", getattr(manager, "log_file"))
 
         # Initialize client
         if self.model == 'deepseek-chat':
@@ -34,15 +33,16 @@ class OpenAIInterface():
         else:
             self.client = OpenAI(api_key=self.api_key)
 
-        # Finalize query
-        if self.refine == True:
-            self.prompt = self.refine_prompt()
+        # Finalize query            
         self.query = self._assemble_query()
         
     def _assemble_query(self):
         """
         Assembles the query dictionary for the API request.
         """
+        if self.refine == "True":
+            self.prompt = self._refine_prompt()
+
         query = [
             {"role": "user", "content": self.prompt},
             {"role": "system", "content": self.role}
@@ -56,13 +56,16 @@ class OpenAIInterface():
         """
         if self.silent == False:
             print("\nProcessing finalized user query...\n")
-        if self.log == True:
+        if self.logging == True:
             self.log_text.append("\nProcessing finalized user query...\n")
 
         if self.label not in ["artist", "photo"]:
-            return self._process_text_response()
+            self._process_text_response()
         else:
-            return self._process_image_response()
+            self._process_image_response()
+
+        if self.logging == True and self.log_file:
+            self.save_chat_transcript()
 
     def _process_text_response(self):
         """
@@ -74,17 +77,17 @@ class OpenAIInterface():
         )
         message = self.condense_iterations(response)
 
-        if self.print_response == True:
-            print(f"\nResponse:\n{message}\n")
+        print(f"\nResponse:\n{message}\n")
 
         if self.code:
             scripts = self._extract_code_from_reponse(message, self.timestamp)
             if scripts:
                 os.makedirs('code', exist_ok=True)
+                codeStr = f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n"
                 if self.silent == False:
-                    print(f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n")
-                if self.log == True:
-                    self.log_text.append(f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n")
+                    print(codeStr)
+                if self.logging == True:
+                    self.log_text.append(codeStr)
 
     def _process_image_response(self):
         """
@@ -98,17 +101,18 @@ class OpenAIInterface():
         revised_prompt = response.data[0].revised_prompt
         if self.silent == False:
             print(f"Revised initial initial prompt:\n{revised_prompt}")
-        if self.log == True:
+        if self.logging == True:
             self.log_text.append(f"Revised prompt:\n{revised_prompt}")
 
         image_data = requests.get(response.data[0].url).content
         image_file = f"images/{self.prefix}.image.png"
         with open(image_file, 'wb') as outFile:
             outFile.write(image_data)
+        imageStr = f"\nGenerated image saved to: {image_file}"
         if self.silent == False:
-            print(f"\nGenerated image saved to: {image_file}")
-        if self.log == True:
-            self.log_text.append(f"\nGenerated image saved to: {image_file}")
+            print(imageStr)
+        if self.logging == True:
+            self.log_text.append(imageStr)
 
     def save_chat_transcript(self):
         """
@@ -118,7 +122,7 @@ class OpenAIInterface():
             f.write("\n".join(self.log_text))
 
         if self.silent == False:
-            print(f"\nResponse transcript text saved to: {self.log_file}")
+            print(f"\nResponse transcript text saved to: {self.log_file}\n")
 
     def _extract_code_from_reponse(self, response, timestamp):
         """
@@ -210,7 +214,7 @@ class OpenAIInterface():
         else:
             return api_responses[0]
 
-    def refine_prompt(self, actions=['expand','amplify'], temp=0.7):
+    def _refine_prompt(self, actions=['expand','amplify'], temp=0.7):
         """
         Refines an LLM prompt using specified rewrite actions.
         
@@ -249,8 +253,7 @@ class OpenAIInterface():
         # Parse iterations and synthesize for more optimal response
         refined = self.condense_iterations(refined)
 
-        if self.print_response == True:
-            print(f'\nRefined prompt:\n{refined}')
+        print(f'\nRefined prompt:\n{refined}')
         
         # Update the refined prompt with the response
         return refined

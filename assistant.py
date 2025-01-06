@@ -78,7 +78,7 @@ def parse_arguments():
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
     parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations.")
     parser.add_argument("-s", "--silent", default=False, help="Suppress output.")
-    parser.add_argument("-l", "--log", default=True, help="Save query log.")
+    parser.add_argument("-l", "--logging", default=True, help="Save query log.")
     parser.add_argument("-g", "--urgent", default=False, help="Add urgency to the request [UNTESTED]")
     return parser.parse_args()
 
@@ -98,12 +98,6 @@ def main():
 
     # Submit query and parse response
     api_handler.submit_query()
-
-    # Manage reporting
-    if args.log:
-        api_handler.save_chat_transcript()
-    if not args.silent:
-        print("\nFinished.\n")
     
 
 if __name__ == "__main__":
