@@ -181,6 +181,8 @@ class QueryManager:
         """
         Manages conversation transcript history for continuity in responses.
         """
+        if self.silent == False:
+            print(f'\nSaving conversation transcript to: {self.log_file}')
         os.makedirs('logs', exist_ok=True)
         with open(self.log_file, "w") as f:
             f.write("New session initiated.\n")
@@ -221,7 +223,10 @@ System parameters:
     Chain of Thought: {self.chain_of_thought}
     Prompt Refinement: {self.refine}
     Iterations: {self.iterations}
-    Dimensions: {self.size}
+    Logging: {self.logging}
+    """
+        if 'dall-e' in self.model:
+            status += f"""  Dimensions: {self.size}
     Quality: {self.quality}
     """
         print(status)

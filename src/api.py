@@ -44,12 +44,13 @@ class OpenAIInterface():
             self.prompt = self._refine_prompt()
             self.prompt += "\n\nRefactor the following code:\n"
             self.prompt += self.added_query
-            print(f'\nRefined prompt:\n{self.prompt}')
+            if self.silent == False:
+                print(f'\nRefined prompt:\n{self.prompt}')
+            if self.logging == True:
+                self.log_text.append(f'\nRefined prompt:\n{self.prompt}')
 
-        query = [
-            {"role": "user", "content": self.prompt},
-            {"role": "system", "content": self.role}
-        ]
+        query = [{"role": "user", "content": self.prompt},
+                 {"role": "system", "content": self.role}]
 
         return query
 
@@ -67,7 +68,7 @@ class OpenAIInterface():
         else:
             self._process_image_response()
 
-        if self.logging == True and self.log_file:
+        if self.logging == True:
             self.save_chat_transcript()
 
     def _process_text_response(self):
@@ -80,17 +81,20 @@ class OpenAIInterface():
         )
         message = self.condense_iterations(response)
 
-        print(f"\nResponse:\n{message}\n")
+        if self.silent == False:
+            print(f"\nSystem response to query:\n{message}\n")
+        if self.logging == True:
+            self.log_text.append(f"\nSystem response to query:\n{message}\n")
 
         if self.code:
             scripts = self._extract_code_from_reponse(message, self.timestamp)
             if scripts:
                 os.makedirs('code', exist_ok=True)
-                codeStr = f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n"
+                reportStr = f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n"
                 if self.silent == False:
-                    print(codeStr)
+                    print(reportStr)
                 if self.logging == True:
-                    self.log_text.append(codeStr)
+                    self.log_text.append(reportStr)
 
     def _process_image_response(self):
         """
@@ -102,20 +106,23 @@ class OpenAIInterface():
             model=self.model, prompt=self.prompt,
             n=1, size=self.size, quality=self.quality)
         revised_prompt = response.data[0].revised_prompt
+        
+        reportStr = f"Revised initial initial prompt:\n{revised_prompt}"
         if self.silent == False:
-            print(f"Revised initial initial prompt:\n{revised_prompt}")
+            print(reportStr)
         if self.logging == True:
-            self.log_text.append(f"Revised prompt:\n{revised_prompt}")
+            self.log_text.append(reportStr)
 
         image_data = requests.get(response.data[0].url).content
         image_file = f"images/{self.prefix}.image.png"
         with open(image_file, 'wb') as outFile:
             outFile.write(image_data)
-        imageStr = f"\nGenerated image saved to: {image_file}"
+        
+        reportStr = f"\nGenerated image saved to: {image_file}"
         if self.silent == False:
-            print(imageStr)
+            print(reportStr)
         if self.logging == True:
-            self.log_text.append(imageStr)
+            self.log_text.append(reportStr)
 
     def save_chat_transcript(self):
         """
@@ -229,8 +236,11 @@ class OpenAIInterface():
         Returns:
             dict: A string containing the refined prompt
         """
+        reportStr = "\nRefining initial prompt..."
         if self.silent == False:
-            print("\nRefining initial prompt...")
+            print(reportStr)
+        if self.logging == True:
+            self.log_text.append(reportStr)
         
         # Check prompt for additional action keywords
         actions = set(actions)
