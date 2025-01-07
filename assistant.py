@@ -24,7 +24,7 @@ role : str
     Several built-in options are available, refer to README for details
     Default is assistant
 model : str
-    ChatGPT model to interact with
+    LLM to use in queiries.
     Default is gpt-4o-mini
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
@@ -62,7 +62,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Manage and execute OpenAI queries.")
     parser.add_argument("-p", "--prompt", type=str, default="What is the answer to life the universe and everything?", help="User prompt text or path to a .txt file.")
     parser.add_argument("-r", "--role", type=str, default="assist", help="Assistant role text.")
-    parser.add_argument("-m", "--model", type=str, default="gpt-4o", help="ChatGPT model.")
+    parser.add_argument("-m", "--model", type=str, default="gpt-4o-mini", help="LLM to use in queiries.")
     parser.add_argument("-c", "--chain_of_thought", default=True, help="Enable chain of thought reasoning.")
     parser.add_argument("-f", "--refine", default=True, help="Enable iterative input prompt refinement.")
     parser.add_argument("-x", "--code", default=True, help="Save detected code in responses.")

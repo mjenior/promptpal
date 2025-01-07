@@ -81,7 +81,7 @@ role : str
     Several built-in options are available, refer to README for details
     Default is assistant
 model : str
-    ChatGPT model to interact with
+    LLM to use in queiries.
     Default is gpt-4o-mini
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.

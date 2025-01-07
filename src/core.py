@@ -98,10 +98,6 @@ class QueryManager:
                 self.log_text.append(f'\nCustom system role:\n{role}\n')
         else:
             self.role_name = role['name']
-            if self.silent == False:
-                print(f'\nUsing default system role: {self.role_name}')
-            if self.logging == True:
-                self.log_text.append(f'\nUsing default system role: {self.role_name}')
             role = role["prompt"]
 
         # Add unit testing to prompt
@@ -181,8 +177,6 @@ class QueryManager:
         """
         Manages conversation transcript history for continuity in responses.
         """
-        if self.silent == False:
-            print(f'\nSaving conversation transcript to: {self.log_file}')
         os.makedirs('logs', exist_ok=True)
         with open(self.log_file, "w") as f:
             f.write("New session initiated.\n")
@@ -222,7 +216,7 @@ System parameters:
     Role: {self.role_name}
     Chain of Thought: {self.chain_of_thought}
     Prompt Refinement: {self.refine}
-    Iterations: {self.iterations}
+    Relection iterations: {self.iterations}
     Logging: {self.logging}
     """
         if 'dall-e' in self.model:

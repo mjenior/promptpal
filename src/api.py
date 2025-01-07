@@ -26,6 +26,7 @@ class OpenAIInterface():
             setattr(self, attr, getattr(manager, attr))
         if self.logging == True:
             setattr(self, "log_file", getattr(manager, "log_file"))
+        self.tokens = {'prompt':0, 'completion':0}
 
         # Initialize client
         if self.model == 'deepseek-chat':
@@ -42,8 +43,11 @@ class OpenAIInterface():
         """
         if self.refine == "True":
             self.prompt = self._refine_prompt()
-            self.prompt += "\n\nRefactor the following code:\n"
-            self.prompt += self.added_query
+            if 'refactor' in self.prompt.lower() or 'rewrite' in self.prompt.lower():
+                if len(self.added_query.strip()) > 0:
+                    self.prompt += "\n\nImprove the following:\n"
+                    self.prompt += self.added_query
+
             if self.silent == False:
                 print(f'\nRefined prompt:\n{self.prompt}')
             if self.logging == True:
@@ -80,6 +84,8 @@ class OpenAIInterface():
             model=self.model, messages=self.query, n=self.iterations,
         )
         message = self.condense_iterations(response)
+        self.tokens['prompt'] += response.usage.prompt_tokens
+        self.tokens['completion'] += response.usage.completion_tokens
 
         if self.silent == False:
             print(f"\nSystem response to query:\n{message}\n")
@@ -106,6 +112,8 @@ class OpenAIInterface():
             model=self.model, prompt=self.prompt,
             n=1, size=self.size, quality=self.quality)
         revised_prompt = response.data[0].revised_prompt
+        self.tokens['prompt'] += response.usage.prompt_tokens
+        self.tokens['completion'] += response.usage.completion_tokens
         
         reportStr = f"Revised initial initial prompt:\n{revised_prompt}"
         if self.silent == False:
@@ -128,11 +136,35 @@ class OpenAIInterface():
         """
         Saves the current response text to a file if specified.
         """
+
+        # Find cost of the run
+        prompt_cost = completion_cost = total_cost = 'Cost unknown'
+        total_tokens = self.tokens['prompt'] + self.tokens['completion']
+        rates = {'gpt-4o': (2.5, 10), 'gpt-4o-mini': (0.150, 0.600)}
+        if self.model.lower() in rates:
+            prompt_rate, completion_rate = rates[self.model.lower()]
+            prompt_cost = calculate_cost(self.tokens['prompt'], prompt_rate)
+            completion_cost = calculate_cost(self.tokens['completion'], completion_rate)
+            total_cost = f"${round(prompt_cost + completion_cost, 7)}"
+            prompt_cost, completion_cost = f"${prompt_cost}", f"${completion_cost}"
+        elif 'dall-e' in self.model.lower():
+            prompt_cost = calculate_cost(self.tokens['prompt'], prompt_rate)
+            completion_cost = 0.040
+            total_cost = f"~${round(prompt_cost + completion_cost, 7)}"
+            prompt_cost, completion_cost = f"${prompt_cost}", f"~${completion_cost}"
+
+        reportStr = f"""\nOverall tokens used: {self.tokens['prompt'] + self.tokens['completion']} - {total_cost}
+    prompt tokens: {self.tokens['prompt']} - {prompt_cost}
+    completion tokens: {self.tokens['completion']} - {completion_cost}
+        """
+        self.log_text.append(reportStr)
+
         with open(self.log_file, "a", encoding="utf-8") as f:
             f.write("\n".join(self.log_text))
 
         if self.silent == False:
-            print(f"\nResponse transcript text saved to: {self.log_file}\n")
+            print(reportStr)
+            print(f"\nSaving conversation transcript text to: {self.log_file}\n")
 
     def _extract_code_from_reponse(self, response, timestamp):
         """
@@ -218,6 +250,8 @@ class OpenAIInterface():
                 messages = [
                     {"role": "system", "content": sys_text},
                     {"role": "user", "content": "\n\n".join(api_responses)}])
+            self.tokens['prompt'] += condensed.usage.prompt_tokens
+            self.tokens['completion'] += condensed.usage.completion_tokens
             
             return condensed.choices[0].message.content.strip()
         else:
@@ -261,6 +295,14 @@ class OpenAIInterface():
             messages=[
                 {"role": "system", "content": updated_message},
                 {"role": "user", "content": self.prompt}])
+        self.tokens['prompt'] += refined.usage.prompt_tokens
+        self.tokens['completion'] += refined.usage.completion_tokens
 
         # Parse iterations and synthesize for more optimal response
         return self.condense_iterations(refined)
+
+# Calculate approximate cost of a given interaction
+def calculate_cost(tokens, dllr_per_mill):
+    temp_cost = tokens * dllr_per_mill
+    temp_cost = temp_cost / 1e6
+    return round(temp_cost, 7)
