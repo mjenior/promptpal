@@ -95,7 +95,7 @@ class QueryManager:
             if self.silent == False:
                 print(f'\nCustom system role:\n{role}\n')
             if self.logging == True:
-                self.log_text.append(f'\nCustom system role:\n{role}\n')
+                self.log_text.append('\nCustom system role:\n' + role + '\n')
         else:
             self.role_name = role['name']
             role = role["prompt"]

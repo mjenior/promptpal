@@ -166,7 +166,7 @@ Example:
 assistant.py --chain_of_thought True --prompt "Can you write out a list of directions to change a tire?" 
 ```
 
-### Response Evaluation
+### Response Reflection
 
 This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --iterations flag accepts an integer value representing the number of separate reponse iterations the model will create for the given prompt. Increasing this value past the 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point. 
 

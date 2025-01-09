@@ -106,7 +106,7 @@ class OpenAIInterface():
             scripts = self._extract_code_from_reponse(message, self.timestamp)
             if scripts:
                 os.makedirs('code', exist_ok=True)
-                reportStr = f"\nCode extracted from reponse text and saved to:\n\t{'\n\t'.join(scripts)}\n"
+                reportStr = "\nCode extracted from reponse text and saved to:\n\t" + '\n\t'.join(scripts) + "\n"
                 if self.silent == False:
                     print(reportStr)
                 if self.logging == True:
@@ -125,7 +125,7 @@ class OpenAIInterface():
         self.tokens['prompt'] += response.usage.prompt_tokens
         self.tokens['completion'] += response.usage.completion_tokens
         
-        reportStr = f"Revised initial initial prompt:\n{revised_prompt}"
+        reportStr = "\nRevised initial initial prompt:\n" + revised_prompt
         if self.silent == False:
             print(reportStr)
         if self.logging == True:
@@ -136,7 +136,7 @@ class OpenAIInterface():
         with open(image_file, 'wb') as outFile:
             outFile.write(image_data)
         
-        reportStr = f"\nGenerated image saved to: {image_file}"
+        reportStr = "\nGenerated image saved to: " + image_file + "\n"
         if self.silent == False:
             print(reportStr)
         if self.logging == True:
@@ -180,7 +180,7 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
             f.write("\n".join(self.log_text))
 
         if self.silent == False:
-            print(f"\nSaving conversation transcript text to: {self.log_file}\n")
+            print("\nSaving conversation transcript text to:", self.log_file)
 
     def _extract_code_from_reponse(self, response, timestamp):
         """
