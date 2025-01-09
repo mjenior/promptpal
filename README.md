@@ -99,7 +99,7 @@ iters : int
     Number of responses to generate and parse for model reflection
     Default is 1
 refine : bool
-    Automatically refine user prompt to improve query specificity.
+    Automatically improve user prompt to improve query specificity.
     Default is False
 key : str
     User-specific OpenAI API key. 
