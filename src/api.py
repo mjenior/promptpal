@@ -62,16 +62,26 @@ class OpenAIInterface():
         """
         Submits the query to OpenAI's API and processes the response.
         """
-        if self.silent == False:
-            print("\nProcessing finalized user query...\n")
-        if self.logging == True:
-            self.log_text.append("\nProcessing finalized user query...\n")
-
         if self.label not in ["artist", "photo"]:
             self._process_text_response()
+            logStr = "\nProcessing finalized completion query...\n"
         else:
             self._process_image_response()
+            logStr = "\nProcessing finalized image request...\n"
+        
+        # Reporting
+        if self.silent == False:
+            print(logStr)
+        if self.logging == True:
+            self.log_text.append(logStr)
 
+        # Find cost of the run
+        token_report = self.gen_token_report()
+        self.log_text.append(token_report)
+        if self.silent == False:
+            print(token_report)
+
+        # Save reporting transcript to txt file
         if self.logging == True:
             self.save_chat_transcript()
 
@@ -132,38 +142,44 @@ class OpenAIInterface():
         if self.logging == True:
             self.log_text.append(reportStr)
 
-    def save_chat_transcript(self):
+    def gen_token_report(self):
         """
-        Saves the current response text to a file if specified.
+        Calculates and generates report str for overall cost of the current query
         """
-
-        # Find cost of the run
-        prompt_cost = completion_cost = total_cost = 'Cost unknown'
+        prompt_cost = completion_cost = total_cost = 'Unknown model rate'
         total_tokens = self.tokens['prompt'] + self.tokens['completion']
         rates = {'gpt-4o': (2.5, 10), 'gpt-4o-mini': (0.150, 0.600)}
         if self.model.lower() in rates:
             prompt_rate, completion_rate = rates[self.model.lower()]
             prompt_cost = calculate_cost(self.tokens['prompt'], prompt_rate)
             completion_cost = calculate_cost(self.tokens['completion'], completion_rate)
-            total_cost = f"${round(prompt_cost + completion_cost, 7)}"
-            prompt_cost, completion_cost = f"${prompt_cost}", f"${completion_cost}"
         elif 'dall-e' in self.model.lower():
             prompt_cost = calculate_cost(self.tokens['prompt'], prompt_rate)
             completion_cost = 0.040
-            total_cost = f"~${round(prompt_cost + completion_cost, 7)}"
-            prompt_cost, completion_cost = f"${prompt_cost}", f"~${completion_cost}"
 
-        reportStr = f"""\nOverall tokens used: {self.tokens['prompt'] + self.tokens['completion']} - {total_cost}
-    prompt tokens: {self.tokens['prompt']} - {prompt_cost}
-    completion tokens: {self.tokens['completion']} - {completion_cost}
+        total_cost = round(prompt_cost + completion_cost, 5)
+        if total_cost < 0.01:
+            total_cost = "<< $ 0.01"
+        else:
+            total_cost = f"$ {total_cost}"
+        prompt_cost, completion_cost = f"$ {prompt_cost}", f"$ {completion_cost}"
+
+        reportStr = f"""
+Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({total_cost})
+    Prompt (i.e. input): {self.tokens['prompt']}  ({prompt_cost})
+    Completion (i.e. output): {self.tokens['completion']}  ({completion_cost})
         """
-        self.log_text.append(reportStr)
 
+        return reportStr
+
+    def save_chat_transcript(self):
+        """
+        Saves the current response text to a file if specified.
+        """
         with open(self.log_file, "a", encoding="utf-8") as f:
             f.write("\n".join(self.log_text))
 
         if self.silent == False:
-            print(reportStr)
             print(f"\nSaving conversation transcript text to: {self.log_file}\n")
 
     def _extract_code_from_reponse(self, response, timestamp):
@@ -302,7 +318,7 @@ class OpenAIInterface():
         return self.condense_iterations(refined)
 
 # Calculate approximate cost of a given interaction
-def calculate_cost(tokens, dllr_per_mill):
-    temp_cost = tokens * dllr_per_mill
+def calculate_cost(tokens, perM, decimals=5):
+    temp_cost = tokens * perM
     temp_cost = temp_cost / 1e6
-    return round(temp_cost, 7)
+    return round(temp_cost, decimals)
