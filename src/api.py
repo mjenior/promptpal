@@ -42,17 +42,18 @@ class OpenAIInterface():
         """
         Assembles the query dictionary for the API request.
         """
-        if self.refine == "True":
+        if self.refine == True:
             self.prompt = self._refine_prompt()
             if 'refactor' in self.prompt.lower() or 'rewrite' in self.prompt.lower():
                 if len(self.added_query.strip()) > 0:
                     self.prompt += "\n\nImprove the following:\n"
                     self.prompt += self.added_query
 
+            reportStr = "\n\nRefined query prompt:\n" + self.prompt
             if self.silent == False:
-                print(f'\nRefined prompt:\n{self.prompt}')
+                print(reportStr)
             if self.logging == True:
-                self.log_text.append(f'\nRefined prompt:\n{self.prompt}')
+                self.log_text.append(reportStr)
 
         query = [{"role": "user", "content": self.prompt},
                  {"role": "system", "content": self.role}]
@@ -63,18 +64,19 @@ class OpenAIInterface():
         """
         Submits the query to OpenAI's API and processes the response.
         """
+        reportStr = "\n\nProcessing finalized "
         if self.label not in ["artist", "photo"]:
+            reportStr += "completion query...\n"
+            if self.silent == False: print(reportStr)
             self._process_text_response()
-            logStr = "\nProcessing finalized completion query...\n"
         else:
+            reportStr += "image request...\n"
+            if self.silent == False: print(reportStr)
             self._process_image_response()
-            logStr = "\nProcessing finalized image request...\n"
-        
-        # Reporting
-        if self.silent == False:
-            print(logStr)
+            
+        # Add to log file
         if self.logging == True:
-            self.log_text.append(logStr)
+            self.log_text.append(reportStr)
 
         # Find cost of the run
         token_report = self.gen_token_report()
@@ -85,6 +87,10 @@ class OpenAIInterface():
         # Save reporting transcript to txt file
         if self.logging == True:
             self.save_chat_transcript()
+
+        # Complete run
+        if self.silent == False:
+            print("\n\nFinished.\n\n")
 
     def _process_text_response(self):
         """

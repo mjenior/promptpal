@@ -38,7 +38,7 @@ refine : bool
 seed : str or int
     Set moded seed for more deterministic reponses
     Converts strings into binary-like equivalent, constrained by max system bit size
-    Default is "@[=g3,8d]\&fbb=-q]/hk%fg"
+    Default is based on the pinnacle code from Freakazoid
 dim : str
     Dimensions for Dall-e image generation
     Default is 1024x1024
