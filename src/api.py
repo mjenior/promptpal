@@ -20,7 +20,7 @@ class OpenAIInterface():
         # Inherit core properties
         attributes = ["prompt", "role", "label", "silent", 
             "timestamp", "model", "code", "logging", "log_text", 
-            "size", "quality", "iterations", "prefix", 
+            "size", "quality", "iterations", "prefix", "seed",
             "base_url", "api_key", "refine", "added_query"]
         for attr in attributes:
             setattr(self, attr, getattr(manager, attr))
@@ -30,7 +30,8 @@ class OpenAIInterface():
 
         # Initialize client
         if self.model == 'deepseek-chat':
-            self.client = OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com")
+            self.client = OpenAI(api_key=self.api_key, 
+                base_url="https://api.deepseek.com")
         else:
             self.client = OpenAI(api_key=self.api_key)
 
@@ -91,7 +92,10 @@ class OpenAIInterface():
         """
         self.reponse_type = "reponse"
         response = self.client.chat.completions.create(
-            model=self.model, messages=self.query, n=self.iterations,
+            model=self.model, 
+            messages=self.query, 
+            n=self.iterations,
+            seed=self.seed
         )
         message = self.condense_iterations(response)
         self.tokens['prompt'] += response.usage.prompt_tokens
@@ -263,6 +267,7 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
         if len(api_responses) > 1:
             condensed = self.client.chat.completions.create(
                 model=self.model,
+                seed=self.seed,
                 messages = [
                     {"role": "system", "content": sys_text},
                     {"role": "user", "content": "\n\n".join(api_responses)}])
@@ -307,7 +312,10 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
         
         # Make an API call to refine the prompt over X iterations:
         refined = self.client.chat.completions.create(
-            model=self.model, temperature=temp, n=self.iterations,
+            model=self.model, 
+            temperature=temp, 
+            n=self.iterations,
+            seed=self.seed,
             messages=[
                 {"role": "system", "content": updated_message},
                 {"role": "user", "content": self.prompt}])
@@ -317,8 +325,9 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
         # Parse iterations and synthesize for more optimal response
         return self.condense_iterations(refined)
 
-# Calculate approximate cost of a given interaction
+
 def calculate_cost(tokens, perM, decimals=5):
+    """Calculate approximate cost of a given interaction"""
     temp_cost = tokens * perM
     temp_cost = temp_cost / 1e6
     return round(temp_cost, decimals)

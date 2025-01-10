@@ -1,6 +1,7 @@
 import os
 import re
-import glob
+import sys
+import random
 from copy import copy
 from datetime import datetime
 
@@ -42,6 +43,7 @@ class QueryManager:
         self._handle_image_request(words)
         self.iterations = self._calculate_iterations(args)
         self.size, self.quality = self._handle_image_params(args)
+        self.seed = string_to_binary()
 
         # Manage reporting
         self.log_file = f"logs/{self.prefix}.transcript.log"
@@ -217,14 +219,33 @@ System parameters:
     Chain of Thought: {self.chain_of_thought}
     Prompt Refinement: {self.refine}
     Relection iterations: {self.iterations}
+    Time stamp: {self.timestamp}
+    Seed: {self.seed}
     Logging: {self.logging}
     """
         if 'dall-e' in self.model:
-            status += f"""  Dimensions: {self.size}
-    Quality: {self.quality}
+            status += f"""  Image dimensions: {self.size}
+    Image quality: {self.quality}
     """
         print(status)
 
         if self.logging == True:
             self.log_text.append(status)
 
+
+def string_to_binary(input_string=r'"@[=g3,8d]\&fbb=-q]/hk%fg"', output_str=False, shuffle=False, maxsize=True):
+    """Create a binary-like variable from a string for use a random seed, default is the Freakazoid code"""
+
+    # Convert all characters in a str to ASCII values and then to 8-bit binary
+    binary = [format(ord(char), '08b') for char in input_string]
+
+    # Shuffle the list if needed
+    binary = ''.join(random.shuffle(binary)) if shuffle else ''.join(binary)
+
+    # Constrain length if needed as seed
+    binary = binary[0:len(str(sys.maxsize))] if maxsize else binary
+
+    # Convert to needed data type
+    binary = binary if output_str else int(binary)
+
+    return binary

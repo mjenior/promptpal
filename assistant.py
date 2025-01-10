@@ -64,7 +64,7 @@ def parse_arguments():
     parser.add_argument("-r", "--role", type=str, default="assist", help="Assistant role text.")
     parser.add_argument("-m", "--model", type=str, default="gpt-4o-mini", help="LLM to use in queiries.")
     parser.add_argument("-c", "--chain_of_thought", default=True, help="Enable chain of thought reasoning.")
-    parser.add_argument("-f", "--refine", default=True, help="Enable iterative input prompt refinement.")
+    parser.add_argument("-f", "--refine", default=True, help="Enable automated input prompt improvement.")
     parser.add_argument("-x", "--code", default=True, help="Save detected code in responses.")
     parser.add_argument("-u", "--unit_testing", default=False, help="Write comprehesive unit tests for any generated code.")
     parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
