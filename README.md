@@ -86,20 +86,24 @@ model : str
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
     Default is True
-unit_testing : bool
-    rite comprehesive unit tests for any generated code.
+refine : bool
+    Automatically improve user prompt to improve query specificity.
     Default is False
+iters : int
+    Number of responses to generate and parse for model reflection
+    Default is 1
+seed : str or int
+    Set moded seed for more deterministic reponses
+    Converts strings into binary-like equivalent, constrained by max system bit size
+    Default is "@[=g3,8d]\&fbb=-q]/hk%fg"
 dim : str
     Dimensions for Dall-e image generation
     Default is 1024x1024
 qual : str
-    Image quality for Dall-e output
+    Image quality for Dall-e images
     Default is standard
-iters : int
-    Number of responses to generate and parse for model reflection
-    Default is 1
-refine : bool
-    Automatically improve user prompt to improve query specificity.
+unit_testing : bool
+    rite comprehesive unit tests for any generated code.
     Default is False
 key : str
     User-specific OpenAI API key. 

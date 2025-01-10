@@ -43,7 +43,10 @@ class QueryManager:
         self._handle_image_request(words)
         self.iterations = self._calculate_iterations(args)
         self.size, self.quality = self._handle_image_params(args)
-        self.seed = string_to_binary()
+        if isinstance(my_var, int):
+            self.seed = args.seed
+        else:
+            self.seed = self._string_to_binary(args.seed)
 
         # Manage reporting
         self.log_file = f"logs/{self.prefix}.transcript.log"
@@ -232,20 +235,19 @@ System parameters:
         if self.logging == True:
             self.log_text.append(status)
 
+    def _string_to_binary(input_string=r'"@[=g3,8d]\&fbb=-q]/hk%fg"', output_str=False, shuffle=False, maxsize=True):
+        """Create a binary-like variable from a string for use a random seed, default is the Freakazoid code"""
 
-def string_to_binary(input_string=r'"@[=g3,8d]\&fbb=-q]/hk%fg"', output_str=False, shuffle=False, maxsize=True):
-    """Create a binary-like variable from a string for use a random seed, default is the Freakazoid code"""
+        # Convert all characters in a str to ASCII values and then to 8-bit binary
+        binary = [format(ord(char), '08b') for char in input_string]
 
-    # Convert all characters in a str to ASCII values and then to 8-bit binary
-    binary = [format(ord(char), '08b') for char in input_string]
+        # Shuffle the list if needed
+        binary = ''.join(random.shuffle(binary)) if shuffle else ''.join(binary)
 
-    # Shuffle the list if needed
-    binary = ''.join(random.shuffle(binary)) if shuffle else ''.join(binary)
+        # Constrain length if needed as seed
+        binary = binary[0:len(str(sys.maxsize))] if maxsize else binary
 
-    # Constrain length if needed as seed
-    binary = binary[0:len(str(sys.maxsize))] if maxsize else binary
+        # Convert to needed data type
+        binary = binary if output_str else int(binary)
 
-    # Convert to needed data type
-    binary = binary if output_str else int(binary)
-
-    return binary
+        return binary
