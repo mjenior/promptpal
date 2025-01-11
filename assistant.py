@@ -30,7 +30,7 @@ chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
     Default is True
 unit_testing : bool
-    rite comprehesive unit tests for any generated code.
+    Write comprehesive unit tests for any generated code.
     Default is False
 refine : bool
     Automatically refine user prompt to improve query specificity.

@@ -291,11 +291,10 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
         Parameters:
             prompt (str): The original prompt to be refined.
             actions (list of str): A list of rewrite actions (keys from the rewrite_options dictionary).
-            api_key (str): Your OpenAI API key.
-            model (str): The OpenAI model to use for refining the prompt (default is "gpt-4").
+            temp (float): Tempature to set model to.
         
         Returns:
-            dict: A string containing the refined prompt
+            A string containing the refined prompt
         """
         reportStr = "\nRefining initial prompt..."
         if self.silent == False:
@@ -309,12 +308,13 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
         actions |= set(rewrite_options.keys()).intersection(words)
         action_str = ""
         for a in actions:
-            action_str += f"{a}; {rewrite_options[a]}\n"
+            action_str += f"{a}; {rewrite_options[a]}" + "\n"
 
         # Generate the system message for the action
-        updated_message = refine_message + f"Rewrite the input prompt based on the instruction: {action_str}"
+        updated_role = self.role + "Your primary task is to refine or improve the user prompt, do not respond directly to the provided request."
+        updated_message = refine_message + action_str
         if self.role: # Add specific expertise if provided
-            updated_message += self.role
+            updated_prompt = self.prompt + updated_message
         
         # Make an API call to refine the prompt over X iterations:
         refined = self.client.chat.completions.create(
@@ -323,8 +323,8 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
             n=self.iterations,
             seed=self.seed,
             messages=[
-                {"role": "system", "content": updated_message},
-                {"role": "user", "content": self.prompt}])
+                {"role": "system", "content": updated_role},
+                {"role": "user", "content": updated_prompt}])
         self.tokens['prompt'] += refined.usage.prompt_tokens
         self.tokens['completion'] += refined.usage.completion_tokens
 
@@ -332,8 +332,6 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
         return self.condense_iterations(refined)
 
 
-def calculate_cost(tokens, perM, decimals=5):
-    """Calculate approximate cost of a given interaction"""
-    temp_cost = tokens * perM
-    temp_cost = temp_cost / 1e6
-    return round(temp_cost, decimals)
+def calculate_cost(tokens, perM, dec=5):
+    """Calculates approximate cost (USD) of LLM tokens generated to a given decimal place"""
+    return round((tokens * perM) / 1e6, dec)

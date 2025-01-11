@@ -106,8 +106,7 @@ class QueryManager:
             role = role["prompt"]
 
         # Add unit testing to prompt
-        if args.unit_testing == True and args.role != 'dev':
-            role += unit_tests
+        role = role + unit_tests if args.unit_testing == True else role
 
         # Add urgency if necessary
         if args.urgent == True:

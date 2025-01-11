@@ -182,7 +182,7 @@ Follow these guidelines for an effective testing process:
 # Collected default role text for easy import
 roleDict = {'assist': {'prompt':ASSISTANT+HONESTY, 'name':'Assistant'},
             'compbio': {'prompt':COMPBIO+HONESTY, 'name':'Computational Biologist'},
-            'dev': {'prompt':refactor+unit_tests, 'name':'Python Developer'},
+            'dev': {'prompt':refactor, 'name':'Python Developer'},
             'image': {'prompt':IMAGE, 'name':'Image'},
             'chain': CHAIN_OF_THOUGHT,
             'art': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
@@ -223,17 +223,20 @@ rewrite_options = {
     "elevate": "Rewrite the text to make it more sophisticated, polished, or impressive in tone and style.",
     "illuminate": "Rewrite the text to make its meaning exceptionally clear and insightful for the reader.",
     "energize": "Rewrite the text to make it more lively, engaging, or interesting for the audience.",
-    "soft-pedal": "Rewrite the text to downplay or reduce the intensity of its tone or message.",
+    "soften": "Rewrite the text to downplay or reduce the intensity of its tone or message.",
     "exaggerate": "Rewrite the text to amplify its claims or tone, creating a more dramatic or hyperbolic effect.",
     "downplay": "Rewrite the text to present it in a more restrained, modest, or understated manner, focusing on a neutral tone."}
 
-refine_message = f"""Condense and synthesize all of the text provided into return a single cohesive response. 
+refine_message = f"""
+Refine and synthesize all of the above prompt text provided into return a single cohesive response. 
 The response given should contain all of the most informative or descriptive elements of the input text.
 Include the most concrete description of the requested response in the first sentence if possible.
-Refined prompt text should be at least three sentences long.
+Refined prompt text should be at least four sentences long.
 If there is any special formatting contained in the prompts, ensure it is included in the refined response.
 Provide example code in refined queries when refactored code is requested.
-Attempt to include words from the following list where appropriate: {', '.join(list(rewrite_options.keys()))}.
+Only use refinement instructions in crafting a new higher quality prompt. 
+Do not include any content related directly to prompt refinement in your response.
+Your response should be formatted as another user request to ChatGPT, any instance of 'I' need to be updated to 'you should'.
 """
 
 #-----------------------------------------------------------------------------------------------------------------------------#
