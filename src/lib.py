@@ -228,7 +228,7 @@ rewrite_options = {
     "downplay": "Rewrite the text to present it in a more restrained, modest, or understated manner, focusing on a neutral tone."}
 
 refine_message = f"""
-Refine and synthesize all of the above prompt text provided into return a single cohesive response. 
+Refine and synthesize all of the above prompt text provided into a single cohesive response. 
 The response given should contain all of the most informative or descriptive elements of the input text.
 Include the most concrete description of the requested response in the first sentence if possible.
 Refined prompt text should be at least four sentences long.
