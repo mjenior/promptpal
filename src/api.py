@@ -158,7 +158,7 @@ class OpenAIInterface():
         """
         prompt_cost = completion_cost = total_cost = 'Unknown model rate'
         total_tokens = self.tokens['prompt'] + self.tokens['completion']
-        rates = {'gpt-4o': (2.5, 10), 'gpt-4o-mini': (0.150, 0.600)}
+        rates = {'gpt-4o': (2.5, 10), 'gpt-4o-mini': (0.150, 0.600), 'o1-mini': (3, 12), 'o1-preview': (15, 60)}
         if self.model.lower() in rates:
             prompt_rate, completion_rate = rates[self.model.lower()]
             prompt_cost = calculate_cost(self.tokens['prompt'], prompt_rate)

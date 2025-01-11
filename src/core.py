@@ -5,7 +5,7 @@ import random
 from copy import copy
 from datetime import datetime
 
-from src.lib import roleDict, chatgptList, unit_tests, extDict
+from src.lib import roleDict, unit_tests, extDict
 
   
 class QueryManager:
@@ -82,7 +82,8 @@ class QueryManager:
         
         if mod == 'deepseek-chat': # ready if new deepseek models become available
             url="https://api.deepseek.com"
-        elif mod not in chatgptList:
+
+        elif mod not in ['gpt-4o','gpt-4o-mini','o1-mini','o1-preview','dall-e-3','dall-e-2']:
             mod = "gpt-4o-mini"
 
         return mod, url
