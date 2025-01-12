@@ -51,8 +51,8 @@ iters : int
 key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
-silent : bool
-    Silences all StdOut
+verbose : bool
+    Adds all ptocessing tex to stdout.
     Default is False
 urgent : bool
     Add urgency to the request [UNTESTED].
@@ -76,7 +76,7 @@ def parse_arguments():
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
     parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations for model reflection.")
-    parser.add_argument("-s", "--silent", type=bool, default=False, help="Suppress output.")
+    parser.add_argument("-v", "--verbose", type=bool, default=False, help="Adds all ptocessing tex to stdout.")
     parser.add_argument("-l", "--logging", type=bool, default=True, help="Save query log.")
     parser.add_argument("-g", "--urgent", type=bool, default=False, help="Add urgency to the request [UNTESTED]")
     return parser.parse_args()

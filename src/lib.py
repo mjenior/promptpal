@@ -221,6 +221,7 @@ Follow these guidelines for an effective testing process:
 # Collected default role text for easy import
 roleDict = {'assist': {'prompt':ASSISTANT+HONESTY, 'name':'Assistant'},
             'compbio': {'prompt':COMPBIO+HONESTY, 'name':'Computational Biologist'},
+            'cancer': {'prompt':ONCOLOGY, 'name':'Cancer Biologist'},
             'dev': {'prompt':refactor, 'name':'Python Developer'},
             'image': {'prompt':IMAGE, 'name':'Image'},
             'chain': CHAIN_OF_THOUGHT,

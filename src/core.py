@@ -23,7 +23,7 @@ class QueryManager:
         # Simple arguments
         self.code = True
         self.logging = True
-        for attr in ["model", "prompt","silent", "refine", "chain_of_thought"]:
+        for attr in ["model", "prompt", "verbose", "refine", "chain_of_thought"]:
             setattr(self, attr, getattr(args, attr))
 
         # Processed arguments
@@ -52,7 +52,7 @@ class QueryManager:
         self.log_file = f"logs/{self.prefix}.transcript.log"
         if self.logging == True:
             self._begin_logging()
-        if self.silent == False:
+        if self.verbose == True:
             self._report_query_params()
 
     def _set_api_key(self, key):
@@ -97,8 +97,8 @@ class QueryManager:
 
         if label == "custom":
             self.role_name = "Custom"
-            role, wrds, check = self._file_text_scanner(role)
-            if self.silent == False:
+            role, wrds = self._file_scanner(role)
+            if self.verbose == True:
                 print(f'\nCustom system role:\n{role}\n')
             if self.logging == True:
                 self.log_text.append('\nCustom system role:\n' + role + '\n')
@@ -132,7 +132,7 @@ class QueryManager:
                 if word.endswith(p):
                     word = word.rstrip(p)
             if os.path.isfile(word):
-                if self.silent == False:
+                if self.verbose == True:
                     print(f'\nFile found and contents added to {prompt_type} prompt:', word)
                 with open(word, 'r') as handle:
                     new_message += ' '.join([x for x in handle.readlines() if len(x.strip()) >= 1])
@@ -140,14 +140,14 @@ class QueryManager:
             
             # Parse directories if needed
             elif len(word) > 2 and os.path.exists(word) and '/' in word:
-                if self.silent == False:
+                if self.verbose == True:
                     print('\nDirectory found and parsing content:')
                 
                 code_files = []
                 for file_name in os.listdir(word):
                     ext = '.' + file_name.split('.')[-1]
                     if ext in set(extDict.keys()):
-                        if self.silent == False:
+                        if self.verbose == True:
                             print('\tFile found and contents added to {prompt_type} prompt:', word)
                         with open(file_name, 'r') as handle:
                             new_message += ' '.join([x for x in handle.readlines() if len(x.strip()) >= 1])

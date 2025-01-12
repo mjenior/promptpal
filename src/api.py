@@ -18,7 +18,7 @@ class OpenAIInterface():
         Initializes the query handler with the provided variables.
         """
         # Inherit core properties
-        attributes = ["prompt", "role", "label", "silent", 
+        attributes = ["prompt", "role", "label", "verbose", 
             "timestamp", "model", "code", "logging", "log_text", 
             "size", "quality", "iterations", "prefix", "seed",
             "base_url", "api_key", "refine", "added_query"]
@@ -50,7 +50,7 @@ class OpenAIInterface():
                     self.prompt += self.added_query
 
             reportStr = "\n\nRefined query prompt:\n" + self.prompt
-            if self.silent == False:
+            if self.verbose == True:
                 print(reportStr)
             if self.logging == True:
                 self.log_text.append(reportStr)
@@ -67,11 +67,11 @@ class OpenAIInterface():
         reportStr = "\n\nProcessing finalized "
         if self.label not in ["artist", "photo"]:
             reportStr += "completion query...\n"
-            if self.silent == False: print(reportStr)
+            if self.verbose == True: print(reportStr)
             self._process_text_response()
         else:
             reportStr += "image request...\n"
-            if self.silent == False: print(reportStr)
+            if self.verbose == True: print(reportStr)
             self._process_image_response()
             
         # Add to log file
@@ -81,7 +81,7 @@ class OpenAIInterface():
         # Find cost of the run
         token_report = self.gen_token_report()
         self.log_text.append(token_report)
-        if self.silent == False:
+        if self.verbose == True:
             print(token_report)
 
         # Save reporting transcript to txt file
@@ -89,7 +89,7 @@ class OpenAIInterface():
             self.save_chat_transcript()
 
         # Complete run
-        if self.silent == False:
+        if self.verbose == True:
             print("\n\nFinished.\n\n")
 
     def _process_text_response(self):
@@ -107,17 +107,20 @@ class OpenAIInterface():
         self.tokens['prompt'] += response.usage.prompt_tokens
         self.tokens['completion'] += response.usage.completion_tokens
 
-        if self.silent == False:
-            print(f"\nSystem response to query:\n{message}\n")
+        reportStr = "\nSystem response to query:\n" + message
+        if self.verbose == True:
+            print(reportStr)
+        else:
+            print(message)
         if self.logging == True:
-            self.log_text.append(f"\nSystem response to query:\n{message}\n")
+            self.log_text.append(reportStr)
 
         if self.code:
             scripts = self._extract_code_from_reponse(message, self.timestamp)
             if scripts:
                 os.makedirs('code', exist_ok=True)
                 reportStr = "\nCode extracted from reponse text and saved to:\n\t" + '\n\t'.join(scripts) + "\n"
-                if self.silent == False:
+                if self.verbose == True:
                     print(reportStr)
                 if self.logging == True:
                     self.log_text.append(reportStr)
@@ -136,7 +139,7 @@ class OpenAIInterface():
         self.tokens['completion'] += response.usage.completion_tokens
         
         reportStr = "\nRevised initial initial prompt:\n" + revised_prompt
-        if self.silent == False:
+        if self.verbose == True:
             print(reportStr)
         if self.logging == True:
             self.log_text.append(reportStr)
@@ -147,8 +150,7 @@ class OpenAIInterface():
             outFile.write(image_data)
         
         reportStr = "\nGenerated image saved to: " + image_file + "\n"
-        if self.silent == False:
-            print(reportStr)
+        print(reportStr)
         if self.logging == True:
             self.log_text.append(reportStr)
 
@@ -189,7 +191,7 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
         with open(self.log_file, "a", encoding="utf-8") as f:
             f.write("\n".join(self.log_text))
 
-        if self.silent == False:
+        if self.verbose == True:
             print("\nSaving conversation transcript text to:", self.log_file)
 
     def _extract_code_from_reponse(self, response, timestamp):
@@ -297,7 +299,7 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
             A string containing the refined prompt
         """
         reportStr = "\nRefining initial prompt..."
-        if self.silent == False:
+        if self.verbose == True:
             print(reportStr)
         if self.logging == True:
             self.log_text.append(reportStr)
