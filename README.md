@@ -85,7 +85,7 @@ model : str
     Default is gpt-4o
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
-    Default is True
+    Default is False
 refine : bool
     Automatically improve user prompt to improve query specificity.
     Default is False

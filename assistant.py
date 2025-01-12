@@ -28,7 +28,7 @@ model : str
     Default is gpt-4o
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
-    Default is True
+    Default is False
 unit_testing : bool
     Write comprehesive unit tests for any generated code.
     Default is False
@@ -67,7 +67,7 @@ def parse_arguments():
     parser.add_argument("-p", "--prompt", type=str, default="What is the answer to life the universe and everything?", help="User prompt text or path to a .txt file.")
     parser.add_argument("-r", "--role", type=str, default="assist", help="Assistant role text.")
     parser.add_argument("-m", "--model", type=str, default="gpt-4o", help="LLM to use in queiries.")
-    parser.add_argument("-c", "--chain_of_thought", type=bool, default=True, help="Enable chain of thought reasoning.")
+    parser.add_argument("-c", "--chain_of_thought", type=bool, default=False, help="Enable chain of thought reasoning.")
     parser.add_argument("-f", "--refine", type=bool, default=False, help="Enable automated input prompt improvement.")
     parser.add_argument("-x", "--code", type=bool, default=True, help="Save detected code in responses.")
     parser.add_argument("-e", "--seed", default=r'"@[=g3,8d]\&fbb=-q]/hk%fg"', help="Set moded seed for more deterministic reponses, accepts integer or strings")
