@@ -82,7 +82,7 @@ role : str
     Default is assistant
 model : str
     LLM to use in queiries.
-    Default is gpt-4o-mini
+    Default is gpt-4o
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
     Default is True
@@ -127,6 +127,7 @@ Available role shortcuts:
 
 - assist (default): Standard personal assistant with improved ability to help with tasks
 - compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
+- cancer: Specializing in cancer biology and molecular mechanisms, providing rigorous, evidence-based insights into cancer pathways, genetic factors, and therapeutic strategies
 - dev: Senior python full stack developer with emphases in correct syntax, documentation, and unit testing.
 - invest: Experience in technology stock investment and wealth management. Provides analyses for new stocks to invest in.
 - art: Creates an images described by the prompt, default style leans toward illustrations
