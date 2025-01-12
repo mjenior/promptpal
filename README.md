@@ -9,7 +9,7 @@ Python based command line interface for prompted conversation using ChatGPT API
 **ChatGPT-CLI Tool** is a Python-based command-line interface (CLI) tool that allows users to interact with OpenAI's ChatGPT API efficiently. This tool provides several powerful features, including automated system role selection, code identification, and the ability to save identified code snippets as separate scripts. Additionally, the tool can scan previous conversation history for context and includes basic chain of thought tracking in prompts. Whether you're looking for insightful conversations, code suggestions, or a simple chat interface, this CLI tool streamlines your interactions with the ChatGPT API.
 
 ## Requirements
-- openai
+- openai >= 1.59.6
 
 
 ## Key Features
@@ -41,13 +41,14 @@ First, ensure you have Python 3.10+ installed on your system. You can install th
 Clone the repository:
 
 ```bash
+pip install openai>=1.59.6
 git clone https://github.com/mjenior/cli_assistant.git
 cd cli_assistant
-python setup.py
 ```
 
-[setup.py] also adds a bash alias <assistant.py --prompt> to you profile to access the assistant with the command <gpt>, this command can be run from any relative path.
+That's it! the CLI assistant does not require it's own installation to start submitting improved queries.
 
+Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with the command <gpt>, this command can be run from any relative path.
 
 Before using the tool, a final helpful step is to also set up your OpenAI API key. Otherwise you'll need to provide to the app directly (described below).
 
@@ -90,6 +91,7 @@ refine : bool
     Automatically improve user prompt to improve query specificity.
     Default is False
 iters : int
+    WANRING: More testing required for reliability
     Number of responses to generate and parse for model reflection
     Default is 1
 seed : str or int
@@ -171,9 +173,23 @@ Example:
 assistant.py --chain_of_thought True --prompt "Can you write out a list of directions to change a tire?" 
 ```
 
+### Query Prompt Refinement
+
+Attempts to improve the clarity, focus, and specificity of a prompt to align with the desired outcomes or objectives. It involves adjusting language, structure, and scope to ensure the prompt effectively guides responses and generates accurate, relevant, and actionable results. Results are automatically submitted as a new query to the requested LLM.
+
+Example:
+```bash
+assistant.py --refine True --prompt "Can you write out a list of directions to change a tire?" 
+```
+
+Result:
+```
+Can you provide detailed, step-by-step instructions for changing a tire, emphasizing key safety precautions and necessary tools? You should include comprehensive details like how to safely park the car, the importance of using a wheel chock, and the correct way to position the jack. Also, expand on how to properly remove the lug nuts, replace the tire, and ensure everything is secure before driving again.
+```
+
 ### Response Reflection
 
-This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --iterations flag accepts an integer value representing the number of separate reponse iterations the model will create for the given prompt. Increasing this value past the 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point. 
+This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --iterations flag accepts an integer value representing the number of separate reponse iterations the model will create for the given prompt. Increasing this value past the 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point. WANRING: More testing required for reliability, so use with caution.
 
 Example:
 ```bash

@@ -46,6 +46,7 @@ qual : str
     Image quality for Dall-e image
     Default int standard
 iters : int
+    WANRING: More testing required for reliability
     Number of responses to generate and parse for model reflection
     Default is 1
 key : str
