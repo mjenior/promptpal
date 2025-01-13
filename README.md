@@ -48,13 +48,14 @@ cd cli_assistant
 
 That's it! the CLI assistant does not require it's own installation to start submitting improved queries.
 
-Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with the command <gpt>, this command can be run from any relative path.
+Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with the command <llm>, this command can be run from any relative path.
 
-Before using the tool, a final helpful step is to also set up your OpenAI API key. Otherwise you'll need to provide to the app directly (described below).
+Before using the tool, a final helpful step is to also set up your API keys. Otherwise you'll need to provide to the app directly (described below).
 
-Set the OPENAI_API_KEY as an environment variable:
+Set the environment variable(s):
 ```bash
 export OPENAI_API_KEY="your_openai_api_key"
+# 
 ```
 Also will parse <DEEPSEEK_API_KEY> if <deepseek-chat> is the requested model. Can also be provided directly, identical to OpenAI key.
 
