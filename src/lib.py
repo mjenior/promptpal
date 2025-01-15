@@ -92,7 +92,6 @@ IMPROVEMENT OPPORTUNITIES (List up to 3):
 
 REFINED VERSION:
 Present an improved version that:
-- Maintains the same word count (±10%)
 - Preserves the original main arguments
 - Implements the suggested improvements
 
@@ -194,7 +193,7 @@ HONESTY = "\nAdditionally prioritize honesty, and indicate when you are unable t
 
 # Coding specific
 
-refactor = """
+DEVELOPER = """
 Act as a Senior Python full stack developer.
 Refactor the following Python code to improve readability, maintainability, and performance while ensuring its functionality remains the same. 
 Apply best practices, optimize for efficiency, and include comments that explain key sections of the code. 
@@ -222,7 +221,7 @@ Follow these guidelines for an effective testing process:
 roleDict = {'assist': {'prompt':ASSISTANT+HONESTY, 'name':'Assistant'},
             'compbio': {'prompt':COMPBIO+HONESTY, 'name':'Computational Biologist'},
             'cancer': {'prompt':ONCOLOGY, 'name':'Cancer Biologist'},
-            'dev': {'prompt':refactor, 'name':'Python Developer'},
+            'dev': {'prompt':DEVELOPER, 'name':'Python Developer', 'unit_tests':unit_tests},
             'image': {'prompt':IMAGE, 'name':'Image'},
             'chain': CHAIN_OF_THOUGHT,
             'art': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
@@ -235,7 +234,20 @@ roleDict = {'assist': {'prompt':ASSISTANT+HONESTY, 'name':'Assistant'},
 
 # Prompt refinement
 
-rewrite_options = {
+refine_message = """
+Refine and synthesize all of the above prompt text provided into a single cohesive response. 
+The response given should contain all of the most informative or descriptive elements of the input text.
+Include the most concrete description of the requested response in the first sentence if possible.
+Refined prompt text should be at least four sentences long.
+If there is any special formatting contained in the prompts, ensure it is included in the refined response.
+Provide example code in refined queries when refactored code is requested.
+Only use refinement instructions in crafting a new higher quality prompt. 
+Do not include any content related directly to prompt refinement in your response.
+Your response should be formatted as another user request to ChatGPT, any instance of 'I' need to be updated to 'you should'.
+"""
+
+refineDict = {
+    "prompt": refine_message,
     "paraphrase": "Rewrite the text to express the same meaning in different words to avoid plagiarism or duplicate phrasing.",
     "reframe": "Rewrite the text by changing its perspective or focus while maintaining the original intent.",
     "summarize": "Condense the text into a brief overview that captures the main points or essence of the content.",
@@ -266,18 +278,6 @@ rewrite_options = {
     "soften": "Rewrite the text to downplay or reduce the intensity of its tone or message.",
     "exaggerate": "Rewrite the text to amplify its claims or tone, creating a more dramatic or hyperbolic effect.",
     "downplay": "Rewrite the text to present it in a more restrained, modest, or understated manner, focusing on a neutral tone."}
-
-refine_message = f"""
-Refine and synthesize all of the above prompt text provided into a single cohesive response. 
-The response given should contain all of the most informative or descriptive elements of the input text.
-Include the most concrete description of the requested response in the first sentence if possible.
-Refined prompt text should be at least four sentences long.
-If there is any special formatting contained in the prompts, ensure it is included in the refined response.
-Provide example code in refined queries when refactored code is requested.
-Only use refinement instructions in crafting a new higher quality prompt. 
-Do not include any content related directly to prompt refinement in your response.
-Your response should be formatted as another user request to ChatGPT, any instance of 'I' need to be updated to 'you should'.
-"""
 
 #-----------------------------------------------------------------------------------------------------------------------------#
 

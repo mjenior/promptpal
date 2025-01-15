@@ -5,7 +5,7 @@ import random
 from copy import copy
 from datetime import datetime
 
-from src.lib import roleDict, unit_tests, extDict
+from src.lib import roleDict, extDict
 
   
 class QueryManager:
@@ -21,9 +21,7 @@ class QueryManager:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Simple arguments
-        self.code = True
-        self.logging = True
-        for attr in ["model", "prompt", "verbose", "refine", "chain_of_thought"]:
+        for attr in ["model", "prompt", "verbose", "refine", "chain_of_thought","code","logging"]:
             setattr(self, attr, getattr(args, attr))
 
         # Processed arguments
@@ -107,7 +105,7 @@ class QueryManager:
             role = role["prompt"]
 
         # Add unit testing to prompt
-        role = role + unit_tests if args.unit_testing == True else role
+        role = role + roleDict['dev']['unit_tests'] if args.unit_testing == True else role
 
         # Add urgency if necessary
         if args.urgent == True:

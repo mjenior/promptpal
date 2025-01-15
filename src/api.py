@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from openai import OpenAI
 
-from src.lib import extDict, rewrite_options, refine_message
+from src.lib import extDict, refineDict
 
 class OpenAIInterface():
     """
@@ -269,7 +269,7 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
 
         return func, clss
 
-    def condense_iterations(self, api_response, sys_text=refine_message):
+    def condense_iterations(self, api_response, sys_text=refineDict['prompt']):
     
         api_responses = [r.message.content.strip() for r in api_response.choices]
         if len(api_responses) > 1:
@@ -292,7 +292,7 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
         
         Parameters:
             prompt (str): The original prompt to be refined.
-            actions (list of str): A list of rewrite actions (keys from the rewrite_options dictionary).
+            actions (list of str): A list of rewrite actions (keys from the refineDict dictionary).
             temp (float): Tempature to set model to.
         
         Returns:
@@ -307,14 +307,14 @@ Total tokens generated: {self.tokens['prompt'] + self.tokens['completion']}  ({t
         # Check prompt for additional action keywords
         actions = set(actions)
         words = set([re.sub(r'[^\w\s]','', word).lower() for word in self.prompt.split() if len(word) >= 1])
-        actions |= set(rewrite_options.keys()).intersection(words)
+        actions |= set(refineDict.keys()).intersection(words)
         action_str = ""
         for a in actions:
-            action_str += f"{a}; {rewrite_options[a]}" + "\n"
+            action_str += f"{a}; {refineDict[a]}" + "\n"
 
         # Generate the system message for the action
         updated_role = self.role + "Your primary task is to refine or improve the user prompt, do not respond directly to the provided request."
-        updated_message = refine_message + action_str
+        updated_message = refineDict['prompt'] + action_str
         if self.role: # Add specific expertise if provided
             updated_prompt = self.prompt + updated_message
         

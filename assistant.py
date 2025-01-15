@@ -2,8 +2,9 @@
 
 import argparse
 
-from src.core import QueryManager
-from src.api import OpenAIInterface
+#from src.core import QueryManager
+#from src.api import OpenAIInterface
+from src.interface import OpenAIQueryHandler
 
 
 """
@@ -70,15 +71,15 @@ def parse_arguments():
     parser.add_argument("-m", "--model", type=str, default="gpt-4o", help="LLM to use in queiries.")
     parser.add_argument("-c", "--chain_of_thought", type=bool, default=False, help="Enable chain of thought reasoning.")
     parser.add_argument("-f", "--refine", type=bool, default=False, help="Enable automated input prompt improvement.")
-    parser.add_argument("-x", "--code", type=bool, default=True, help="Save detected code in responses.")
+    parser.add_argument("-x", "--code", type=bool, default=False, help="Save detected code in responses to separate scripts.")
     parser.add_argument("-e", "--seed", default=r'"@[=g3,8d]\&fbb=-q]/hk%fg"', help="Set moded seed for more deterministic reponses, accepts integer or strings")
     parser.add_argument("-u", "--unit_testing", type=bool, default=False, help="Write comprehesive unit tests for any generated code.")
     parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
     parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations for model reflection.")
-    parser.add_argument("-v", "--verbose", type=bool, default=False, help="Adds all ptocessing tex to stdout.")
-    parser.add_argument("-l", "--logging", type=bool, default=True, help="Save query log.")
+    parser.add_argument("-v", "--verbose", type=bool, default=False, help="Adds all processing text to stdout.")
+    parser.add_argument("-l", "--logging", type=bool, default=False, help="Save full conversation log.")
     parser.add_argument("-g", "--urgent", type=bool, default=False, help="Add urgency to the request [UNTESTED]")
     return parser.parse_args()
 
@@ -91,13 +92,29 @@ def main():
     args = parse_arguments()
    
     # Initialize the user argument and query manager
-    input_manager = QueryManager(args)
+    OpenAIQueryHandler(model=args.model,
+                       prompt=args.prompt,
+                       verbose=args.verbose,
+                       refine=args.refine,
+                       chain_of_thought=args.chain_of_thought,
+                       code=args.code,
+                       logging=args.logging,
+                       api_key=args.key,
+                       seed=args.seed,
+                       iterations=args.iters,
+                       role=args.role,
+                       urgent=args.urgent,
+                       image_dimensions=args.dim,
+                       image_quality=args.qual,
+                       unit_testing=args.unit_testing)
+
 
     # Initialize the OpenAI API handler
-    api_handler = OpenAIInterface(input_manager)
+    #input_manager = QueryManager(args)
+    #api_handler = OpenAIInterface(input_manager)
 
     # Submit query and parse response
-    api_handler.submit_query()
+    #api_handler.submit_query()
     
 
 if __name__ == "__main__":
