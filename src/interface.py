@@ -36,6 +36,7 @@ class OpenAIQueryHandler:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.model = model
         self.prompt = prompt
+        self.original_query = prompt
         self.verbose = verbose
         self.refine = refine
         self.chain_of_thought = chain_of_thought
@@ -50,34 +51,19 @@ class OpenAIQueryHandler:
         self.role = role if role else "assist"
         self.urgent = urgent
         self.unit_testing = unit_testing
+        self.tokens = {'prompt':0, 'completion':0}
 
         self._setup_logging()
         self._setup_model_and_role()
         self._prepare_query()
-    
-    # OLD
-    #def __init__(self, args):
-    #    """
-    #    Initialize the handler with variables from parsed arguments.
-    #    """
-    #    self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    #    self._initialize_args(args)
-    #    self._setup_logging()
-    #    self._setup_model_and_role(args)
-    #    self._prepare_query(args)
 
-    #def _initialize_args(self, args):
-    #    """
-    #    Sets basic arguments from the user input.
-    #    """
-    #    self.model = args.model
-    #    self.prompt = args.prompt
-    #    self.verbose = args.verbose
-    #    self.refine = args.refine
-    #    self.chain_of_thought = args.chain_of_thought
-    #    self.code = args.code
-    #    self.logging = args.logging
-    #    self.log_text = []
+        # Initialize client
+        if self.model == 'deepseek-chat':
+            self.client = OpenAI(api_key=self.api_key, 
+                base_url="https://api.deepseek.com")
+        else:
+            self.client = OpenAI(api_key=self.api_key)
+
 
     def _setup_logging(self):
         """
@@ -89,29 +75,29 @@ class OpenAIQueryHandler:
             with open(self.log_file, "w") as f:
                 f.write("New session initiated.\n")
 
-    def _setup_model_and_role(self, args):
+    def _setup_model_and_role(self):
         """
         Processes model and role selections.
         """
-        self.role, self.label = self._select_role(args)
-        self.model, self.base_url = self._select_model(args.model)
-        self.api_key = self._set_api_key(args.key)
+        self.role, self.label = self._select_role()
+        self.model, self.base_url = self._select_model()
+        self._set_api_key()
 
-    def _prepare_query(self, args):
+    def _prepare_query(self):
         """
         Prepares the query, including prompt modifications and image handling.
         """
-        self._scan_files()
+        #self._scan_files()
         self._handle_image_request()
-        self.iterations = self._calculate_iterations(args)
-        self.size, self.quality = self._handle_image_params(args)
-        self.seed = args.seed if isinstance(args.seed, int) else self._string_to_binary(args.seed)
+        self._calculate_iterations()
+        self._handle_image_params()
+        self.seed = self.seed if isinstance(self.seed, int) else self._string_to_binary(self.seed)
         if self.verbose:
             self._report_query_params()
 
-    def _set_api_key(self, key):
+    def _set_api_key(self):
         """Sets the OpenAI API key."""
-        if key == "system":
+        if self.api_key == "system":
             self.api_key = os.getenv("OPENAI_API_KEY", None)
             if self.model == 'deepseek-chat':
                 self.api_key = os.getenv("DEEPSEEK_API_KEY")
@@ -122,7 +108,7 @@ class OpenAIQueryHandler:
             env_key = 'DEEPSEEK_API_KEY' if self.model == 'deepseek-chat' else 'OPENAI_API_KEY'
             os.environ[env_key] = self.api_key
 
-    def _select_model(self, model_arg):
+    def _select_model(self):
         """Validates and selects the model based on user input or defaults."""
         model_to_url = {
             'deepseek-chat': "https://api.deepseek.com",
@@ -133,18 +119,18 @@ class OpenAIQueryHandler:
             'dall-e-3': "https://api.openai.com",
             'dall-e-2': "https://api.openai.com"
         }
-        return model_arg.lower() if model_arg.lower() in model_to_url else 'gpt-4o-mini', model_to_url.get(model_arg.lower(), "https://api.openai.com")
+        return self.model.lower() if self.model.lower() in model_to_url else 'gpt-4o-mini', model_to_url.get(self.model.lower(), "https://api.openai.com")
 
-    def _select_role(self, args):
+    def _select_role(self):
         """Selects the role based on user input or defaults."""
-        role = roleDict.get(args.role, args.role)
-        label = args.role if args.role in roleDict else "custom"
+        role = roleDict.get(self.role, self.role)
+        label = self.role if self.role in roleDict else "custom"
         
-        refined_role = self._append_file_scanner(role)
+        refined_role = self._append_file_scanner(role['prompt'])
         if self.chain_of_thought:
             refined_role += roleDict['chain']
-        refined_role += roleDict['dev']['unit_tests'] if args.unit_testing else ''
-        if args.urgent:
+        refined_role += roleDict['dev']['unit_tests'] if self.unit_testing else ''
+        if self.urgent:
             refined_role += "\nMy life or career likely depend on you giving me a high quality answer."
         
         return refined_role, label
@@ -155,7 +141,7 @@ class OpenAIQueryHandler:
             message = ' '.join(message)
         words = set(message.split())
         appended_message, new_words = self._scan_directories_and_files(words)
-        return appended_message, words.union(new_words)
+        return appended_message
 
     def _scan_directories_and_files(self, words):
         """Scan for existing files in user-provided text to append to messages."""
@@ -196,20 +182,18 @@ class OpenAIQueryHandler:
             self.label = "photo"
             self.model = "dall-e-3"
 
-    def _calculate_iterations(self, args):
+    def _calculate_iterations(self):
         """Determines the number of response iterations."""
-        if self.role == 'refine' and args.iters == 1:
-            return args.iters + 2
-        return args.iters
+        if self.role == 'refine' and self.iterations == 1:
+            self.iterations + 2
 
-    def _handle_image_params(self, args):
+    def _handle_image_params(self):
         """Sets image dimensions and quality parameters."""
+        self.dims = "NA"
+        self.qual = "NA"
         if self.label in {"art", "photo"}:
-            dims, qual = self._validate_image_params(args.dim, args.qual, self.model)
-            if self.label == "photo":
-                qual = "hd"
-            return dims, qual
-        return "NA", "NA"
+            self.dims, self.qual = self._validate_image_params(self.dim, self.qual, self.model)
+            self.qual = "hd" if self.label == "photo" else self.qual
 
     @staticmethod
     def _validate_image_params(dims, qual, model):
@@ -271,9 +255,8 @@ System parameters:
         )
         message = self._condense_iterations(response)
         self._update_token_count(response)
-        self._handle_response_logging(message)
+        self._log_and_print(message)
         
-
     def _process_image_response(self):
         """Processes image generation requests using OpenAI's image models."""
         os.makedirs('images', exist_ok=True)
@@ -295,9 +278,9 @@ System parameters:
         if self.refine:
             self.prompt = self._refine_prompt()
             if 'refactor' in self.prompt.lower() or 'rewrite' in self.prompt.lower():
-                if len(self.added_query.strip()) > 0:
+                if len(self.original_query.strip()) > 0:
                     self.prompt += "\n\nImprove the following:\n"
-                    self.prompt += self.added_query
+                    self.prompt += self.original_query
             self._log_and_print(f"\n\nRefined query prompt:\n{self.prompt}")
         
         return [{"role": "user", "content": self.prompt},
@@ -340,17 +323,17 @@ System parameters:
                 model=self.model,
                 seed=self.seed,
                 messages=[
-                    {"role": "system", "content": roleDict['rewrite']},
+                    {"role": "system", "content": roleDict['rewrite']['prompt']},
                     {"role": "user", "content": "\n\n".join(api_responses)}
                 ])
             self._update_token_count(condensed)
             return condensed.choices[0].message.content.strip()
         return api_responses[0]
 
-    def _refine_prompt(self, actions=['expand', 'amplify'], temperature=0.7):
+    def _refine_prompt(self, actions=set(['expand', 'amplify']), temperature=0.7):
         """Refines an LLM prompt using specified rewrite actions."""
         self._log_and_print("\nRefining initial prompt...")
-        actions.update(set(re.sub(r'[^\w\s]', '', word).lower() for word in self.prompt.split() if word))
+        actions |= set(re.sub(r'[^\w\s]', '', word).lower() for word in self.prompt.split() if word.lower() in refineDict)
         action_str = "; ".join(f"{a}; {refineDict[a]}" for a in actions)
         updated_role = self.role + "\nDo not respond directly to the provided request. Your primary task is to refine or improve the user prompt."
         updated_prompt = self.prompt + refineDict['prompt'] + action_str

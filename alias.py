@@ -34,10 +34,14 @@ if __name__ == "__main__":
     if verbose == '1':
         commandStr += f" --verbose True"
 
+    # Chat logging
+    verbose = input('Chat logging (1 = True and 0 = False): ')
+    if verbose == '1':
+        commandStr += f" --logging True"
+
     # Response reflection
     iters = input('Reflection iteration (integer): ')
     try: 
-        iters = int(iters)
         commandStr += f" --iters {int(iters)}"
     except ValueError:
         pass
@@ -51,7 +55,7 @@ if __name__ == "__main__":
     # Compose alias text versions
     commandStr += ' --prompt'
     aliasStr = f'alias {alias}="{commandStr}"'
-    profileStr = '\n'.join(["\n\n# >>> Added by LLM CLI assistant >>>",
+    profileStr = '\n'.join(["\n# >>> Added by LLM CLI assistant >>>",
                         f"export PATH=$PATH:{os.path.dirname(os.path.realpath(__file__))}",
                         aliasStr,
                         "# <<< Added by LLM CLI assistant <<<\n\n"])

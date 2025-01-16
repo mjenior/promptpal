@@ -92,7 +92,7 @@ def main():
     args = parse_arguments()
    
     # Initialize the user argument and query manager
-    OpenAIQueryHandler(model=args.model,
+    handler = OpenAIQueryHandler(model=args.model,
                        prompt=args.prompt,
                        verbose=args.verbose,
                        refine=args.refine,
@@ -114,7 +114,7 @@ def main():
     #api_handler = OpenAIInterface(input_manager)
 
     # Submit query and parse response
-    #api_handler.submit_query()
+    handler.submit_query()
     
 
 if __name__ == "__main__":
