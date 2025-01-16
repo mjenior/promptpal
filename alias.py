@@ -1,40 +1,44 @@
 #!/usr/bin/env python3
 
-from os import path
+import os
 from pathlib import Path
 
-def extract_words(file):
 
-    words = set()
-    with open(file, "r") as f:
-        for line in f:
-            words |= set(line.split())
+def extract_unique_words(file_path):
+    """
+    Extract and return a set of unique words from the specified file.
+    """
+    with open(file_path, "r") as file:
+        return {word for line in file for word in line.split()}
 
-    return words
 
 if __name__ == "__main__":
-    aliasStr = 'alias llm="assistant.py'
+    commandStr = '"cli_assistant.py'
+
+    # Determine alias string
+    alias = input('Preferred alias string: ')
+    alias = alias if alias != '' else 'llm'
 
     # Prompt refinement
     refine = input('Refine user query (1 = True and 0 = False): ')
     if refine == '1':
-        aliasStr += f" --refine True"
+        commandStr += f" --refine True"
 
     # Chain of Thought 
     chain = input('Include Chain-of-Thought reasoning (1 = True and 0 = False): ')
     if chain == '1':
-        aliasStr += f" --chain_of_thought True"
+        commandStr += f" --chain_of_thought True"
 
     # Verbose output
     verbose = input('Verbose output (1 = True and 0 = False): ')
     if verbose == '1':
-        aliasStr += f" --verbose True"
+        commandStr += f" --verbose True"
 
     # Response reflection
     iters = input('Reflection iteration (integer): ')
     try: 
         iters = int(iters)
-        aliasStr += f" --iters {int(iters)}"
+        commandStr += f" --iters {int(iters)}"
     except ValueError:
         pass
 
@@ -42,25 +46,31 @@ if __name__ == "__main__":
     role = input('Default system role (refer to README): ')
     role = role if role.lower() in ['compbio','cancer','dev','invest','art','rewrite','story'] else ''
     if role != '':
-        aliasStr += f" --role {role.lower()}"
+        commandStr += f" --role {role.lower()}"
 
-    # Compose alias text
-    aliasStr = '\n'.join(["\n\n# >>> Added by LLM CLI assistant >>>",
-                        f"export PATH=$PATH:{path.dirname(path.realpath(__file__))}",
-                        f'{aliasStr} --prompt"',
+    # Compose alias text versions
+    commandStr += ' --prompt'
+    aliasStr = f'alias {alias}="{commandStr}"'
+    profileStr = '\n'.join(["\n\n# >>> Added by LLM CLI assistant >>>",
+                        f"export PATH=$PATH:{os.path.dirname(os.path.realpath(__file__))}",
+                        aliasStr,
                         "# <<< Added by LLM CLI assistant <<<\n\n"])
-    aliasWords = set(aliasStr.split())
+    aliasWords = set(profileStr.split())
+
+    # Add to current environment
+    os.environ.update({alias: commandStr})
+    print("\nAlias added to current environment\n")
     
     # Add to bash profiles
     found = 0
     for prfl in ["bashrc", "zshrc", "bash_profile", "bash_aliases"]:
-        if path.isfile(f"{Path.home()}/.{prfl}"):
-            wrds = extract_words(f"{Path.home()}/.{prfl}")
+        if os.path.isfile(f"{Path.home()}/.{prfl}"):
+            wrds = extract_unique_words(f"{Path.home()}/.{prfl}")
             if len(aliasWords.difference(wrds)) != 0:
                 found += 1
-                print(f"Alias added to: ~/.{prfl}")
+                print(f"Updated ~/.{prfl} with command")
                 with open(f"{Path.home()}/.{prfl}", "a") as f:
-                    f.write(aliasStr)
+                    f.write(profileStr)
 
     if found > 0:
-        print('\nNow you may simply type llm followed by your request in quotations to submit queries using your preferred settings.\n')
+        print(f'\nNow you may simply type {alias} followed by your request in quotations to submit queries using your preferred settings.\n')

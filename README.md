@@ -55,7 +55,6 @@ Before using the tool, a final helpful step is to also set up your API keys. Oth
 Set the environment variable(s):
 ```bash
 export OPENAI_API_KEY="your_openai_api_key"
-# 
 ```
 Also will parse <DEEPSEEK_API_KEY> if <deepseek-chat> is the requested model. Can also be provided directly, identical to OpenAI key.
 
