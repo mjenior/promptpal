@@ -14,7 +14,7 @@ def extract_unique_words(file_path):
 
 if __name__ == "__main__":
     print("\nBlank responses will automatically set to default values.\n")
-    commandStr = 'cli_assistant.py'
+    commandStr = 'python cli_assistant.py'
 
     # Determine alias string
     alias = input('Preferred alias string: ')
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     commandStr += ' --prompt'
     aliasStr = f'alias {alias}="{commandStr}"'
     profileStr = '\n'.join(["\n# >>> Added by LLM CLI assistant >>>",
-                        f"export PATH=$PATH:{os.path.dirname(os.path.realpath(__file__))}",
+                        f"export PATH=$PATH:{os.path.dirname(os.path.realpath(__file__))}/cli_assistant",
                         aliasStr,
                         "# <<< Added by LLM CLI assistant <<<\n\n"])
     aliasWords = set(profileStr.split())
