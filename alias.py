@@ -13,7 +13,8 @@ def extract_unique_words(file_path):
 
 
 if __name__ == "__main__":
-    commandStr = '"cli_assistant.py'
+    print("\nBlank responses will automatically set to default values.\n")
+    commandStr = 'cli_assistant.py'
 
     # Determine alias string
     alias = input('Preferred alias string: ')
@@ -40,7 +41,7 @@ if __name__ == "__main__":
         commandStr += f" --logging True"
 
     # Response reflection
-    iters = input('Reflection iteration (integer): ')
+    iters = input('Response iterations (integer): ')
     try: 
         commandStr += f" --iters {int(iters)}"
     except ValueError:
@@ -77,4 +78,7 @@ if __name__ == "__main__":
                     f.write(profileStr)
 
     if found > 0:
-        print(f'\nNow you may simply type {alias} followed by your request in quotations to submit queries using your preferred settings.\n')
+        print(f"""
+Now you may simply type {alias} followed by your request in quotations to submit queries using your preferred settings.
+Full command for reference: {commandStr}
+""")

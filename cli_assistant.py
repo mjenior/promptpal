@@ -2,10 +2,7 @@
 
 import argparse
 
-#from src.core import QueryManager
-#from src.api import OpenAIInterface
-from src.interface import OpenAIQueryHandler
-
+from src.core import OpenAIQueryHandler
 
 """
 ChatGPT API script for conversation with AI assistant in command line
@@ -77,10 +74,9 @@ def parse_arguments():
     parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
-    parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations for model reflection.")
+    parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations for reflection.")
     parser.add_argument("-v", "--verbose", type=bool, default=False, help="Adds all processing text to stdout.")
     parser.add_argument("-l", "--logging", type=bool, default=False, help="Save full conversation log.")
-    parser.add_argument("-g", "--urgent", type=bool, default=False, help="Add urgency to the request [UNTESTED]")
     return parser.parse_args()
 
 
@@ -92,29 +88,24 @@ def main():
     args = parse_arguments()
    
     # Initialize the user argument and query manager
-    handler = OpenAIQueryHandler(model=args.model,
-                       prompt=args.prompt,
-                       verbose=args.verbose,
-                       refine=args.refine,
-                       chain_of_thought=args.chain_of_thought,
-                       code=args.code,
-                       logging=args.logging,
-                       api_key=args.key,
-                       seed=args.seed,
-                       iterations=args.iters,
-                       role=args.role,
-                       urgent=args.urgent,
-                       image_dimensions=args.dim,
-                       image_quality=args.qual,
-                       unit_testing=args.unit_testing)
-
-
-    # Initialize the OpenAI API handler
-    #input_manager = QueryManager(args)
-    #api_handler = OpenAIInterface(input_manager)
+    llm_api = OpenAIQueryHandler(
+        model=args.model,
+        prompt=args.prompt,
+        verbose=args.verbose,
+        refine=args.refine,
+        chain_of_thought=args.chain_of_thought,
+        code=args.code,
+        logging=args.logging,
+        api_key=args.key,
+        seed=args.seed,
+        iterations=args.iters,
+        role=args.role,
+        image_dimensions=args.dim,
+        image_quality=args.qual,
+        unit_testing=args.unit_testing)
 
     # Submit query and parse response
-    handler.submit_query()
+    llm_api.request()
     
 
 if __name__ == "__main__":

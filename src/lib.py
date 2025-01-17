@@ -187,8 +187,6 @@ Each description must be at least one paragraph, with more than four sentences.
 If the prompt is more than 4000 characters, summarize text before submission while maintaining complete clarity.
 """
 
-HONESTY = "\nAdditionally prioritize honesty, and indicate when you are unable to answer confidently."        
-
 #------------#
 
 # Coding specific
@@ -213,20 +211,21 @@ Follow these guidelines for an effective testing process:
 7. Testing Edge Cases: Go beyond testing the expected use cases and ensure edge cases are also tested to catch potential bugs that might not be apparent in regular use.
 8. Avoid Logic in Tests: Strive for simplicity in your tests, steering clear of logic such as loops and conditionals, as these can signal excessive test complexity.
 9. Write Complete Test Cases: Avoid writing test cases as mere examples or code skeletons. You have to write a complete set of tests. They should effectively validate the functionality under test.
+
 """
 
 #------------#
 
 # Collected default role text for easy import
-roleDict = {'assist': {'prompt':ASSISTANT+HONESTY, 'name':'Assistant'},
-            'compbio': {'prompt':COMPBIO+HONESTY, 'name':'Computational Biologist'},
+roleDict = {'assist': {'prompt':ASSISTANT, 'name':'Assistant'},
+            'compbio': {'prompt':COMPBIO, 'name':'Computational Biologist'},
             'cancer': {'prompt':ONCOLOGY, 'name':'Cancer Biologist'},
             'dev': {'prompt':DEVELOPER, 'name':'Python Developer', 'unit_tests':unit_tests},
             'image': {'prompt':IMAGE, 'name':'Image'},
             'chain': CHAIN_OF_THOUGHT,
             'art': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
             'photo': {'prompt':PHOTOGRAPHER+IMAGE, 'name':'Photographer'},
-            'invest': {'prompt':INVESTING+HONESTY, 'name':'Investor'},
+            'invest': {'prompt':INVESTING, 'name':'Investor'},
             'story': {'prompt':STORYTIME, 'name':'Storyteller'},
             'rewrite': {'prompt':WRITING, 'name':'Writer'}}
 
@@ -235,19 +234,26 @@ roleDict = {'assist': {'prompt':ASSISTANT+HONESTY, 'name':'Assistant'},
 # Prompt refinement
 
 refine_message = """
-Refine and synthesize all of the above prompt text provided into a single cohesive response. 
-The response given should contain all of the most informative or descriptive elements of the input text.
-Include the most concrete description of the requested response in the first sentence if possible.
+Your primary task is to refine or improve the following user prompt.
+Do not respond directly to the provided request.
 Refined prompt text should be at least four sentences long.
 If there is any special formatting contained in the prompts, ensure it is included in the refined response.
 Provide example code in refined queries when refactored code is requested.
 Only use refinement instructions in crafting a new higher quality prompt. 
 Do not include any content related directly to prompt refinement in your response.
-Your response should be formatted as another user request to ChatGPT, any instance of 'I' need to be updated to 'you should'.
+Your response should be formatted as another user request to ChatGPT; For example, any instance of 'I' needs to be updated to 'you should'.
+"""
+
+condense_message = """
+Your task is to refine and synthesize all of the following text provided into a single cohesive response. 
+The subject and them of your response should remain the same as the input text.
+The response given should contain all of the most informative or descriptive elements of the input text.
+Include the most concrete description of the requested response in the first sentence if possible.
 """
 
 refineDict = {
-    "prompt": refine_message,
+    "refine_prompt": refine_message,
+    "condense_prompt": condense_message,
     "paraphrase": "Rewrite the text to express the same meaning in different words to avoid plagiarism or duplicate phrasing.",
     "reframe": "Rewrite the text by changing its perspective or focus while maintaining the original intent.",
     "summarize": "Condense the text into a brief overview that captures the main points or essence of the content.",

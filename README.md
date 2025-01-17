@@ -9,7 +9,7 @@ Python based command line interface for prompted conversation using ChatGPT API
 **ChatGPT-CLI Tool** is a Python-based command-line interface (CLI) tool that allows users to interact with OpenAI's ChatGPT API efficiently. This tool provides several powerful features, including automated system role selection, code identification, and the ability to save identified code snippets as separate scripts. Additionally, the tool can scan previous conversation history for context and includes basic chain of thought tracking in prompts. Whether you're looking for insightful conversations, code suggestions, or a simple chat interface, this CLI tool streamlines your interactions with the ChatGPT API.
 
 ## Requirements
-- openai >= 1.59.6
+- openai >= 1.59.0
 
 
 ## Key Features
@@ -41,7 +41,7 @@ First, ensure you have Python 3.10+ installed on your system. You can install th
 Clone the repository:
 
 ```bash
-pip install openai>=1.59.6
+pip install openai>=1.59.0
 git clone https://github.com/mjenior/cli_assistant.git
 cd cli_assistant
 ```
