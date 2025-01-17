@@ -16,7 +16,6 @@ class OpenAIQueryHandler:
 
     def __init__(self, 
                 model='gpt-4o-mini',
-                prompt='',
                 verbose=False,
                 refine=False,
                 chain_of_thought=False,
@@ -34,8 +33,6 @@ class OpenAIQueryHandler:
         """
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.model = model
-        self.prompt = prompt
-        self.original_query = prompt
         self.verbose = verbose
         self.refine = refine
         self.chain_of_thought = chain_of_thought
@@ -234,10 +231,10 @@ System parameters:
     """
         return status
 
-    def request(self, new_prompt=""):
+    def request(self, prompt):
         """Submits the query to OpenAI's API and processes the response."""
-        if new_prompt != "":
-            self.prompt = new_prompt
+        self.prompt = prompt
+        self.original_query = prompt
 
         self._prepare_query()
         self._log_and_print("\nProcessing finalized user request...")

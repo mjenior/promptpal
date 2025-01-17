@@ -53,9 +53,6 @@ key : str
 verbose : bool
     Adds all ptocessing tex to stdout.
     Default is False
-urgent : bool
-    Add urgency to the request [UNTESTED].
-    Default is False
 """
 
 def parse_arguments():
@@ -90,7 +87,6 @@ def main():
     # Initialize the user argument and query manager
     llm_api = OpenAIQueryHandler(
         model=args.model,
-        prompt=args.prompt,
         verbose=args.verbose,
         refine=args.refine,
         chain_of_thought=args.chain_of_thought,
@@ -105,7 +101,7 @@ def main():
         unit_testing=args.unit_testing)
 
     # Submit query and parse response
-    llm_api.request()
+    llm_api.request(args.prompt)
     
 
 if __name__ == "__main__":

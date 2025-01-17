@@ -63,11 +63,11 @@ That's it! The assistant API is ready to use in the termal, below are some examp
 
 ## Usage
 
-Once installed, you can invoke the ChatGPT CLI tool directly from the terminal.
+Once [alias.py] is run, you can invoke the ChatGPT CLI tool directly from the terminal.
 
 Example:
 ```bash
-gpt "Help me compose an agenda for a week-long trip to Tokyo."
+llm "Help me compose an agenda for a week-long trip to Tokyo."
 ```
 
 All arguments:
@@ -116,9 +116,6 @@ verbose : bool
 silent : bool
     Silences all StdOut
     Default is False
-urgent : bool
-    Add urgency to the request [UNTESTED].
-    Default is False
 ```
 
 ### System Role Selection
@@ -139,12 +136,12 @@ Available role shortcuts:
 
 Example 1:
 ```bash
-assistant.py --role compbio --prompt "Generate a Python script to align DNA sequences and analyze the data. Add code to generate at least 2 figures summarizing the results."
+cli_assistant.py --role compbio --prompt "Generate a Python script to align DNA sequences and analyze the data. Add code to generate at least 2 figures summarizing the results."
 ```
 
 Example 2:
 ```bash
-assistant.py --role "You are a Sr. game developer." --prompt "Recreate the game Chip's Challenge in python."
+cli_assistant.py --role "You are a Sr. game developer." --prompt "Recreate the game Chip's Challenge in python."
 ```
 
 ### Identify Code Snippets
@@ -153,7 +150,7 @@ The CLI tool automatically detects code snippets within ChatGPT's responses and 
 
 Example:
 ```bash
-assistant.py --code True --prompt "Show me a Python function to find the maximum element in a list."
+cli_assistant.py --code True --prompt "Show me a Python function to find the maximum element in a list."
 ```
 
 Output:
@@ -170,7 +167,7 @@ This feature helps guide the model's response by breaking down the steps in comp
 
 Example:
 ```bash
-assistant.py --chain_of_thought True --prompt "Can you write out a list of directions to change a tire?" 
+cli_assistant.py --chain_of_thought True --prompt "Can you write out a list of directions to change a tire?" 
 ```
 
 ### Query Prompt Refinement
@@ -179,7 +176,7 @@ Attempts to improve the clarity, focus, and specificity of a prompt to align wit
 
 Example:
 ```bash
-assistant.py --refine True --prompt "Can you write out a list of directions to change a tire?" 
+cli_assistant.py --refine True --prompt "Can you write out a list of directions to change a tire?" 
 ```
 
 Result:
@@ -193,7 +190,7 @@ This feature helps to increase the creative ability of a model thorugh multiple 
 
 Example:
 ```bash
-assistant.py --iters 3 --prompt "Create a python script to download DNA sequence data from the SRA, preprocess the data for maximum comparibility, and idenify putative gene sequences." 
+cli_assistant.py --iters 3 --prompt "Create a python script to download DNA sequence data from the SRA, preprocess the data for maximum comparibility, and idenify putative gene sequences." 
 ```
 
 ### Image Generation Parameters
@@ -202,7 +199,7 @@ You are able to set specific parameters of the output image created by Dall-e. F
 
 Example:
 ```bash
-assistant.py --dim_l 800 --dim_w 600 --qual high --prompt "Please create an image of a cell dissolving into code in the style of the impressionists." 
+cli_assistant.py --dim_l 800 --dim_w 600 --qual high --prompt "Please create an image of a cell dissolving into code in the style of the impressionists." 
 ```
 
 ### User-specific API Keys
@@ -211,7 +208,7 @@ You are also able to instead provide the key directly to the assistant if it is 
 
 Example:
 ```bash
-assistant.py --key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
+cli_assistant.py --key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
 ```
 
 
