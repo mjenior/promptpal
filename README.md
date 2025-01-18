@@ -39,7 +39,7 @@ Python based command line interface for prompted conversation using ChatGPT API
 
 First, ensure you have Python 3.10+ installed on your system. You can install the ChatGPT-CLI tool directly from the repository.
 
-Clone the repository:
+Clone the repository and install:
 
 ```bash
 pip install openai>=1.59.0
@@ -48,12 +48,22 @@ cd cli_assistant
 pip install .
 ```
 
-Now you are able to import <assistant.OpenAIQueryHandler> in a python environment to set up a customized API client with any of the built-in settings. After that, use the class method <request("your prompt here"> to submit queries.
+Now you are able to initialize a <assistant.OpenAIQueryHandler> class instance in a python environment to set up a customized API client with any of the built-in settings. After that, use the method <.request("your prompt here")> to submit queries.
 
+Example:
+```python
+
+import assistant
+
+llm_api = assistant.OpenAIQueryHandler()
+
+llm_api.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
+
+````
 
 ### Command Line Execution
 
-Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with a chosen command, this command can be run from any relative path.
+Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with a chosen command which can be run from any relative path.
 
 ### API Keys
 
