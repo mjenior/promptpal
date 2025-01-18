@@ -3,10 +3,10 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["cli_assistant"]
+packages = ["assistant"]
 
 [project]
-name = "cli_assistant"
+name = "assistant"
 version = "1.0.0"
 description = "A Python-based command-line interface (CLI) tool that allows users to interact with OpenAI's ChatGPT API efficiently."
 readme = "README.md"

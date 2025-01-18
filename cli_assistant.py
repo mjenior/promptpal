@@ -2,7 +2,7 @@
 
 import argparse
 
-from src.core import OpenAIQueryHandler
+from assistant.core import OpenAIQueryHandler
 
 """
 ChatGPT API script for conversation with AI assistant in command line
@@ -23,7 +23,7 @@ role : str
     Default is assistant
 model : str
     LLM to use in queiries.
-    Default is gpt-4o
+    Default is gpt-4o-mini
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
     Default is False
@@ -48,8 +48,8 @@ iters : int
     Number of responses to generate and parse for model reflection
     Default is 1
 key : str
-    User-specific OpenAI API key. 
-    Default looks for pre-set OPENAI_API_KEY environmental variable.
+    User-specific API key. 
+    Default looks for pre-set environmental variables, depending on model.
 verbose : bool
     Adds all ptocessing tex to stdout.
     Default is False
@@ -62,7 +62,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Manage and execute OpenAI queries.")
     parser.add_argument("-p", "--prompt", type=str, default="What is the answer to life the universe and everything?", help="User prompt text or path to a .txt file.")
     parser.add_argument("-r", "--role", type=str, default="assist", help="Assistant role text.")
-    parser.add_argument("-m", "--model", type=str, default="gpt-4o", help="LLM to use in queiries.")
+    parser.add_argument("-m", "--model", type=str, default="gpt-4o-mini", help="LLM to use in queiries.")
     parser.add_argument("-c", "--chain_of_thought", type=bool, default=False, help="Enable chain of thought reasoning.")
     parser.add_argument("-f", "--refine", type=bool, default=False, help="Enable automated input prompt improvement.")
     parser.add_argument("-x", "--code", type=bool, default=False, help="Save detected code in responses to separate scripts.")

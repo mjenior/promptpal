@@ -1,3 +1,15 @@
+Metadata-Version: 2.2
+Name: assistant
+Version: 1.0.0
+Summary: A Python-based command-line interface (CLI) tool that allows users to interact with OpenAI's ChatGPT API efficiently.
+Author-email: Matt Jenior <mattjenior@gmail.com>
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+
 # cli_assistant
 Python based command line interface for prompted conversation using ChatGPT API
 
@@ -27,10 +39,9 @@ Python based command line interface for prompted conversation using ChatGPT API
 1. [Installation and Setup](#installation)
 2. [Usage](#usage)
    - [System Role Selection](#system-role-selection)
-   - [Automated prompt refinement](#prompt-refinement)
-   - [Chain of Thought Tracking](#chain-of-thought-tracking)
-   - [Response Iterations](#response-iterations)
    - [Identify and Save Code Snippets](#identify-code-snippets)
+   - [Scanning Conversation History for Context](#scanning-conversation-history-for-context)
+   - [Chain of Thought Tracking](#chain-of-thought-tracking)
 4. [Contributing](#contributing)
 5. [License](#license)
 
@@ -45,17 +56,11 @@ Clone the repository:
 pip install openai>=1.59.0
 git clone https://github.com/mjenior/cli_assistant.git
 cd cli_assistant
-pip install .
 ```
 
-Now you are able to import <assistant.OpenAIQueryHandler> in a python environment to set up a customized API client with any of the built-in settings. After that, use the class method <request("your prompt here"> to submit queries.
+That's it! the CLI assistant does not require it's own installation to start submitting improved queries.
 
-
-### Command Line Execution
-
-Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with a chosen command, this command can be run from any relative path.
-
-### API Keys
+Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with the command <llm>, this command can be run from any relative path.
 
 Before using the tool, a final helpful step is to also set up your API keys. Otherwise you'll need to provide to the app directly (described below).
 

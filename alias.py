@@ -20,6 +20,29 @@ if __name__ == "__main__":
     alias = input('Preferred alias string: ')
     alias = alias if alias != '' else 'llm'
 
+    # Preferred model
+    model = input('Preferred model (refer to README): ')
+    models = ['deepseek-chat','gpt-4o','gpt-4o-mini','o1-mini','o1-preview','dall-e-2']
+    model = model.lower() if model.lower() in models else ''
+    if model != '':
+        commandStr += f" --model {model}"
+
+    # Default role selection
+    role = input('Default system role (refer to README): ')
+    role = role.lower() if role.lower() in ['compbio','cancer','dev','invest','art','rewrite','story'] else ''
+    if role != '':
+        commandStr += f" --role {role}"
+
+    # Add API-key
+    api_key = input('API-key (Corresponds with model, blank defaults to system env var): ')
+    if api_key != '':
+        commandStr += f" --key {api_key}"
+
+    # Random seed
+    seed = input('Random seed (int or str, floats treated as str): ')
+    if api_key != '':
+        seed += f" --seed {seed}"
+
     # Prompt refinement
     refine = input('Refine user query (1 = True and 0 = False): ')
     if refine == '1':
@@ -47,17 +70,13 @@ if __name__ == "__main__":
     except ValueError:
         pass
 
-    # Default role selection
-    role = input('Default system role (refer to README): ')
-    role = role if role.lower() in ['compbio','cancer','dev','invest','art','rewrite','story'] else ''
-    if role != '':
-        commandStr += f" --role {role.lower()}"
+    
 
     # Compose alias text versions
     commandStr += ' --prompt'
     aliasStr = f'alias {alias}="{commandStr}"'
     profileStr = '\n'.join(["\n# >>> Added by LLM CLI assistant >>>",
-                        f"export PATH=$PATH:{os.path.dirname(os.path.realpath(__file__))}/cli_assistant",
+                        f"export PATH=$PATH:{os.path.dirname(os.path.realpath(__file__))}",
                         aliasStr,
                         "# <<< Added by LLM CLI assistant <<<\n\n"])
     aliasWords = set(profileStr.split())
