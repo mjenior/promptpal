@@ -9,6 +9,8 @@ Classifier: Operating System :: OS Independent
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 License-File: LICENSE.txt
+Requires-Dist: openai>=1.59.0
+Requires-Dist: black>=24.10.0
 
 # cli_assistant
 Python based command line interface for prompted conversation using ChatGPT API
@@ -22,7 +24,7 @@ Python based command line interface for prompted conversation using ChatGPT API
 
 ## Requirements
 - openai >= 1.59.0
-
+- black >= 24.10.0
 
 ## Key Features
 
@@ -39,8 +41,8 @@ Python based command line interface for prompted conversation using ChatGPT API
 1. [Installation and Setup](#installation)
 2. [Usage](#usage)
    - [System Role Selection](#system-role-selection)
-   - [Automated prompt refinement](#prompt-refinement)
    - [Chain of Thought Tracking](#chain-of-thought-tracking)
+   - [Query Prompt Refinement](#query-prompt-refinement)
    - [Response Iterations](#response-iterations)
    - [Identify and Save Code Snippets](#identify-code-snippets)
 4. [Contributing](#contributing)
@@ -213,7 +215,7 @@ Result:
 Can you provide detailed, step-by-step instructions for changing a tire, emphasizing key safety precautions and necessary tools? You should include comprehensive details like how to safely park the car, the importance of using a wheel chock, and the correct way to position the jack. Also, expand on how to properly remove the lug nuts, replace the tire, and ensure everything is secure before driving again.
 ```
 
-### Response Reflection
+### Response Iterations
 
 This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --iterations flag accepts an integer value representing the number of separate reponse iterations the model will create for the given prompt. Increasing this value past the 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point. WANRING: More testing required for reliability, so use with caution.
 

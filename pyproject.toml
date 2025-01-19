@@ -19,7 +19,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-
-[dependencies]
-openai >= "1.59.0"
-black >= "24.10.0"
+dependencies = [
+    "openai >= 1.59.0",
+    "black >= 24.10.0",
+]
