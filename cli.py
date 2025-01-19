@@ -47,12 +47,12 @@ iters : int
     WANRING: More testing required for reliability
     Number of responses to generate and parse for model reflection
     Default is 1
-key : str
+api_key : str
     User-specific API key. 
     Default looks for pre-set environmental variables, depending on model.
 verbose : bool
     Adds all ptocessing tex to stdout.
-    Default is False
+    Default is True
 """
 
 def parse_arguments():
@@ -68,11 +68,11 @@ def parse_arguments():
     parser.add_argument("-x", "--code", type=bool, default=False, help="Save detected code in responses to separate scripts.")
     parser.add_argument("-e", "--seed", default=r'"@[=g3,8d]\&fbb=-q]/hk%fg"', help="Set moded seed for more deterministic reponses, accepts integer or strings")
     parser.add_argument("-u", "--unit_testing", type=bool, default=False, help="Write comprehesive unit tests for any generated code.")
-    parser.add_argument("-k", "--key", type=str, default="system", help="OpenAI API key.")
+    parser.add_argument("-k", "--api_key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
     parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations for reflection.")
-    parser.add_argument("-v", "--verbose", type=bool, default=False, help="Adds all processing text to stdout.")
+    parser.add_argument("-v", "--verbose", type=bool, default=True, help="Adds all processing text to stdout.")
     parser.add_argument("-l", "--logging", type=bool, default=False, help="Save full conversation log.")
     return parser.parse_args()
 
@@ -92,7 +92,7 @@ def main():
         chain_of_thought=args.chain_of_thought,
         code=args.code,
         logging=args.logging,
-        api_key=args.key,
+        api_key=args.api_key,
         seed=args.seed,
         iterations=args.iters,
         role=args.role,

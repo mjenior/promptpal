@@ -52,9 +52,9 @@ Now you are able to initialize a <assistant.OpenAIQueryHandler> class instance i
 Example:
 ```python
 
-import llm_api
+from llm_api.core import OpenAIQueryHandler
 
-assistant = llm_api.OpenAIQueryHandler()
+assistant = OpenAIQueryHandler()
 
 assistant.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
 
@@ -123,15 +123,12 @@ qual : str
 unit_testing : bool
     rite comprehesive unit tests for any generated code.
     Default is False
-key : str
+api_key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
 verbose : bool
     Print all additional information to StdOut
-    Default is False
-silent : bool
-    Silences all StdOut
-    Default is False
+    Default is True
 ```
 
 ### System Role Selection
