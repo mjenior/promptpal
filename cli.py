@@ -51,8 +51,8 @@ api_key : str
     User-specific API key. 
     Default looks for pre-set environmental variables, depending on model.
 verbose : bool
-    Adds all ptocessing tex to stdout.
-    Default is True
+    Print all additional information to StdOut.
+    Default is False
 """
 
 def parse_arguments():
@@ -72,7 +72,7 @@ def parse_arguments():
     parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
     parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations for reflection.")
-    parser.add_argument("-v", "--verbose", type=bool, default=True, help="Adds all processing text to stdout.")
+    parser.add_argument("-v", "--verbose", type=bool, default=False, help="Print all additional information to StdOut.")
     parser.add_argument("-l", "--logging", type=bool, default=False, help="Save full conversation log.")
     return parser.parse_args()
 

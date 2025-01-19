@@ -141,7 +141,7 @@ api_key : str
     User-specific OpenAI API key. 
     Default looks for pre-set OPENAI_API_KEY environmental variable.
 verbose : bool
-    Print all additional information to StdOut
+    Print all additional information to StdOut.
     Default is True
 ```
 

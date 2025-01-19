@@ -17,7 +17,7 @@ class OpenAIQueryHandler:
 
     def __init__(self, 
                 model='gpt-4o-mini',
-                verbose=True,
+                verbose=False,
                 refine=False,
                 chain_of_thought=False,
                 code=False,
@@ -234,6 +234,8 @@ System parameters:
 
     def request(self, prompt):
         """Submits the query to OpenAI's API and processes the response."""
+        if self.verbose == False:
+            print("\nProcessing user request...\n")
         self.prompt = prompt
         self.original_query = prompt
 
@@ -245,6 +247,10 @@ System parameters:
             self._process_image_response()
         token_report = self._gen_token_report()
         self._log_and_print(token_report)
+
+        if self.verbose == False:
+            print(self.final_text)
+
         if self.logging:
             self.save_chat_transcript()
 
@@ -263,6 +269,7 @@ System parameters:
 
         self._update_token_count(response)
         self._log_and_print(message)
+        self.final_text = message
 
         # Extract code snippets
         if self.code:
@@ -293,6 +300,9 @@ System parameters:
         with open(image_file, 'wb') as outFile:
             outFile.write(image_data)
         self._log_and_print(f"\nGenerated image saved to: {image_file}\n")
+
+        self.final_text = f"Revised image prompt:\n{revised_prompt}"
+        self.final_text += f"\nGenerated image saved to: {image_file}\n"
 
     def _assemble_query(self):
         """Assembles the query dictionary for the API request."""
