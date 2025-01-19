@@ -6,9 +6,9 @@ build-backend = "setuptools.build_meta"
 packages = ["llm_api"]
 
 [project]
-name = "assistant"
+name = "llm_api"
 version = "1.0.0"
-description = "A Python-based command-line interface (CLI) tool that allows users to interact with OpenAI's ChatGPT API efficiently."
+description = "Python based tool for improved conversation using ChatGPT API package."
 readme = "README.md"
 authors = [
     {name = "Matt Jenior", email = "mattjenior@gmail.com"}
