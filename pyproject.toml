@@ -21,4 +21,5 @@ classifiers = [
 ]
 
 [dependencies]
-openai = "1.59.0"
+openai >= "1.59.0"
+black >= "24.10.0"

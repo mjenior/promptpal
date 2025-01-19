@@ -3,12 +3,11 @@ import re
 import sys
 import random
 import requests
-from subprocess import call
 from datetime import datetime
 from collections import defaultdict
 
 from openai import OpenAI
-from assistant.lib import roleDict, refineDict, extDict
+from src.lib import roleDict, refineDict, extDict
 
 class OpenAIQueryHandler:
     """
@@ -271,13 +270,6 @@ System parameters:
                 reportStr = "\nCode extracted from reponse text and saved to:\n\t" + '\n\t'.join(scripts)
                 self._log_and_print(reportStr)
 
-                # Lint python code
-                python_scripts = [x for x in scripts if x.endswith(".py")]
-                if len(python_scripts) > 0:
-                    self._log_and_print("\nPython files detected, linting newly generated code...")
-                    for s in python_scripts:
-                        call(["black", s])
-
     def _process_image_response(self):
         """Processes image generation requests using OpenAI's image models."""
         os.makedirs('images', exist_ok=True)
@@ -354,6 +346,7 @@ System parameters:
             code_files (dict): A dictionary to store the metadata.
         """
         if line.strip() and (line.startswith('def') or line.startswith('class')):
+            # Assuming _scrape_object_name is a function that extracts names from definitions.
             function_name, class_name = self._scrape_object_name(line)
             code_files['functions'].append(function_name)
             code_files['classes'].append(class_name)
@@ -373,17 +366,11 @@ System parameters:
         # Return class over function, before defaulting
         func = clss = 'code'
         if class_match:
-            clss = _split_object_name(class_match[0])
-        if function_match:
-            func = _split_object_name(function_match[0])
+            clss = class_match[0]
+        elif function_match:
+            func = function_match[0]
         
         return func, clss
-
-    @staticmethod
-    def _split_object_name(line):
-        # Extract name of class or function
-        return line.split()[1].split(')')[0]
-
 
     def _save_code_block(self, code_files, lang, timestamp, counter):
         """
@@ -508,7 +495,7 @@ System parameters:
         else:
             self.prompt = refined.choices[0].message.content.strip()
 
-        self._log_and_print(f"\nRefined query prompt:\n{self.prompt}")
+        self._log_and_print(f"\n\nRefined query prompt:\n{self.prompt}")
 
     def _update_token_count(self, response):
         """Updates token count for prompt and completion."""

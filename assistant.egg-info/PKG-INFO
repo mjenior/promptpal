@@ -39,9 +39,10 @@ Python based command line interface for prompted conversation using ChatGPT API
 1. [Installation and Setup](#installation)
 2. [Usage](#usage)
    - [System Role Selection](#system-role-selection)
-   - [Identify and Save Code Snippets](#identify-code-snippets)
-   - [Scanning Conversation History for Context](#scanning-conversation-history-for-context)
+   - [Automated prompt refinement](#prompt-refinement)
    - [Chain of Thought Tracking](#chain-of-thought-tracking)
+   - [Response Iterations](#response-iterations)
+   - [Identify and Save Code Snippets](#identify-code-snippets)
 4. [Contributing](#contributing)
 5. [License](#license)
 
@@ -50,17 +51,33 @@ Python based command line interface for prompted conversation using ChatGPT API
 
 First, ensure you have Python 3.10+ installed on your system. You can install the ChatGPT-CLI tool directly from the repository.
 
-Clone the repository:
+Clone the repository and install:
 
 ```bash
 pip install openai>=1.59.0
 git clone https://github.com/mjenior/cli_assistant.git
 cd cli_assistant
+pip install .
 ```
 
-That's it! the CLI assistant does not require it's own installation to start submitting improved queries.
+Now you are able to initialize a <assistant.OpenAIQueryHandler> class instance in a python environment to set up a customized API client with any of the built-in settings. After that, use the method <.request("your prompt here")> to submit queries.
 
-Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with the command <llm>, this command can be run from any relative path.
+Example:
+```python
+
+import assistant
+
+llm_api = assistant.OpenAIQueryHandler()
+
+llm_api.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
+
+````
+
+### Command Line Execution
+
+Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with a chosen command which can be run from any relative path.
+
+### API Keys
 
 Before using the tool, a final helpful step is to also set up your API keys. Otherwise you'll need to provide to the app directly (described below).
 
