@@ -12,15 +12,15 @@ License-File: LICENSE.txt
 Requires-Dist: openai>=1.59.0
 Requires-Dist: black>=24.10.0
 
-# cli_assistant
-Python based command line interface for prompted conversation using ChatGPT API
+# llm_api
+Python based tool for improved conversation using ChatGPT API package
 
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Overview
 
-**ChatGPT-CLI Tool** is a Python-based command-line interface (CLI) tool that allows users to interact with OpenAI's ChatGPT API efficiently. This tool provides several powerful features, including automated system role selection, code identification, and the ability to save identified code snippets as separate scripts. Additionally, the tool can scan previous conversation history for context and includes basic chain of thought tracking in prompts. Whether you're looking for insightful conversations, code suggestions, or a simple chat interface, this CLI tool streamlines your interactions with the ChatGPT API.
+**ChatGPT-API Tool** is a Python-based LLM API tool that allows users to interact with OpenAI's ChatGPT API efficiently. This tool provides several powerful features, including automated system role selection, code identification, and the ability to save identified code snippets as separate scripts. Additionally, the tool can scan previous conversation history for context and includes basic chain of thought tracking in prompts. Whether you're looking for insightful conversations, code suggestions, or a simple chat interface, this CLI tool streamlines your interactions with the ChatGPT API.
 
 ## Requirements
 - openai >= 1.59.0
@@ -56,9 +56,8 @@ First, ensure you have Python 3.10+ installed on your system. You can install th
 Clone the repository and install:
 
 ```bash
-pip install openai>=1.59.0
-git clone https://github.com/mjenior/cli_assistant.git
-cd cli_assistant
+git clone https://github.com/mjenior/llm_api.git
+cd llm_api
 pip install .
 ```
 
@@ -67,17 +66,17 @@ Now you are able to initialize a <assistant.OpenAIQueryHandler> class instance i
 Example:
 ```python
 
-import assistant
+import llm_api
 
-llm_api = assistant.OpenAIQueryHandler()
+assistant = llm_api.OpenAIQueryHandler()
 
-llm_api.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
+assistant.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
 
 ````
 
 ### Command Line Execution
 
-Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with a chosen command which can be run from any relative path.
+Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with a chosen command which can be run from any relative path. Results will be quickly returned to StdOut for quicker reference for certain tasks.
 
 ### API Keys
 

@@ -14,11 +14,11 @@ def extract_unique_words(file_path):
 
 if __name__ == "__main__":
     print("\nBlank responses will automatically set to default values.\n")
-    commandStr = 'python cli_assistant.py'
+    commandStr = 'python cli.py'
 
     # Determine alias string
     alias = input('Preferred alias string: ')
-    alias = alias if alias != '' else 'llm'
+    alias = alias if alias != '' else 'llm_api'
 
     # Preferred model
     model = input('Preferred model (refer to README): ')
