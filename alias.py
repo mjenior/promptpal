@@ -63,14 +63,12 @@ if __name__ == "__main__":
     if verbose == '1':
         commandStr += f" --logging True"
 
-    # Response reflection
+    # Response iterations
     iters = input('Response iterations (integer): ')
     try: 
         commandStr += f" --iters {int(iters)}"
     except ValueError:
         pass
-
-    
 
     # Compose alias text versions
     commandStr += ' --prompt'
