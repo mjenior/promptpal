@@ -93,7 +93,7 @@ class OpenAIQueryHandler:
         if self.chain_of_thought:
             self.role += roleDict['chain']
         if self.unit_testing:
-            self.prompt = roleDict['dev']['unit_tests'] + self.prompt
+            self.prompt = roleDict['refactor']['unit_tests'] + self.prompt
         
     def _set_api_key(self):
         """Sets the OpenAI API key."""
@@ -248,9 +248,6 @@ System parameters:
         token_report = self._gen_token_report()
         self._log_and_print(token_report)
 
-        if self.verbose == False:
-            print(self.final_text)
-
         if self.logging:
             self.save_chat_transcript()
 
@@ -269,17 +266,20 @@ System parameters:
 
         self._update_token_count(response)
         self._log_and_print(message)
-        self.final_text = message
+        self.message = message
+
+        if self.verbose == False:
+            print(self.message)
 
         # Extract code snippets
         if self.code:
-            scripts = self.extract_and_save_code(message)
-            if scripts:
-                reportStr = "\nCode extracted from reponse text and saved to:\n\t" + '\n\t'.join(scripts)
+            self.scripts = self.extract_and_save_code(message)
+            if self.scripts:
+                reportStr = "\nCode extracted from reponse text and saved to:\n\t" + '\n\t'.join(self.scripts)
                 self._log_and_print(reportStr)
 
                 # Lint python code
-                python_scripts = [x for x in scripts if x.endswith(".py")]
+                python_scripts = [x for x in self.scripts if x.endswith(".py")]
                 if len(python_scripts) > 0:
                     self._log_and_print("\nPython files detected, linting newly generated code...")
                     for s in python_scripts:
@@ -299,10 +299,11 @@ System parameters:
         image_file = f"images/{self.prefix}.image.png"
         with open(image_file, 'wb') as outFile:
             outFile.write(image_data)
-        self._log_and_print(f"\nGenerated image saved to: {image_file}\n")
-
-        self.final_text = f"Revised image prompt:\n{revised_prompt}"
-        self.final_text += f"\nGenerated image saved to: {image_file}\n"
+        
+        self.message = "\nRevised image prompt:\n" + revised_prompt + "\nGenerated image saved to:\n" + image_file
+        self._log_and_print(self.message)
+        if self.verbose == False:
+            print(self.message)
 
     def _assemble_query(self):
         """Assembles the query dictionary for the API request."""

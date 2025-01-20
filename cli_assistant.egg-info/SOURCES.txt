@@ -1,9 +1,0 @@
-LICENSE.txt
-README.md
-pyproject.toml
-cli_assistant/__init.__.py
-cli_assistant/cli_assistant.py
-cli_assistant.egg-info/PKG-INFO
-cli_assistant.egg-info/SOURCES.txt
-cli_assistant.egg-info/dependency_links.txt
-cli_assistant.egg-info/top_level.txt

@@ -284,24 +284,42 @@ Example:
 from llm_api.core import OpenAIQueryHandler
 
 # Initialize distinct agents with differing expertise
-bio = OpenAIQueryHandler(role="compbio", code=True, refine=True, verbose=True)
-dev = OpenAIQueryHandler(role="refactor", code=True, unit_tests=True)
-write = OpenAIQueryHandler(role="writer", iters=3, verbose=True)
-edit = OpenAIQueryHandler(role="editor", refine=True, logging=True)
+bio = OpenAIQueryHandler(role="compbio", code=True, refine=True, chain_of_thought=True, verbose=True) # Computational biologist
+dev = OpenAIQueryHandler(role="refactor", code=True, unit_tests=True) # Code refactoring and formatting expert
+write = OpenAIQueryHandler(role="writer", iters=3, chain_of_thought=True, verbose=True) # Creative science writer
+edit = OpenAIQueryHandler(role="editor", refine=True, logging=True) # Expert copy editor
+````
 
-agent.request("Recreate the game Chip's Challenge in python.")
+```python
+# Make initial request to first agent for computational biology project
+query = """
+Write an analysis pipeline in python to assemble long nanopore reads into contigs and then align them to an annotated reference genome. Then identify all of the sequence variation present in the new genome that is not present in the reference. Additionally generate a figure from data generated during the alignment based on quality scores, and 2 more figures to help interpret the results at the end."
+"""
+bio.request(query)
 
-
+# Consult the coding expert to create the best automated versions of the output as possible
+dev.request(f"Refactor and format the following code for optimal efficiency, useability, and generalization: {' '.join(bio.scripts)}")
 
 ````
 
 ```python
+# Utilize the writer agent to generate an informed post on the background and utility of the newly created pipeline
+query = """
+Write a biotechnology blog post about the pipeline described below. Include relevant background that would necessitate this type of analysis, and add at least one example use case for the workflow. Extrapolate how the pipeline may be useful in cell engineering efforts, and what future improvements could lead to with continued work. Speak in a conversational tone and cite all sources with biological relevance to you discussion.
+
+"""
+write.request(query + bio.message)
+
+# Pass the rough draft text to the editor agent to recieve a more finalize version
+edit.request(write.message)
 ````
+
+This is one example of how multiple LLM agents may be leveraged in concert to accelerate the rate that user workloads may be accomplished.
 
 
 ## Contributing
 
-If you encounter any problems, please [file an issue](https://github.com/mjenior/cli_assistant/issues) along with a detailed description.
+If you encounter any problems, please [file an issue](https://github.com/mjenior/llm_api/issues) along with a detailed description.
 
 We welcome contributions! If you'd like to contribute to this project, please follow these steps:
 
@@ -309,10 +327,9 @@ We welcome contributions! If you'd like to contribute to this project, please fo
 2. Create a new feature branch (`git checkout -b feature-name`).
 3. Commit your changes (`git commit -m 'Add new feature'`).
 4. Push the branch (`git push origin feature-name`).
-5. Create a [pull request](https://github.com/mjenior/cli_assistant/pulls).
+5. Create a [pull request](https://github.com/mjenior/llm_api/pulls).
 
 
 ## License
 
-This project is licensed under the [MIT](http://opensource.org/licenses/MIT) License. See the [LICENSE](https://raw.githubusercontent.com/mjenior/cli_assistant/refs/heads/main/LICENSE.txt) file for more details.
-
+This project is licensed under the [MIT](http://opensource.org/licenses/MIT) License. See the [LICENSE](https://raw.githubusercontent.com/mjenior/llm_api/refs/heads/main/LICENSE.txt) file for more details.
