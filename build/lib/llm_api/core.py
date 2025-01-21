@@ -384,15 +384,15 @@ System parameters:
         # Return class over function, before defaulting
         func = clss = 'code'
         if class_match:
-            clss = _split_object_name(class_match[0])
+            clss = self._split_object_name(class_match[0])
         if function_match:
-            func = _split_object_name(function_match[0])
+            func = self._split_object_name(function_match[0])
         
         return func, clss
 
     @staticmethod
     def _split_object_name(line):
-        # Extract name of class or function
+        # Extract name of a python class or function
         return line.split()[1].split(')')[0]
 
 

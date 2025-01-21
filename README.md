@@ -223,7 +223,7 @@ This feature helps to increase the creative ability of a model thorugh multiple 
 
 Example:
 ```python
-agent = OpenAIQueryHandler(iters=3)
+agent = OpenAIQueryHandler(iterations=3)
 agent.request("Create a python script to download DNA sequence data and preprocess the data.")
 ````
 
@@ -271,8 +271,8 @@ from llm_api.core import OpenAIQueryHandler
 
 # Initialize distinct agents with differing expertise
 bio = OpenAIQueryHandler(role="compbio", code=True, refine=True, chain_of_thought=True, verbose=True) # Computational biologist
-dev = OpenAIQueryHandler(role="refactor", code=True, unit_tests=True) # Code refactoring and formatting expert
-write = OpenAIQueryHandler(role="writer", iters=3, chain_of_thought=True, verbose=True) # Creative science writer
+dev = OpenAIQueryHandler(role="refactor", code=True, unit_testing=True) # Code refactoring and formatting expert
+write = OpenAIQueryHandler(role="writer", iterations=3, chain_of_thought=True, verbose=True) # Creative science writer
 edit = OpenAIQueryHandler(role="editor", refine=True, logging=True) # Expert copy editor
 ````
 
