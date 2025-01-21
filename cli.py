@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-
 from llm_api.core import OpenAIQueryHandler
 
 """

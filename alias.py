@@ -14,7 +14,7 @@ def extract_unique_words(file_path):
 
 if __name__ == "__main__":
     print("\nBlank responses will automatically set to default values.\n")
-    commandStr = 'python cli.py'
+    commandStr = 'cli.py'
 
     # Determine alias string
     alias = input('Preferred alias string: ')
@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     # Default role selection
     role = input('Default system role (refer to README): ')
-    role = role.lower() if role.lower() in ['compbio','cancer','dev','invest','art','rewrite','story'] else ''
+    role = role.lower() if role.lower() in ['coder','investor','artist','photographer','editor','writer'] else ''
     if role != '':
         commandStr += f" --role {role}"
 
@@ -73,10 +73,10 @@ if __name__ == "__main__":
     # Compose alias text versions
     commandStr += ' --prompt'
     aliasStr = f'alias {alias}="{commandStr}"'
-    profileStr = '\n'.join(["\n# >>> Added by LLM CLI assistant >>>",
+    profileStr = '\n'.join(["\n# >>> Added by LLM API assistant >>>",
                         f"export PATH=$PATH:{os.path.dirname(os.path.realpath(__file__))}",
                         aliasStr,
-                        "# <<< Added by LLM CLI assistant <<<\n\n"])
+                        "# <<< Added by LLM API assistant <<<\n\n"])
     aliasWords = set(profileStr.split())
 
     # Add to current environment
