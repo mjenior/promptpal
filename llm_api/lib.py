@@ -229,9 +229,8 @@ Camera used ARRI, SONY, Nikon.
 # Collected default role text for easy import
 roleDict = {'assistant': {'prompt':ASSISTANT, 'name':'Assistant'},
       'compbio': {'prompt':COMPBIO, 'name':'Computational Biologist'},
-      'coder': {'prompt':DEVELOPER, 'name':'Developer', 'unit_tests':UNIT_TESTS},
+      'coder': {'prompt':DEVELOPER, 'name':'Developer'},
       'image': {'prompt':IMAGE, 'name':'Image'},
-      'cot': CHAIN_OF_THOUGHT,
       'artist': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
       'photographer': {'prompt':PHOTOGRAPHER+IMAGE, 'name':'Photographer'},
       'investor': {'prompt':INVESTING, 'name':'Investor'},
@@ -367,7 +366,7 @@ extDict = {
    'shell': '.sh',
    'sql': '.sql',
    'text':'.txt',
-   'tsv': '.tsv'
+   'tsv': '.tsv',
    'xml': '.xml',
-   'xquery': '.xquery',
+   'xquery': '.xquery'
    }

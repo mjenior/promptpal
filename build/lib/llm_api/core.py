@@ -8,11 +8,62 @@ from datetime import datetime
 from collections import defaultdict
 
 from openai import OpenAI
-from llm_api.lib import roleDict, refineDict, extDict
+from llm_api.lib import roleDict, modifierDict, refineDict, extDict
 
 class OpenAIQueryHandler:
     """
-    Manages queries for the OpenAI API, including creation, submission, and response processing.
+    A handler for managing queries to the OpenAI API, including prompt preparation, 
+    API request submission, response processing, and logging.
+
+    This class provides a flexible interface to interact with OpenAI's models, including
+    text-based models (e.g., GPT-4) and image generation models (e.g., DALL-E). It supports
+    features such as prompt refinement, chain-of-thought reasoning, code extraction, 
+    logging, and unit testing.
+
+    Attributes:
+        model (str): The model to use for the query (e.g., 'gpt-4o-mini', 'dall-e-3').
+        verbose (bool): If True, prints detailed logs and status messages.
+        refine (bool): If True, refines the prompt before submission.
+        chain_of_thought (bool): If True, enables chain-of-thought reasoning.
+        code (bool): If True, extracts and saves code snippets from the response.
+        logging (bool): If True, logs the session to a file.
+        api_key (str): The API key for OpenAI or Deepseek. Defaults to system environment variable.
+        seed (int or str): Seed for reproducibility. Can be an integer or a string converted to binary.
+        iterations (int): Number of response iterations for refining or condensing outputs.
+        image_dimensions (str): Dimensions for image generation (e.g., '1024x1024').
+        image_quality (str): Quality setting for image generation (e.g., 'hd').
+        role (str): The role or persona for the query (e.g., 'assistant', 'artist').
+        unit_testing (bool): If True, appends unit testing instructions to the prompt.
+        tokens (dict): Tracks token usage for prompt and completion.
+        prefix (str): A unique prefix for log files and outputs.
+        client (OpenAI): The OpenAI client instance for API requests.
+
+    Methods:
+        __init__: Initializes the handler with default or provided values.
+        request: Submits a query to the OpenAI API and processes the response.
+        save_chat_transcript: Saves the conversation transcript to a file.
+        extract_and_save_code: Extracts code snippets from the response and saves them to files.
+        _setup_logging: Prepares logging setup.
+        _setup_model_and_role: Processes model and role selections.
+        _prepare_query: Prepares the query, including prompt modifications and image handling.
+        _set_api_key: Sets the OpenAI API key.
+        _select_model: Validates and selects the model based on user input or defaults.
+        _select_role: Selects the role based on user input or defaults.
+        _append_file_scanner: Scans files in the message and appends their contents.
+        _handle_image_request: Adjusts role and model for image generation requests.
+        _calculate_iterations: Determines the number of response iterations.
+        _handle_image_params: Sets image dimensions and quality parameters.
+        _validate_image_params: Validates image dimensions and quality for the model.
+        _report_query_params: Reports the current query configuration.
+        _process_text_response: Processes text-based responses from OpenAI's chat models.
+        _process_image_response: Processes image generation requests using OpenAI's image models.
+        _assemble_query: Assembles the query dictionary for the API request.
+        _condense_iterations: Condenses multiple API responses into a single coherent response.
+        _refine_prompt: Refines an LLM prompt using specified rewrite actions.
+        _update_token_count: Updates token count for prompt and completion.
+        _log_and_print: Logs and prints the provided message if verbose.
+        _calculate_cost: Calculates the approximate cost (USD) of LLM tokens generated.
+        _string_to_binary: Converts a string to a binary-like variable for use as a random seed.
     """
 
     def __init__(self, 
@@ -27,7 +78,7 @@ class OpenAIQueryHandler:
                 iterations=1,
                 image_dimensions='NA',
                 image_quality='NA',
-                role="assist",
+                role="assistant",
                 unit_testing=False):
         """
         Initialize the handler with default or provided values.
@@ -91,9 +142,9 @@ class OpenAIQueryHandler:
         if self.refine: 
             self._refine_prompt()
         if self.chain_of_thought:
-            self.role += roleDict['chain']
+            self.role += modifierDict['cot']
         if self.unit_testing:
-            self.prompt = roleDict['refactor']['unit_tests'] + self.prompt
+            self.prompt = modifierDict['tests'] + self.prompt
         
     def _set_api_key(self):
         """Sets the OpenAI API key."""
@@ -170,16 +221,16 @@ class OpenAIQueryHandler:
     def _handle_image_request(self):
         """Adjusts role and model for image generation requests."""
         art_keywords = {'create', 'generate', 'image', 'picture', 'draw', 'paint', 'painting', 'illustration'}
-        photo_keywords = {'create', 'generate', 'photo', 'photograph'}
+        photo_keywords = {'create', 'generate', 'photographer', 'photograph'}
         words = self.prompt.split()
 
         if len(set(words) & art_keywords) > 1:
-            self.role = roleDict['art']["prompt"]
-            self.label = "art"
+            self.role = roleDict['artist']["prompt"]
+            self.label = "artist"
             self.model = "dall-e-3"
         elif len(set(words) & photo_keywords) > 1:
-            self.role = roleDict['photo']["prompt"]
-            self.label = "photo"
+            self.role = roleDict['photographer']["prompt"]
+            self.label = "photographer"
             self.model = "dall-e-3"
 
     def _calculate_iterations(self):
@@ -191,9 +242,9 @@ class OpenAIQueryHandler:
         """Sets image dimensions and quality parameters."""
         self.dims = "NA"
         self.qual = "NA"
-        if self.label in {"art", "photo"}:
+        if self.label in {"artist", "photographer"}:
             self.dims, self.qual = self._validate_image_params(self.dim, self.qual, self.model)
-            self.qual = "hd" if self.label == "photo" else self.qual
+            self.qual = "hd" if self.label == "photographer" else self.qual
 
     @staticmethod
     def _validate_image_params(dims, qual, model):
@@ -241,7 +292,7 @@ System parameters:
 
         self._prepare_query()
         self._log_and_print("\nProcessing finalized user request...")
-        if self.label not in ["artist", "photo"]:
+        if self.label not in ["artistist", "photographer"]:
             self._process_text_response()
         else:
             self._process_image_response()
@@ -381,12 +432,12 @@ System parameters:
         class_match = re.match(class_definition_pattern, line_of_code)
         function_match = re.match(function_definition_pattern, line_of_code)
 
-        # Return class over function, before defaulting
+        # If patterns found, extract the object names
         func = clss = 'code'
-        if class_match:
-            clss = class_match[0].split()[1].split(')')[0]
         if function_match:
-            func = function_match[0].split()[1].split(')')[0]
+            func = function_match[0].split()[1].split('(')[0]
+        if class_match:
+            clss = class_match[0].split()[1].split('(')[0]
         
         return func, clss
 
@@ -476,7 +527,7 @@ System parameters:
             seed=self.seed,
             messages=[
                 {"role": "system", "content": self.role},
-                {"role": "user", "content": f"{refineDict['condense_prompt']}\n\n{api_responses}"}
+                {"role": "user", "content": f"{modifierDict['condense']}\n\n{api_responses}"}
             ])
         self._update_token_count(condensed)
 
@@ -498,7 +549,7 @@ System parameters:
 
         actions |= set(re.sub(r'[^\w\s]', '', word).lower() for word in self.prompt.split() if word.lower() in refineDict)
         action_str = "\n".join(refineDict[a] for a in actions) + '\n\n'
-        updated_prompt = refineDict['refine_prompt'] + action_str + self.prompt
+        updated_prompt = modifierDict['refine'] + action_str + self.prompt
 
         refined = self.client.chat.completions.create(
             model=self.model, temperature=temperature, n=self.iterations,
