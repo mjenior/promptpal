@@ -279,7 +279,7 @@ edit = OpenAIQueryHandler(role="editor", refine=True, logging=True) # Expert cop
 ```python
 # Make initial request to first agent for computational biology project
 query = """
-Write an analysis pipeline in python to assemble long nanopore reads into contigs and then align them to an annotated reference genome. Then identify all of the sequence variation present in the new genome that is not present in the reference. Additionally generate a figure from data generated during the alignment based on quality scores, and 2 more figures to help interpret the results at the end."
+Write an analysis pipeline in python to assemble long nanopore reads into contigs and then align them to an annotated reference genome. Then identify all of the sequence variation present in the new genome that is not present in the reference. Additionally generate a figure from data generated during the alignment based on quality scores, and 2 more figures to help interpret the results at the end.
 """
 bio.request(query)
 

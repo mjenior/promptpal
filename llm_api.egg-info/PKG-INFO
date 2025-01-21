@@ -302,6 +302,8 @@ dev.request(f"Refactor and format the following code for optimal efficiency, use
 
 ````
 
+Then use the next agents to read through the new pipeline and generate a high-quality blog post describing it's utility.
+
 ```python
 # Utilize the writer agent to generate an informed post on the background and utility of the newly created pipeline
 query = """
