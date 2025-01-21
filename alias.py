@@ -14,7 +14,7 @@ def extract_unique_words(file_path):
 
 if __name__ == "__main__":
     print("\nBlank responses will automatically set to default values.\n")
-    commandStr = 'cli.py'
+    commandStr = 'python cli.py'
 
     # Determine alias string
     alias = input('Preferred alias string: ')
