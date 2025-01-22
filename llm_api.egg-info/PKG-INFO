@@ -330,7 +330,7 @@ cli.py --api_key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
 
 ## Advanced Usage
 
-Multiple agents with distinct roles may be called to cooperate in generating the most complete reponses needed by the user. This is most easily accomplised by using with the imported package version.
+Multiple agents with distinct roles may be called to cooperate in generating the most complete reponses needed by the user. This is most easily accomplised by using with the imported package version. The following example is also implemented in the accompanying jupyter notebook [multiagent_testing.ipynb](https://github.com/mjenior/llm_api/blob/main/multiagent_example.ipynb)
 
 Example:
 ```python
