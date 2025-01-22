@@ -88,6 +88,7 @@ class OpenAIQueryHandler:
         self.model = model
         self.verbose = verbose
         self.refine_prompt = refine_prompt
+        self.glyph_prompt = glyph_prompt
         self.chain_of_thought = chain_of_thought
         self.save_code = save_code
         self.logging = logging
