@@ -227,14 +227,16 @@ Camera used ARRI, SONY, Nikon.
 """
 
 # Collected default role text for easy import
-roleDict = {'assistant': {'prompt':ASSISTANT, 'name':'Assistant'},
-      'compbio': {'prompt':COMPBIO, 'name':'Computational Biologist'},
-      'coder': {'prompt':DEVELOPER, 'name':'Developer'},
-      'artist': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
-      'photographer': {'prompt':PHOTOGRAPHER+IMAGE, 'name':'Photographer'},
-      'investor': {'prompt':INVESTING, 'name':'Investor'},
-      'writer': {'prompt':WRITER, 'name':'Writer'},
-      'editor': {'prompt':EDITOR, 'name':'Editor'}}
+roleDict = {
+   'assistant': {'prompt':ASSISTANT, 'name':'Assistant'},
+   'compbio': {'prompt':COMPBIO, 'name':'Computational Biologist'},
+   'coder': {'prompt':DEVELOPER, 'name':'Developer'},
+   'artist': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
+   'photographer': {'prompt':PHOTOGRAPHER+IMAGE, 'name':'Photographer'},
+   'investor': {'prompt':INVESTING, 'name':'Investor'},
+   'writer': {'prompt':WRITER, 'name':'Writer'},
+   'editor': {'prompt':EDITOR, 'name':'Editor'}
+   }
 
 
 #-----------------------------------------------------------------------------------------------------------------------------#
@@ -262,21 +264,62 @@ Remember: Make sure all <tags> are on separate lines with no other text.
 """
 
 UNIT_TESTS = """
-Your task also includes developing a comprehensive suite of unit tests for the provided codebase.
-Follow these guidelines for an effective testing process:
-1. Understand the Codebase: Analyze the code thoroughly, step by step. Identify the possible ambiguity or missing information such as constants, type definitions, conditions, external APIs, etc. Only proceed to the next step once you have analyzed the codebase fully.
-2. Design Small, Focused Tests: Each unit test should focus on one functionality, enhancing readability and ease of debugging. Ensure each test is isolated and does not depend on others. Simulate the behavior of external dependencies using mock objects to increase the reliability and speed of your tests.
-3. Structure and Name Your Tests Well: Your tests should follow a clear structure and use descriptive names to make their purpose clear.
-4. Implement the AAA Pattern: Implement the Arrange-Act-Assert (AAA) paradigm in each test, establishing necessary preconditions and inputs (Arrange), executing the object or method under test (Act), and asserting the results against the expected outcomes (Assert).
-5. Best practices: Utilize best coding practices when writing new code (PEP8, PEP257, etc.), and include clear comments and well-documented code.
-6. Test the Happy Path and Failure Modes: Your tests should not only confirm that the code works under expected conditions (the 'happy path') but also how it behaves in failure modes.
-7. Testing Edge Cases: Go beyond testing the expected use cases and ensure edge cases are also tested to catch potential bugs that might not be apparent in regular use.
-8. Avoid Logic in Tests: Strive for simplicity in your tests, steering clear of logic such as loops and conditionals, as these can signal excessive test complexity.
-9. Write Complete Test Cases: Avoid writing test cases as mere examples or code skeletons. You have to write a complete set of tests. They should effectively validate the functionality under test.
+You are a specialized unit test generator. Your task is to create comprehensive test suites for provided code while strictly adhering to the following structure and requirements:
 
+OUTPUT STRUCTURE:
+1. Test Plan Overview:
+   - Summary of testing approach
+   - Identified components requiring testing
+   - External dependencies to be mocked
+   - Expected coverage targets
+
+2. Test Cases Specification:
+   - Preconditions and setup requirements
+   - Input data and edge cases
+   - Expected outcomes
+   - Error scenarios to validate
+
+3. Implementation:
+   - Complete test code implementation
+   - Mock objects and fixtures
+   - Setup and teardown procedures
+   - Inline documentation
+
+4. Coverage Analysis:
+   - Code coverage metrics
+   - Untested edge cases or scenarios
+   - Security consideration coverage
+   - Performance impact assessment
+
+MANDATORY REQUIREMENTS:
+1. Testing Principles:
+   - Each test must be fully isolated
+   - External dependencies must be mocked
+   - No test interdependencies allowed
+   - Complete edge case coverage required
+
+2. Code Quality:
+   - Follow PEP 8 and PEP 257 standards
+   - Use clear, descriptive test names
+   - Include docstrings for all test classes/methods
+   - Implement proper assertion messages
+
+3. Performance & Security:
+   - Include performance-critical test cases
+   - Add security vulnerability test cases
+   - Document resource requirements
+   - Include timeout handling
+
+CONSTRAINTS:
+- Generate only test-related content
+- Do not modify or suggest changes to the original code
+- If critical information is missing, list all required information before proceeding
+- Maintain focus on testing - do not provide general code reviews or other unrelated content
+
+Before proceeding with test generation, analyze and list any missing information that would be required for complete test coverage.
 """
 
-REFINE = """
+REFINE_PROMPT = """
 Your primary task is to refine or improve the following user prompt.
 Do not respond directly to the provided request.
 Refined prompt text should be at least four sentences long.
@@ -284,10 +327,10 @@ If there is any special formatting contained in the prompts, ensure it is includ
 Provide example code in refined queries when refactored code is requested.
 Only use refinement instructions in crafting a new higher quality prompt. 
 Do not include any content related directly to prompt refinement in your response.
-Your response should be formatted as another user request to ChatGPT; For example, any instance of 'I' needs to be updated to 'you should'.
+Your response should be formatted as another user request; For example, any instance of 'I' needs to be updated to 'you should'.
 """
 
-CONDENSE = """
+CONDENSE_RESPONSE = """
 Your task is to refine and synthesize all of the following text provided into a single cohesive response. 
 The subject and them of your response should remain the same as the input text.
 The response given should contain all of the most informative or descriptive elements of the input text.
@@ -298,8 +341,8 @@ Include the most concrete description of the requested response in the first sen
 modifierDict = {
    'cot': CHAIN_OF_THOUGHT, 
    'tests': UNIT_TESTS, 
-   'refine': REFINE, 
-   'condense': CONDENSE
+   'refine': REFINE_PROMPT, 
+   'condense': CONDENSE_RESPONSE
    }
 
 #-----------------------------------------------------------------------------------------------------------------------------#
@@ -340,32 +383,20 @@ refineDict = {
    "downplay": "Rewrite the text to present it in a more restrained, modest, or understated manner, focusing on a neutral tone."
    }
 
-# Common file extension dictionary, add more as needed
+# Common file extension dictionary, which don't match directly with language name
 extDict = {
-   'awk': '.awk',
    'bash': '.sh',
    'cuda': '.cu',
    'cython': '.pyx',
-   'c': '.c',
    'c++': '.cpp',
-   'csv': '.csv',
-   'groovy': '.groovy',
-   'html':'.html',
-   'java':'.java',
    'javascript':'.js',
    'julia':'.jl',
-   'json':'.json',
    'markdown': '.md',
    'matlab': '.mat',
    'nextflow': '.nf',
    'perl': '.pl',
    'python': '.py',
-   'r': '.r',
    'ruby': '.rb',
    'shell': '.sh',
-   'sql': '.sql',
-   'text':'.txt',
-   'tsv': '.tsv',
-   'xml': '.xml',
-   'xquery': '.xquery'
+   'text':'.txt'
    }

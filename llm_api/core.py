@@ -141,7 +141,7 @@ class OpenAIQueryHandler:
         if self.chain_of_thought:
             self.role += modifierDict['cot']
         if self.unit_testing:
-            self.prompt = modifierDict['tests'] + self.prompt
+            self.prompt = modifierDict['tests'] + "\n" + self.prompt
         
     def _set_api_key(self):
         """Sets the OpenAI API key."""
