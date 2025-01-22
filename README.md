@@ -31,6 +31,7 @@ Python based tool for improved conversation using ChatGPT API package
    - [Query Prompt Refinement](#query-prompt-refinement)
    - [Response Iterations](#response-iterations)
    - [Identify and Save Code Snippets](#identify-code-snippets)
+   - [Associative Glyph Prompting](#associative-glyph-prompting)
 4. [Advanced Usage](#advanced-usage)
 5. [Contributing](#contributing)
 6. [License](#license)
@@ -102,6 +103,9 @@ chain_of_thought : bool
     Default is False
 refine_prompt : bool
     Automatically improve user prompt to improve query specificity.
+    Default is False
+glyph_prompt : bool 
+    Restructures queries into associative glyph formatting (NEEDS TESTING)
     Default is False
 iterations : int
     Number of responses to generate and parse for model reflection
@@ -217,6 +221,57 @@ Can you provide detailed, step-by-step instructions for changing a tire, emphasi
 You should include comprehensive details like how to safely park the car, the importance of using a wheel chock, and the correct way to position the jack. 
 Also, expand on how to properly remove the lug nuts, replace the tire, and ensure everything is secure before driving again.
 ```
+
+### Associative Glyph Prompting
+
+During prompt refinement, the addition --glyph_prompt flag will restructure the revised prompt utilizing concepts from [Symbolic Representations Framework](https://github.com/severian42/Computational-Model-for-Symbolic-Representations) to create user-defined symbolic representations (glyphs) guide AI interactions. Glyphs serve as conceptual tags, steering AI focus within specific domains like storytelling or thematic development without altering the model's architecture. Instead, they leverage existing AI mechanisms—contextual priming, attention, and latent space activation—repurposing them to create a shared symbolic framework for dynamic and intuitive collaboration. This feature still requires additional testing and will be updated in the future.
+
+Example:
+```python
+agent = OpenAIQueryHandler(glyph_prompt=True)
+````
+
+```bash
+cli.py --refine_prompt True --glyph_prompt True --prompt "Write a plan to improve efficiency of a computational pipeline." 
+```
+
+Resulting improved user prompt:
+```
+<human_instructions>
+- Treat each glyph as a direct instruction to be followed sequentially, driving the process to completion.
+- Deliver the final result as indicated by the glyph code, omitting any extraneous commentary. Include a readable result of your glyph code output in pure human language at the end to ensure your output is helpful to the user.
+- Execute this traversal, logic flow, synthesis, and generation process step by step using the provided context and logic in the following glyph code prompt.
+</human_instructions>
+
+{
+  Φ(Define the Problem/Goal) -> Clearly articulate the primary objective of enhancing the computational pipeline's efficiency. This should include specific metrics for success and desired outcomes to ensure clarity in the problem statement.
+  
+  Θ(Provide Contextual Parameters, Constraints) -> Detail any existing limitations that affect the pipeline's performance, such as hardware specifications, software dependencies, data processing limits, and time constraints. This information is crucial for understanding the environment in which the pipeline operates.
+  
+  ↹(Specify Initial Focus Areas, if any) -> Identify key areas within the pipeline that are currently bottlenecks or could be optimized for better performance. This may include data input/output processes, algorithmic efficiencies, or resource allocation strategies.
+
+  Ω[
+    ↹(Sub-Focus 1) -> Generate Spectrum of Possibilities (e.g., approaches, perspectives, solutions) -> Explore various optimization techniques, such as parallel processing, code refactoring, or algorithmic changes that could enhance efficiency.
+    
+    ↹(Sub-Focus 2) -> Generate Spectrum of Possibilities -> Investigate hardware upgrades or cloud computing solutions that could alleviate resource limitations and improve processing speeds.
+    
+    ↹(Sub-Focus n) -> Generate Spectrum of Possibilities -> Consider workflow management tools or containerization options (like Docker) that could streamline the pipeline and improve reproducibility.
+  ] -> α[
+     ↹(Sub-Focus 1) -> Analyze & Evaluate Spectrum Elements (Pros/Cons, Risks/Benefits) -> Assess the feasibility of each optimization technique, weighing potential gains against implementation challenges.
+     
+     ↹(Sub-Focus 2) -> Analyze & Evaluate Spectrum Elements -> Evaluate the cost-effectiveness and technical requirements of hardware upgrades or cloud solutions.
+     
+     ↹(Sub-Focus n) -> Analyze & Evaluate Spectrum Elements -> Review the impact of adopting workflow management tools on team collaboration and project scalability.
+  ] -> Σ(Synthesize Insights, Formulate Solution/Understanding) -> Combine findings from the analysis to propose a comprehensive strategy for improving pipeline efficiency, ensuring that all aspects are aligned with the defined goals.
+  
+  -> ∇(Self-Assess, Critique, Suggest Improvements) -> Reflect on the proposed solutions to identify any overlooked elements or potential for further enhancement, ensuring a robust approach to the problem.
+  
+  -> ∞(Iterate/Refine if further input is given) -> Be prepared to adjust the strategy based on additional feedback or emerging data that could influence the pipeline's efficiency.
+  
+  @Output(Final Solution/Understanding, Justification, Reflection on Process) -> Present a clear, actionable plan that outlines the steps to be taken, providing justification for each recommendation and reflecting on the overall process to ensure thoroughness and clarity.
+}
+````
+
 
 ### Response Iterations
 

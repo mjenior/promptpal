@@ -29,6 +29,9 @@ chain_of_thought : bool
 refine_prompt : bool
     Automatically improve user prompt to improve query specificity.
     Default is False
+glyph_prompt : bool 
+    Restructures queries into associative glyph formatting (NEEDS TESTING)
+    Default is False
 iterations : int
     Number of responses to generate and parse for model reflection
     Default is 1

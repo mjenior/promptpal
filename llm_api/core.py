@@ -37,7 +37,7 @@ class OpenAIQueryHandler:
         tokens (dict): Tracks token usage for prompt and completion.
         prefix (str): A unique prefix for log files and outputs.
         client (OpenAI): The OpenAI client instance for API requests.
-        glyph_prompt (bool): If True, restructures queries into associated glyph formatting (NEEDS TESTING)
+        glyph_prompt (bool): If True, restructures queries into associative glyph formatting (NEEDS TESTING)
 
     Methods:
         __init__: Initializes the handler with default or provided values.

@@ -37,6 +37,7 @@ class OpenAIQueryHandler:
         tokens (dict): Tracks token usage for prompt and completion.
         prefix (str): A unique prefix for log files and outputs.
         client (OpenAI): The OpenAI client instance for API requests.
+        glyph_prompt (bool): If True, restructures queries into associative glyph formatting (NEEDS TESTING)
 
     Methods:
         __init__: Initializes the handler with default or provided values.
@@ -78,7 +79,8 @@ class OpenAIQueryHandler:
                 dimensions="NA",
                 quality="NA",
                 role="assistant",
-                unit_testing=False):
+                unit_testing=False,
+                glyph_prompt=False):
         """
         Initialize the handler with default or provided values.
         """
@@ -86,6 +88,7 @@ class OpenAIQueryHandler:
         self.model = model
         self.verbose = verbose
         self.refine_prompt = refine_prompt
+        self.glyph_prompt = glyph_prompt
         self.chain_of_thought = chain_of_thought
         self.save_code = save_code
         self.logging = logging
@@ -271,7 +274,6 @@ System parameters:
         self.original_query = prompt
 
         self._prepare_query()
-
 
         if self.refine_prompt == True:
             self._log_and_print("\nProcessing finalized user request...")
@@ -523,6 +525,8 @@ System parameters:
         actions |= set(re.sub(r'[^\w\s]', '', word).lower() for word in self.prompt.split() if word.lower() in refineDict)
         action_str = "\n".join(refineDict[a] for a in actions) + '\n\n'
         updated_prompt = modifierDict['refine'] + action_str + self.prompt
+        if self.glyph_prompt == True:
+            updated_prompt += modifierDict['glyph']
 
         refined = self.client.chat.completions.create(
             model=self.model, temperature=temperature, n=self.iterations,
