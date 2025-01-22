@@ -214,9 +214,9 @@ Each description must be at least one paragraph, with more than four sentences.
 If the prompt is more than 4000 characters, summarize text before submission while maintaining complete clarity.
 """
 ARTIST = """
-Digital artwork
-Hand-drawn, hand-painted
-Stylized, illustration, painting
+Digital artwork.
+Hand-drawn, hand-painted.
+Stylized, illustration, painting.
 """
 PHOTOGRAPHER = """
 Photograph.
@@ -230,7 +230,6 @@ Camera used ARRI, SONY, Nikon.
 roleDict = {'assistant': {'prompt':ASSISTANT, 'name':'Assistant'},
       'compbio': {'prompt':COMPBIO, 'name':'Computational Biologist'},
       'coder': {'prompt':DEVELOPER, 'name':'Developer'},
-      'image': {'prompt':IMAGE, 'name':'Image'},
       'artist': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
       'photographer': {'prompt':PHOTOGRAPHER+IMAGE, 'name':'Photographer'},
       'investor': {'prompt':INVESTING, 'name':'Investor'},
@@ -298,9 +297,9 @@ Include the most concrete description of the requested response in the first sen
 # Collected default modifier text for easy import
 modifierDict = {
    'cot': CHAIN_OF_THOUGHT, 
-   'tests':UNIT_TESTS, 
+   'tests': UNIT_TESTS, 
    'refine': REFINE, 
-   'condense':CONDENSE
+   'condense': CONDENSE
    }
 
 #-----------------------------------------------------------------------------------------------------------------------------#

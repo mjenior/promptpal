@@ -22,17 +22,19 @@ role : str
     Default is assistant
 model : str
     LLM to use in queiries.
-    Default is gpt-4o
+    Default is gpt-4o-mini
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
     Default is False
-refine : bool
+refine_prompt : bool
     Automatically improve user prompt to improve query specificity.
     Default is False
 iterations : int
-    WANRING: More testing required for reliability
     Number of responses to generate and parse for model reflection
     Default is 1
+save_code: bool
+    Extracts and saves code snippets from the response.
+    Default is False
 seed : str or int
     Set moded seed for more deterministic reponses
     Converts strings into binary-like equivalent, constrained by max system bit size
@@ -63,9 +65,9 @@ def parse_arguments():
     parser.add_argument("-r", "--role", type=str, default="assist", help="Assistant role text.")
     parser.add_argument("-m", "--model", type=str, default="gpt-4o-mini", help="LLM to use in queiries.")
     parser.add_argument("-c", "--chain_of_thought", type=bool, default=False, help="Enable chain of thought reasoning.")
-    parser.add_argument("-f", "--refine", type=bool, default=False, help="Enable automated input prompt improvement.")
+    parser.add_argument("-f", "--refine_prompt", type=bool, default=False, help="Enable automated input prompt improvement.")
     parser.add_argument("-s", "--save_code", type=bool, default=False, help="Save detected code in responses to separate scripts.")
-    parser.add_argument("-e", "--seed", default=r'"@[=g3,8d]\&fbb=-q]/hk%fg"', help="Set moded seed for more deterministic reponses, accepts integer or strings")
+    parser.add_argument("-x", "--seed", default=r'"@[=g3,8d]\&fbb=-q]/hk%fg"', help="Set moded seed for more deterministic reponses, accepts integer or strings")
     parser.add_argument("-u", "--unit_testing", type=bool, default=False, help="Write comprehesive unit tests for any generated code.")
     parser.add_argument("-k", "--api_key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dimensions", type=str, default="1024x1024", help="Image dimensions.")
@@ -87,9 +89,9 @@ def main():
     llm_api = OpenAIQueryHandler(
         model=args.model,
         verbose=args.verbose,
-        refine=args.refine,
+        refine_prompt=args.refine_prompt,
         chain_of_thought=args.chain_of_thought,
-        code=args.save_code,
+        save_code=args.save_code,
         logging=args.logging,
         api_key=args.api_key,
         seed=args.seed,

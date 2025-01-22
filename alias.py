@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     # Determine alias string
     alias = input('Preferred alias string: ')
-    alias = alias if alias != '' else 'llm_api'
+    alias = alias if alias != '' else 'llmapi'
 
     # Preferred model
     model = input('Preferred model (refer to README): ')
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # Add API-key
     api_key = input('API-key (Corresponds with model, blank defaults to system env var): ')
     if api_key != '':
-        commandStr += f" --key {api_key}"
+        commandStr += f" --api_key {api_key}"
 
     # Random seed
     seed = input('Random seed (int or str, floats treated as str): ')
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # Prompt refinement
     refine = input('Refine user query (1 = True and 0 = False): ')
     if refine == '1':
-        commandStr += f" --refine True"
+        commandStr += f" --refine_prompt True"
 
     # Chain of Thought 
     chain = input('Include Chain-of-Thought reasoning (1 = True and 0 = False): ')
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # Response iterations
     iters = input('Response iterations (integer): ')
     try: 
-        commandStr += f" --iters {int(iters)}"
+        commandStr += f" --iterations {int(iters)}"
     except ValueError:
         pass
 

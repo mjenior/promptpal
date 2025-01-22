@@ -23,9 +23,9 @@ class OpenAIQueryHandler:
     Attributes:
         model (str): The model to use for the query (e.g., 'gpt-4o-mini', 'dall-e-3').
         verbose (bool): If True, prints detailed logs and status messages.
-        refine (bool): If True, refines the prompt before submission.
+        refine_prompt (bool): If True, refines the prompt before submission.
         chain_of_thought (bool): If True, enables chain-of-thought reasoning.
-        code (bool): If True, extracts and saves code snippets from the response.
+        save_code (bool): If True, extracts and saves code snippets from the response.
         logging (bool): If True, logs the session to a file.
         api_key (str): The API key for OpenAI or Deepseek. Defaults to system environment variable.
         seed (int or str): Seed for reproducibility. Can be an integer or a string converted to binary.
@@ -41,8 +41,8 @@ class OpenAIQueryHandler:
     Methods:
         __init__: Initializes the handler with default or provided values.
         request: Submits a query to the OpenAI API and processes the response.
-        save_chat_transcript: Saves the conversation transcript to a file.
-        extract_and_save_code: Extracts code snippets from the response and saves them to files.
+        _save_chat_transcript: Saves the conversation transcript to a file.
+        _extract_and_save_code: Extracts code snippets from the response and saves them to files.
         _setup_logging: Prepares logging setup.
         _setup_model_and_role: Processes model and role selections.
         _prepare_query: Prepares the query, including prompt modifications and image handling.
@@ -58,7 +58,7 @@ class OpenAIQueryHandler:
         _process_image_response: Processes image generation requests using OpenAI's image models.
         _assemble_query: Assembles the query dictionary for the API request.
         _condense_iterations: Condenses multiple API responses into a single coherent response.
-        _refine_prompt: Refines an LLM prompt using specified rewrite actions.
+        _refine_user_prompt: Refines an LLM prompt using specified rewrite actions.
         _update_token_count: Updates token count for prompt and completion.
         _log_and_print: Logs and prints the provided message if verbose.
         _calculate_cost: Calculates the approximate cost (USD) of LLM tokens generated.
@@ -66,17 +66,17 @@ class OpenAIQueryHandler:
     """
 
     def __init__(self, 
-                model='gpt-4o-mini',
+                model="gpt-4o-mini",
                 verbose=False,
-                refine=False,
+                refine_prompt=False,
                 chain_of_thought=False,
-                code=False,
+                save_code=False,
                 logging=False,
                 api_key="system",
                 seed=42,
                 iterations=1,
-                dimensions='NA',
-                quality='NA',
+                dimensions="NA",
+                quality="NA",
                 role="assistant",
                 unit_testing=False):
         """
@@ -85,9 +85,9 @@ class OpenAIQueryHandler:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.model = model
         self.verbose = verbose
-        self.refine = refine
+        self.refine_prompt = refine_prompt
         self.chain_of_thought = chain_of_thought
-        self.code = code
+        self.save_code = save_code
         self.logging = logging
         self.log_text = []
         self.api_key = api_key or self._set_api_key()
@@ -98,9 +98,7 @@ class OpenAIQueryHandler:
         self.unit_testing = unit_testing
         self.tokens = {'prompt':0, 'completion':0}
         self.seed = seed if isinstance(seed, int) else self._string_to_binary(seed)
-
         self._setup_model_and_role()
-
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"
         self._setup_logging()
 
@@ -138,8 +136,8 @@ class OpenAIQueryHandler:
         if self.model in ['dall-e-2', 'dall-e-3']:
             self._handle_image_params()
         self._log_and_print(self._report_query_params())
-        if self.refine: 
-            self._refine_prompt()
+        if self.refine_prompt: 
+            self._refine_user_prompt()
         if self.chain_of_thought:
             self.role += modifierDict['cot']
         if self.unit_testing:
@@ -252,12 +250,12 @@ System parameters:
     Model: {self.model}
     Role: {self.role_name}
     Chain-of-thought: {self.chain_of_thought}
-    Prompt refinement: {self.refine}
+    Prompt refinement: {self.refine_prompt}
     Response iterations: {self.iterations}
     Time stamp: {self.timestamp}
     Seed: {self.seed}
     Text logging: {self.logging}
-    Snippet logging: {self.code}
+    Snippet logging: {self.save_code}
     """
         if 'dall-e' in self.model:
             status += f"""Image dimensions: {self.size}
@@ -282,7 +280,7 @@ System parameters:
         self._log_and_print(token_report)
 
         if self.logging:
-            self.save_chat_transcript()
+            self._save_chat_transcript()
 
     def _process_text_response(self):
         """Processes text-based responses from OpenAI's chat models."""
@@ -305,8 +303,8 @@ System parameters:
             print(self.message)
 
         # Extract code snippets
-        if self.code:
-            self.scripts = self.extract_and_save_code(message)
+        if self.save_code:
+            self.scripts = self._extract_and_save_code(message)
             if self.scripts:
                 reportStr = "\nCode extracted from reponse text and saved to:\n\t" + '\n\t'.join(self.scripts)
                 self._log_and_print(reportStr)
@@ -348,7 +346,7 @@ System parameters:
         return [{"role": "user", "content": self.prompt},
                 {"role": "system", "content": self.role}]
 
-    def extract_and_save_code(self, response):
+    def _extract_and_save_code(self, response):
         """
         Extracts code snippets from the response and saves them into separate files.
 
@@ -478,7 +476,7 @@ System parameters:
                 f"\n    Prompt (i.e. input): {self.tokens['prompt']}  (${prompt_cost})"
                 f"\n    Completion (i.e. output): {self.tokens['completion']}  (${completion_cost})")
 
-    def save_chat_transcript(self):
+    def _save_chat_transcript(self):
         """Saves the current response text to a file if specified."""
         with open(self.log_file, "a", encoding="utf-8") as f:
             f.write("\n".join(self.log_text))
@@ -510,10 +508,12 @@ System parameters:
 
         return outStr
 
-    def _refine_prompt(self, actions=set(['expand', 'amplify']), temperature=0.7):
+    def _refine_user_prompt(self):
         """Refines an LLM prompt using specified rewrite actions."""
         self._log_and_print("\nRefining current user prompt...")
 
+        temperature = 0.7
+        actions = set(['expand', 'amplify'])
         actions |= set(re.sub(r'[^\w\s]', '', word).lower() for word in self.prompt.split() if word.lower() in refineDict)
         action_str = "\n".join(refineDict[a] for a in actions) + '\n\n'
         updated_prompt = modifierDict['refine'] + action_str + self.prompt
