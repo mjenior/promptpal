@@ -338,6 +338,7 @@ Include the most concrete description of the requested response in the first sen
 """
 
 GLYPH_PROMPT = """
+
 Reformat and expand the user prompt into the following format.
 Maintain the modified prompt structure below explicitily and do not make any substantive deviations.
 Keep the <human_instructions> unchanged and at the beginning of the new prompt text.

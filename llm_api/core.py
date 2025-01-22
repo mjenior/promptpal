@@ -51,7 +51,6 @@ class OpenAIQueryHandler:
         _select_model: Validates and selects the model based on user input or defaults.
         _select_role: Selects the role based on user input or defaults.
         _append_file_scanner: Scans files in the message and appends their contents.
-        _calculate_iterations: Determines the number of response iterations.
         _handle_image_params: Sets image dimensions and quality parameters.
         _validate_image_params: Validates image dimensions and quality for the model.
         _report_query_params: Reports the current query configuration.
@@ -135,7 +134,6 @@ class OpenAIQueryHandler:
         Prepares the query, including prompt modifications and image handling.
         """
         self.prompt = self._append_file_scanner(self.prompt)
-        self._calculate_iterations()
         if self.model in ['dall-e-2', 'dall-e-3']:
             self._handle_image_params()
         self._log_and_print(self._report_query_params())
@@ -217,11 +215,6 @@ class OpenAIQueryHandler:
         for file_name in os.listdir(dirname):
             new_message += self._read_file_contents(os.path.join(dirname, file_name))
         return new_message
-
-    def _calculate_iterations(self):
-        """Determines the number of response iterations."""
-        if self.role == 'refine' and self.iterations == 1:
-            self.iterations + 2
 
     def _handle_image_params(self):
         """Sets image dimensions and quality parameters."""
@@ -521,7 +514,7 @@ System parameters:
         """Refines an LLM prompt using specified rewrite actions."""
         self._log_and_print("\nRefining current user prompt...")
 
-        temperature = 0.7
+        temperature = 0.7 # Altered slightly to somewhat increase diversity in responses
         actions = set(['expand', 'amplify'])
         actions |= set(re.sub(r'[^\w\s]', '', word).lower() for word in self.prompt.split() if word.lower() in refineDict)
         action_str = "\n".join(refineDict[a] for a in actions) + '\n\n'
@@ -530,7 +523,7 @@ System parameters:
             updated_prompt += modifierDict['glyph']
 
         refined = self.client.chat.completions.create(
-            model=self.model, temperature=temperature, n=self.iterations,
+            model=self.model, temperature=temperature, n=1,
             seed=self.seed,
             messages=[
                 {"role": "system", "content": self.role},
