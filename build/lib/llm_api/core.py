@@ -23,15 +23,15 @@ class OpenAIQueryHandler:
     Attributes:
         model (str): The model to use for the query (e.g., 'gpt-4o-mini', 'dall-e-3').
         verbose (bool): If True, prints detailed logs and status messages.
-        refine (bool): If True, refines the prompt before submission.
+        refine_prompt (bool): If True, refines the prompt before submission.
         chain_of_thought (bool): If True, enables chain-of-thought reasoning.
-        code (bool): If True, extracts and saves code snippets from the response.
+        save_code (bool): If True, extracts and saves code snippets from the response.
         logging (bool): If True, logs the session to a file.
         api_key (str): The API key for OpenAI or Deepseek. Defaults to system environment variable.
         seed (int or str): Seed for reproducibility. Can be an integer or a string converted to binary.
         iterations (int): Number of response iterations for refining or condensing outputs.
-        image_dimensions (str): Dimensions for image generation (e.g., '1024x1024').
-        image_quality (str): Quality setting for image generation (e.g., 'hd').
+        dimensions (str): Dimensions for image generation (e.g., '1024x1024').
+        quality (str): Quality setting for image generation (e.g., 'hd').
         role (str): The role or persona for the query (e.g., 'assistant', 'artist').
         unit_testing (bool): If True, appends unit testing instructions to the prompt.
         tokens (dict): Tracks token usage for prompt and completion.
@@ -41,8 +41,8 @@ class OpenAIQueryHandler:
     Methods:
         __init__: Initializes the handler with default or provided values.
         request: Submits a query to the OpenAI API and processes the response.
-        save_chat_transcript: Saves the conversation transcript to a file.
-        extract_and_save_code: Extracts code snippets from the response and saves them to files.
+        _save_chat_transcript: Saves the conversation transcript to a file.
+        _extract_and_save_code: Extracts code snippets from the response and saves them to files.
         _setup_logging: Prepares logging setup.
         _setup_model_and_role: Processes model and role selections.
         _prepare_query: Prepares the query, including prompt modifications and image handling.
@@ -50,7 +50,6 @@ class OpenAIQueryHandler:
         _select_model: Validates and selects the model based on user input or defaults.
         _select_role: Selects the role based on user input or defaults.
         _append_file_scanner: Scans files in the message and appends their contents.
-        _handle_image_request: Adjusts role and model for image generation requests.
         _calculate_iterations: Determines the number of response iterations.
         _handle_image_params: Sets image dimensions and quality parameters.
         _validate_image_params: Validates image dimensions and quality for the model.
@@ -59,7 +58,7 @@ class OpenAIQueryHandler:
         _process_image_response: Processes image generation requests using OpenAI's image models.
         _assemble_query: Assembles the query dictionary for the API request.
         _condense_iterations: Condenses multiple API responses into a single coherent response.
-        _refine_prompt: Refines an LLM prompt using specified rewrite actions.
+        _refine_user_prompt: Refines an LLM prompt using specified rewrite actions.
         _update_token_count: Updates token count for prompt and completion.
         _log_and_print: Logs and prints the provided message if verbose.
         _calculate_cost: Calculates the approximate cost (USD) of LLM tokens generated.
@@ -67,17 +66,17 @@ class OpenAIQueryHandler:
     """
 
     def __init__(self, 
-                model='gpt-4o-mini',
+                model="gpt-4o-mini",
                 verbose=False,
-                refine=False,
+                refine_prompt=False,
                 chain_of_thought=False,
-                code=False,
+                save_code=False,
                 logging=False,
                 api_key="system",
                 seed=42,
                 iterations=1,
-                image_dimensions='NA',
-                image_quality='NA',
+                dimensions="NA",
+                quality="NA",
                 role="assistant",
                 unit_testing=False):
         """
@@ -86,22 +85,20 @@ class OpenAIQueryHandler:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.model = model
         self.verbose = verbose
-        self.refine = refine
+        self.refine_prompt = refine_prompt
         self.chain_of_thought = chain_of_thought
-        self.code = code
+        self.save_code = save_code
         self.logging = logging
         self.log_text = []
         self.api_key = api_key or self._set_api_key()
         self.iterations = iterations
-        self.image_dimensions = image_dimensions
-        self.image_quality = image_quality
+        self.dimensions = dimensions
+        self.quality = quality
         self.role = role 
         self.unit_testing = unit_testing
         self.tokens = {'prompt':0, 'completion':0}
         self.seed = seed if isinstance(seed, int) else self._string_to_binary(seed)
-
         self._setup_model_and_role()
-
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"
         self._setup_logging()
 
@@ -136,15 +133,15 @@ class OpenAIQueryHandler:
         """
         self.prompt = self._append_file_scanner(self.prompt)
         self._calculate_iterations()
-        self._handle_image_request()
-        self._handle_image_params()
+        if self.model in ['dall-e-2', 'dall-e-3']:
+            self._handle_image_params()
         self._log_and_print(self._report_query_params())
-        if self.refine: 
-            self._refine_prompt()
+        if self.refine_prompt: 
+            self._refine_user_prompt()
         if self.chain_of_thought:
             self.role += modifierDict['cot']
         if self.unit_testing:
-            self.prompt = modifierDict['tests'] + self.prompt
+            self.prompt = modifierDict['tests'] + "\n" + self.prompt
         
     def _set_api_key(self):
         """Sets the OpenAI API key."""
@@ -218,21 +215,6 @@ class OpenAIQueryHandler:
             new_message += self._read_file_contents(os.path.join(dirname, file_name))
         return new_message
 
-    def _handle_image_request(self):
-        """Adjusts role and model for image generation requests."""
-        art_keywords = {'create', 'generate', 'image', 'picture', 'draw', 'paint', 'painting', 'illustration'}
-        photo_keywords = {'create', 'generate', 'photographer', 'photograph'}
-        words = self.prompt.split()
-
-        if len(set(words) & art_keywords) > 1:
-            self.role = roleDict['artist']["prompt"]
-            self.label = "artist"
-            self.model = "dall-e-3"
-        elif len(set(words) & photo_keywords) > 1:
-            self.role = roleDict['photographer']["prompt"]
-            self.label = "photographer"
-            self.model = "dall-e-3"
-
     def _calculate_iterations(self):
         """Determines the number of response iterations."""
         if self.role == 'refine' and self.iterations == 1:
@@ -240,23 +222,21 @@ class OpenAIQueryHandler:
 
     def _handle_image_params(self):
         """Sets image dimensions and quality parameters."""
-        self.dims = "NA"
-        self.qual = "NA"
         if self.label in {"artist", "photographer"}:
-            self.dims, self.qual = self._validate_image_params(self.dim, self.qual, self.model)
-            self.qual = "hd" if self.label == "photographer" else self.qual
+            self.dimensions, self.quality = self._validate_image_params(self.dimensions, self.quality, self.model)
+            self.quality = "hd" if self.label == "photographer" else self.quality
 
     @staticmethod
-    def _validate_image_params(dims, qual, model):
+    def _validate_image_params(dimensions, quality, model):
         """Validates image dimensions and quality for the model."""
-        valid_dims = {
+        valid_dimensions = {
             'dall-e-3': ['1024x1024', '1792x1024', '1024x1792'],
             'dall-e-2': ['1024x1024', '512x512', '256x256']
         }
-        if model in valid_dims and dims.lower() not in valid_dims[model]:
-            dims = '1024x1024'
-        quality = 'hd' if qual.lower() in {'h', 'hd', 'high', 'higher', 'highest'} else 'standard'
-        return dims, quality
+        if model in valid_dimensions and dimensions.lower() not in valid_dimensions[model]:
+            dimensions = '1024x1024'
+        quality = 'hd' if quality.lower() in {'h', 'hd', 'high', 'higher', 'highest'} else 'standard'
+        return dimensions, quality
 
     def _report_query_params(self):
         """Reports the current query configuration."""
@@ -270,12 +250,12 @@ System parameters:
     Model: {self.model}
     Role: {self.role_name}
     Chain-of-thought: {self.chain_of_thought}
-    Prompt refinement: {self.refine}
+    Prompt refinement: {self.refine_prompt}
     Response iterations: {self.iterations}
     Time stamp: {self.timestamp}
     Seed: {self.seed}
     Text logging: {self.logging}
-    Snippet logging: {self.code}
+    Snippet logging: {self.save_code}
     """
         if 'dall-e' in self.model:
             status += f"""Image dimensions: {self.size}
@@ -291,8 +271,14 @@ System parameters:
         self.original_query = prompt
 
         self._prepare_query()
-        self._log_and_print("\nProcessing finalized user request...")
-        if self.label not in ["artistist", "photographer"]:
+
+
+        if self.refine_prompt == True:
+            self._log_and_print("\nProcessing finalized user request...")
+        else:
+            self._log_and_print("\nProcessing user request...")
+
+        if self.label not in ["artist", "photographer"]:
             self._process_text_response()
         else:
             self._process_image_response()
@@ -300,7 +286,7 @@ System parameters:
         self._log_and_print(token_report)
 
         if self.logging:
-            self.save_chat_transcript()
+            self._save_chat_transcript()
 
     def _process_text_response(self):
         """Processes text-based responses from OpenAI's chat models."""
@@ -323,8 +309,8 @@ System parameters:
             print(self.message)
 
         # Extract code snippets
-        if self.code:
-            self.scripts = self.extract_and_save_code(message)
+        if self.save_code:
+            self.scripts = self._extract_and_save_code(message)
             if self.scripts:
                 reportStr = "\nCode extracted from reponse text and saved to:\n\t" + '\n\t'.join(self.scripts)
                 self._log_and_print(reportStr)
@@ -366,7 +352,7 @@ System parameters:
         return [{"role": "user", "content": self.prompt},
                 {"role": "system", "content": self.role}]
 
-    def extract_and_save_code(self, response):
+    def _extract_and_save_code(self, response):
         """
         Extracts code snippets from the response and saves them into separate files.
 
@@ -496,7 +482,7 @@ System parameters:
                 f"\n    Prompt (i.e. input): {self.tokens['prompt']}  (${prompt_cost})"
                 f"\n    Completion (i.e. output): {self.tokens['completion']}  (${completion_cost})")
 
-    def save_chat_transcript(self):
+    def _save_chat_transcript(self):
         """Saves the current response text to a file if specified."""
         with open(self.log_file, "a", encoding="utf-8") as f:
             f.write("\n".join(self.log_text))
@@ -528,10 +514,12 @@ System parameters:
 
         return outStr
 
-    def _refine_prompt(self, actions=set(['expand', 'amplify']), temperature=0.7):
+    def _refine_user_prompt(self):
         """Refines an LLM prompt using specified rewrite actions."""
         self._log_and_print("\nRefining current user prompt...")
 
+        temperature = 0.7
+        actions = set(['expand', 'amplify'])
         actions |= set(re.sub(r'[^\w\s]', '', word).lower() for word in self.prompt.split() if word.lower() in refineDict)
         action_str = "\n".join(refineDict[a] for a in actions) + '\n\n'
         updated_prompt = modifierDict['refine'] + action_str + self.prompt

@@ -271,8 +271,14 @@ System parameters:
         self.original_query = prompt
 
         self._prepare_query()
-        self._log_and_print("\nProcessing finalized user request...")
-        if self.label not in ["artistist", "photographer"]:
+
+
+        if self.refine_prompt == True:
+            self._log_and_print("\nProcessing finalized user request...")
+        else:
+            self._log_and_print("\nProcessing user request...")
+
+        if self.label not in ["artist", "photographer"]:
             self._process_text_response()
         else:
             self._process_image_response()
