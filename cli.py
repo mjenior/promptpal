@@ -22,33 +22,33 @@ role : str
     Default is assistant
 model : str
     LLM to use in queiries.
-    Default is gpt-4o-mini
+    Default is gpt-4o
 chain_of_thought : bool
     Include chain of thought enforcement in user prompt.
     Default is False
-unit_testing : bool
-    Write comprehesive unit tests for any generated code.
-    Default is False
 refine : bool
-    Automatically refine user prompt to improve query specificity.
+    Automatically improve user prompt to improve query specificity.
     Default is False
+iterations : int
+    WANRING: More testing required for reliability
+    Number of responses to generate and parse for model reflection
+    Default is 1
 seed : str or int
     Set moded seed for more deterministic reponses
     Converts strings into binary-like equivalent, constrained by max system bit size
     Default is based on the pinnacle code from Freakazoid
-dim : str
+dimensions : str
     Dimensions for Dall-e image generation
     Default is 1024x1024
-qual : str
-    Image quality for Dall-e image
-    Default int standard
-iters : int
-    WANRING: More testing required for reliability
-    Number of responses to generate and parse for model reflection
-    Default is 1
+quality : str
+    Image quality for Dall-e images
+    Default is standard
+unit_testing : bool
+    rite comprehesive unit tests for any generated code.
+    Default is False
 api_key : str
-    User-specific API key. 
-    Default looks for pre-set environmental variables, depending on model.
+    User-specific OpenAI API key. 
+    Default looks for pre-set OPENAI_API_KEY environmental variable.
 verbose : bool
     Print all additional information to StdOut.
     Default is False

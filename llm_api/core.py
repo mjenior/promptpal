@@ -30,8 +30,8 @@ class OpenAIQueryHandler:
         api_key (str): The API key for OpenAI or Deepseek. Defaults to system environment variable.
         seed (int or str): Seed for reproducibility. Can be an integer or a string converted to binary.
         iterations (int): Number of response iterations for refining or condensing outputs.
-        image_dimensions (str): Dimensions for image generation (e.g., '1024x1024').
-        image_quality (str): Quality setting for image generation (e.g., 'hd').
+        dimensions (str): Dimensions for image generation (e.g., '1024x1024').
+        quality (str): Quality setting for image generation (e.g., 'hd').
         role (str): The role or persona for the query (e.g., 'assistant', 'artist').
         unit_testing (bool): If True, appends unit testing instructions to the prompt.
         tokens (dict): Tracks token usage for prompt and completion.
@@ -50,7 +50,6 @@ class OpenAIQueryHandler:
         _select_model: Validates and selects the model based on user input or defaults.
         _select_role: Selects the role based on user input or defaults.
         _append_file_scanner: Scans files in the message and appends their contents.
-        _handle_image_request: Adjusts role and model for image generation requests.
         _calculate_iterations: Determines the number of response iterations.
         _handle_image_params: Sets image dimensions and quality parameters.
         _validate_image_params: Validates image dimensions and quality for the model.
@@ -76,8 +75,8 @@ class OpenAIQueryHandler:
                 api_key="system",
                 seed=42,
                 iterations=1,
-                image_dimensions='NA',
-                image_quality='NA',
+                dimensions='NA',
+                quality='NA',
                 role="assistant",
                 unit_testing=False):
         """
@@ -93,8 +92,8 @@ class OpenAIQueryHandler:
         self.log_text = []
         self.api_key = api_key or self._set_api_key()
         self.iterations = iterations
-        self.image_dimensions = image_dimensions
-        self.image_quality = image_quality
+        self.dimensions = dimensions
+        self.quality = quality
         self.role = role 
         self.unit_testing = unit_testing
         self.tokens = {'prompt':0, 'completion':0}
@@ -136,8 +135,8 @@ class OpenAIQueryHandler:
         """
         self.prompt = self._append_file_scanner(self.prompt)
         self._calculate_iterations()
-        self._handle_image_request()
-        self._handle_image_params()
+        if self.model in ['dall-e-2', 'dall-e-3']:
+            self._handle_image_params()
         self._log_and_print(self._report_query_params())
         if self.refine: 
             self._refine_prompt()
@@ -218,21 +217,6 @@ class OpenAIQueryHandler:
             new_message += self._read_file_contents(os.path.join(dirname, file_name))
         return new_message
 
-    def _handle_image_request(self):
-        """Adjusts role and model for image generation requests."""
-        art_keywords = {'create', 'generate', 'image', 'picture', 'draw', 'paint', 'painting', 'illustration'}
-        photo_keywords = {'create', 'generate', 'photographer', 'photograph'}
-        words = self.prompt.split()
-
-        if len(set(words) & art_keywords) > 1:
-            self.role = roleDict['artist']["prompt"]
-            self.label = "artist"
-            self.model = "dall-e-3"
-        elif len(set(words) & photo_keywords) > 1:
-            self.role = roleDict['photographer']["prompt"]
-            self.label = "photographer"
-            self.model = "dall-e-3"
-
     def _calculate_iterations(self):
         """Determines the number of response iterations."""
         if self.role == 'refine' and self.iterations == 1:
@@ -240,23 +224,21 @@ class OpenAIQueryHandler:
 
     def _handle_image_params(self):
         """Sets image dimensions and quality parameters."""
-        self.dims = "NA"
-        self.qual = "NA"
         if self.label in {"artist", "photographer"}:
-            self.dims, self.qual = self._validate_image_params(self.dim, self.qual, self.model)
-            self.qual = "hd" if self.label == "photographer" else self.qual
+            self.dimensions, self.quality = self._validate_image_params(self.dimensions, self.quality, self.model)
+            self.quality = "hd" if self.label == "photographer" else self.quality
 
     @staticmethod
-    def _validate_image_params(dims, qual, model):
+    def _validate_image_params(dimensions, quality, model):
         """Validates image dimensions and quality for the model."""
-        valid_dims = {
+        valid_dimensions = {
             'dall-e-3': ['1024x1024', '1792x1024', '1024x1792'],
             'dall-e-2': ['1024x1024', '512x512', '256x256']
         }
-        if model in valid_dims and dims.lower() not in valid_dims[model]:
-            dims = '1024x1024'
-        quality = 'hd' if qual.lower() in {'h', 'hd', 'high', 'higher', 'highest'} else 'standard'
-        return dims, quality
+        if model in valid_dimensions and dimensions.lower() not in valid_dimensions[model]:
+            dimensions = '1024x1024'
+        quality = 'hd' if quality.lower() in {'h', 'hd', 'high', 'higher', 'highest'} else 'standard'
+        return dimensions, quality
 
     def _report_query_params(self):
         """Reports the current query configuration."""

@@ -103,7 +103,7 @@ chain_of_thought : bool
 refine : bool
     Automatically improve user prompt to improve query specificity.
     Default is False
-iters : int
+iterations : int
     WANRING: More testing required for reliability
     Number of responses to generate and parse for model reflection
     Default is 1
@@ -111,10 +111,10 @@ seed : str or int
     Set moded seed for more deterministic reponses
     Converts strings into binary-like equivalent, constrained by max system bit size
     Default is based on the pinnacle code from Freakazoid
-dim : str
+dimensions : str
     Dimensions for Dall-e image generation
     Default is 1024x1024
-qual : str
+quality : str
     Image quality for Dall-e images
     Default is standard
 unit_testing : bool
@@ -125,7 +125,7 @@ api_key : str
     Default looks for pre-set OPENAI_API_KEY environmental variable.
 verbose : bool
     Print all additional information to StdOut.
-    Default is True
+    Default is False
 ```
 
 ### System Role Selection
