@@ -64,13 +64,13 @@ def parse_arguments():
     parser.add_argument("-m", "--model", type=str, default="gpt-4o-mini", help="LLM to use in queiries.")
     parser.add_argument("-c", "--chain_of_thought", type=bool, default=False, help="Enable chain of thought reasoning.")
     parser.add_argument("-f", "--refine", type=bool, default=False, help="Enable automated input prompt improvement.")
-    parser.add_argument("-x", "--code", type=bool, default=False, help="Save detected code in responses to separate scripts.")
+    parser.add_argument("-s", "--save_code", type=bool, default=False, help="Save detected code in responses to separate scripts.")
     parser.add_argument("-e", "--seed", default=r'"@[=g3,8d]\&fbb=-q]/hk%fg"', help="Set moded seed for more deterministic reponses, accepts integer or strings")
     parser.add_argument("-u", "--unit_testing", type=bool, default=False, help="Write comprehesive unit tests for any generated code.")
     parser.add_argument("-k", "--api_key", type=str, default="system", help="OpenAI API key.")
-    parser.add_argument("-d", "--dim", type=str, default="1024x1024", help="Image dimensions.")
-    parser.add_argument("-q", "--qual", type=str, default="standard", help="Image quality.")
-    parser.add_argument("-i", "--iters", type=int, default=1, help="Number of response iterations for reflection.")
+    parser.add_argument("-d", "--dimensions", type=str, default="1024x1024", help="Image dimensions.")
+    parser.add_argument("-q", "--quality", type=str, default="standard", help="Image quality.")
+    parser.add_argument("-i", "--iterations", type=int, default=1, help="Number of response iterations for reflection.")
     parser.add_argument("-v", "--verbose", type=bool, default=False, help="Print all additional information to StdOut.")
     parser.add_argument("-l", "--logging", type=bool, default=False, help="Save full conversation log.")
     return parser.parse_args()
@@ -89,14 +89,14 @@ def main():
         verbose=args.verbose,
         refine=args.refine,
         chain_of_thought=args.chain_of_thought,
-        code=args.code,
+        code=args.save_code,
         logging=args.logging,
         api_key=args.api_key,
         seed=args.seed,
-        iterations=args.iters,
+        iterations=args.iterations,
         role=args.role,
-        image_dimensions=args.dim,
-        image_quality=args.qual,
+        dimensions=args.dimensions,
+        quality=args.quality,
         unit_testing=args.unit_testing)
 
     # Submit query and parse response
