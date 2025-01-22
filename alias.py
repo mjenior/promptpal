@@ -48,6 +48,11 @@ if __name__ == "__main__":
     if refine == '1':
         commandStr += f" --refine_prompt True"
 
+    # Associative glyph prompt structure
+    refine = input('Associative glyph prompting (1 = True and 0 = False): ')
+    if refine == '1':
+        commandStr += f" --glyph_prompt True"
+
     # Chain of Thought 
     chain = input('Include Chain-of-Thought reasoning (1 = True and 0 = False): ')
     if chain == '1':

@@ -254,6 +254,7 @@ System parameters:
     Role: {self.role_name}
     Chain-of-thought: {self.chain_of_thought}
     Prompt refinement: {self.refine_prompt}
+    Associative glyphs: {self.glyph_prompt}
     Response iterations: {self.iterations}
     Time stamp: {self.timestamp}
     Seed: {self.seed}
