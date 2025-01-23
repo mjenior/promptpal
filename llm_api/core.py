@@ -43,6 +43,7 @@ class OpenAIQueryHandler:
     Current role shortcuts:
         assistant (default): Standard personal assistant with improved ability to help with tasks
         compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
+        developer: Generates complete, functional application code based on user requirements, ensuring clarity and structure.
         refactor: Senior full stack developer with emphases in correct syntax, documentation, and unit testing.
         writer: Writing assistant to help with generating science & technology related content
         editor: Text editing assistant to help with clarity and brevity
