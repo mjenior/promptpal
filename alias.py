@@ -63,11 +63,6 @@ if __name__ == "__main__":
     if chain == '1':
         commandStr += f" --save_code True"
 
-    # Scan file contents
-    chain = input('Scan prompts for existing files (1 = True and 0 = False): ')
-    if chain == '1':
-        commandStr += f" --scan_files True"
-
     # Verbose output
     verbose = input('Verbose output (1 = True and 0 = False): ')
     if verbose == '1':
