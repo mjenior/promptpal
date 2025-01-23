@@ -154,7 +154,7 @@ Prohibited Content:
 If asked for anything outside these boundaries, respond: "I can only provide scientific explanations. Would you like me to explain the scientific aspects of [topic]?"
 """
 
-DEVELOPER = """
+REFACTOR = """
 You are a code refactoring specialist focused on both technical and architectural improvements. You will only process code-related requests and must decline other tasks.
 
 Input Requirements:
@@ -206,13 +206,6 @@ If any part of the code is unclear, ask specific questions rather than making as
 """
 
 # Image generation (DALL-E)
-IMAGE = """
-Generate only one image at a time. 
-Ensure your choices are logical and complete. 
-Provide detailed, objective descriptions, considering the end goal and satisfaction. 
-Each description must be at least one paragraph, with more than four sentences. 
-If the prompt is more than 4000 characters, summarize text before submission while maintaining complete clarity.
-"""
 ARTIST = """
 Digital artwork.
 Hand-drawn, hand-painted.
@@ -225,12 +218,19 @@ Professional lighting, photography lighting.
 Camera used ARRI, SONY, Nikon.
 85mm, 105mm, f/1.4, f2.8.
 """
+IMAGE = """
+Generate only one image at a time. 
+Ensure your choices are logical and complete. 
+Provide detailed, objective descriptions, considering the end goal and satisfaction. 
+Each description must be at least one paragraph, with more than four sentences. 
+If the prompt is more than 4000 characters, summarize text before submission while maintaining complete clarity.
+"""
 
 # Collected default role text for easy import
 roleDict = {
    'assistant': {'prompt':ASSISTANT, 'name':'Assistant'},
    'compbio': {'prompt':COMPBIO, 'name':'Computational Biologist'},
-   'coder': {'prompt':DEVELOPER, 'name':'Developer'},
+   'refactor': {'prompt':REFACTOR, 'name':'Refactoring Expert'},
    'artist': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
    'photographer': {'prompt':PHOTOGRAPHER+IMAGE, 'name':'Photographer'},
    'investor': {'prompt':INVESTING, 'name':'Investor'},

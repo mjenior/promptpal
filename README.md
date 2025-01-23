@@ -53,13 +53,10 @@ Now you are able to initialize a <assistant.OpenAIQueryHandler> class instance i
 
 Example:
 ```python
-
 from llm_api.core import OpenAIQueryHandler
 
 assistant = OpenAIQueryHandler()
-
 assistant.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
-
 ````
 
 ### Command Line Execution
@@ -113,6 +110,9 @@ iterations : int
 save_code: bool
     Extracts and saves code snippets from the response.
     Default is False
+scan_files: bool
+    Scans prompt for existing files, extracts contents, and adds to prompt.
+    Default is False
 seed : str or int
     Set moded seed for more deterministic reponses
     Converts strings into binary-like equivalent, constrained by max system bit size
@@ -141,7 +141,7 @@ The --role option allows you to specify a system role for ChatGPT, which will op
 Available role shortcuts:
 - assistant (default): Standard personal assistant with improved ability to help with tasks
 - compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
-- coder: Senior full stack developer with emphases in correct syntax, documentation, and unit testing.
+- refactor: Senior full stack developer with emphases in correct syntax, documentation, and unit testing.
 - writer: Writing assistant to help with generating science & technology related content
 - editor: Text editing assistant to help with clarity and brevity
 - artist: Creates an images described by the prompt, default style leans toward illustrations
@@ -224,7 +224,7 @@ Also, expand on how to properly remove the lug nuts, replace the tire, and ensur
 
 ### Associative Glyph Prompting
 
-During prompt refinement, the addition --glyph_prompt flag will restructure the revised prompt utilizing concepts from [Symbolic Representations Framework](https://github.com/severian42/Computational-Model-for-Symbolic-Representations) to create user-defined symbolic representations (glyphs) guide AI interactions. Glyphs serve as conceptual tags, steering AI focus within specific domains like storytelling or thematic development without altering the model's architecture. Instead, they leverage existing AI mechanisms—contextual priming, attention, and latent space activation—repurposing them to create a shared symbolic framework for dynamic and intuitive collaboration. This feature still requires additional testing and will be updated in the future.
+During prompt refinement, the addition --glyph_prompt flag will restructure the revised prompt utilizing concepts from [Symbolic Representations Framework](https://github.com/severian42/Computational-Model-for-Symbolic-Representations) to create user-defined symbolic representations (glyphs) guide AI interactions. Glyphs serve as conceptual tags, steering AI focus within specific domains like storytelling or thematic development without altering the model's architecture. Instead, they leverage existing AI mechanisms—contextual priming, attention, and latent space activation—repurposing them to create a shared symbolic framework for dynamic and intuitive collaboration. This feature *requires* the --refine_prompt flag, and still requires additional testing.
 
 Example:
 ```python
@@ -235,7 +235,7 @@ agent = OpenAIQueryHandler(glyph_prompt=True)
 cli.py --refine_prompt True --glyph_prompt True --prompt "Write a plan to improve efficiency of a computational pipeline." 
 ```
 
-Resulting improved user prompt:
+Resulting altered user prompt:
 ```
 <human_instructions>
 - Treat each glyph as a direct instruction to be followed sequentially, driving the process to completion.
@@ -319,15 +319,20 @@ cli.py --api_key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
 Multiple agents with distinct roles may be called to cooperate in generating the most complete reponses needed by the user. This is most easily accomplised by using with the imported package version. The following example is also implemented in the accompanying jupyter notebook [multiagent_testing.ipynb](https://github.com/mjenior/llm_api/blob/main/multiagent_example.ipynb)
 
 Example:
+
+First, create a team of distinct agents with differing expertise.
+
 ```python
 from llm_api.core import OpenAIQueryHandler
 
-# Initialize distinct agents with differing expertise
-bio = OpenAIQueryHandler(role="compbio", save_code=True, refine_prompt=True, chain_of_thought=True, verbose=True) # Computational biologist
-dev = OpenAIQueryHandler(role="coder", save_code=True, unit_testing=True) # Code refactoring and formatting expert
-write = OpenAIQueryHandler(role="writer", iterations=3, chain_of_thought=True, verbose=True) # Creative science writer
+# Initialize agents
+comp_bio = OpenAIQueryHandler(role="compbio", save_code=True, refine_prompt=True, chain_of_thought=True, glyph_prompt=True) # Computational biologist
+recode = OpenAIQueryHandler(role="refactor", save_code=True, unit_testing=True, scan_files=True) # Code refactoring and formatting expert
+write = OpenAIQueryHandler(role="writer", iterations=5, chain_of_thought=True, glyph_prompt=True) # Creative science writer
 edit = OpenAIQueryHandler(role="editor", refine_prompt=True, logging=True) # Expert copy editor
 ````
+
+Use inital agent to start the project:
 
 ```python
 # Make initial request to first agent for computational biology project
@@ -336,12 +341,17 @@ Write an analysis pipeline in python to assemble long nanopore reads into contig
 Then identify all of the sequence variation present in the new genome that is not present in the reference.
 Additionally generate a figure from data generated during the alignment based on quality scores, and 2 more figures to help interpret the results at the end.
 """
-bio.request(query)
+comp_bio.request(query)
+````
 
-# Consult the coding expert to create the best automated versions of the output as possible
-query = "Refactor and format the following code for optimal efficiency, useability, and generalization:" + {' '.join(bio.scripts)}
-dev.request(query)
-
+```python
+# Optimize and document any new code, add unit testing.
+query = """
+Refactor and format the following scripts for optimal efficiency, useability, and generalization:
+"""
+if len(comp_bio.scripts) > 0:
+    query += " ".join(comp_bio.scripts)
+    recode.request(query)
 ````
 
 Then use the next agents to read through the new pipeline and generate a high-quality blog post describing it's utility.
@@ -352,9 +362,11 @@ query = """
 Write a biotechnology blog post about the pipeline described below. 
 Include relevant background that would necessitate this type of analysis, and add at least one example use case for the workflow. 
 Extrapolate how the pipeline may be useful in cell engineering efforts, and what future improvements could lead to with continued work. 
+The resulting post should be at least 3 paragraphs long with 4-5 sentences in each.
 Speak in a conversational tone and cite all sources with biological relevance to you discussion.
 """
-query = f"{query}\n{bio.message}"
+query = f"{query}\n{comp_bio.message}"
+
 write.request(query)
 
 # Pass the rough draft text to the editor agent to recieve a more finalize version

@@ -20,6 +20,17 @@ role : str
     System role text, predefines system behaviours or type of expertise
     Several built-in options are available, refer to README for details
     Default is assistant
+
+    Available role shortcuts:
+    - assistant (default): Standard personal assistant with improved ability to help with tasks
+    - compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
+    - refactor: Senior full stack developer with emphases in correct syntax, documentation, and unit testing.
+    - writer: Writing assistant to help with generating science & technology related content
+    - editor: Text editing assistant to help with clarity and brevity
+    - artist: Creates an images described by the prompt, default style leans toward illustrations
+    - photographer: Generates more photo-realistic images
+    - investor: Provides advice in technology stock investment and wealth management.
+
 model : str
     LLM to use in queiries.
     Default is gpt-4o-mini
@@ -37,6 +48,9 @@ iterations : int
     Default is 1
 save_code: bool
     Extracts and saves code snippets from the response.
+    Default is False
+scan_files: bool
+    Scans prompt for existing files, extracts contents, and adds to prompt.
     Default is False
 seed : str or int
     Set moded seed for more deterministic reponses
@@ -70,6 +84,7 @@ def parse_arguments():
     parser.add_argument("-c", "--chain_of_thought", type=bool, default=False, help="Enable chain of thought reasoning.")
     parser.add_argument("-f", "--refine_prompt", type=bool, default=False, help="Enable automated input prompt improvement.")
     parser.add_argument("-s", "--save_code", type=bool, default=False, help="Save detected code in responses to separate scripts.")
+    parser.add_argument("-a", "--scan_files", type=bool, default=False, help="Scans prompt for existing files, extracts contents, and adds to prompt.")
     parser.add_argument("-x", "--seed", default=r'"@[=g3,8d]\&fbb=-q]/hk%fg"', help="Set moded seed for more deterministic reponses, accepts integer or strings")
     parser.add_argument("-u", "--unit_testing", type=bool, default=False, help="Write comprehesive unit tests for any generated code.")
     parser.add_argument("-k", "--api_key", type=str, default="system", help="OpenAI API key.")

@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     # Default role selection
     role = input('Default system role (refer to README): ')
-    role = role.lower() if role.lower() in ['coder','investor','artist','photographer','editor','writer'] else ''
+    role = role.lower() if role.lower() in ['refactor','investor','artist','photographer','editor','writer'] else ''
     if role != '':
         commandStr += f" --role {role}"
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
         commandStr += f" --refine_prompt True"
 
     # Associative glyph prompt structure
-    refine = input('Associative glyph prompting (1 = True and 0 = False): ')
+    refine = input('Representative glyph association (1 = True and 0 = False): ')
     if refine == '1':
         commandStr += f" --glyph_prompt True"
 
@@ -57,6 +57,16 @@ if __name__ == "__main__":
     chain = input('Include Chain-of-Thought reasoning (1 = True and 0 = False): ')
     if chain == '1':
         commandStr += f" --chain_of_thought True"
+
+    # Save code snippets
+    chain = input('Save code snippets to scripts (1 = True and 0 = False): ')
+    if chain == '1':
+        commandStr += f" --save_code True"
+
+    # Scan file contents
+    chain = input('Scan prompts for existing files (1 = True and 0 = False): ')
+    if chain == '1':
+        commandStr += f" --scan_files True"
 
     # Verbose output
     verbose = input('Verbose output (1 = True and 0 = False): ')
@@ -99,8 +109,9 @@ if __name__ == "__main__":
                 with open(f"{Path.home()}/.{prfl}", "a") as f:
                     f.write(profileStr)
 
-    if found > 0:
-        print(f"""
+print(f"""
 Now you may simply type {alias} followed by your request in quotations to submit queries using your preferred settings.
-Full command for reference: {commandStr}
+
+Full command for reference:
+{commandStr}
 """)
