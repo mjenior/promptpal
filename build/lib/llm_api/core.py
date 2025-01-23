@@ -17,7 +17,7 @@ class OpenAIQueryHandler:
 
     This class provides a flexible interface to interact with OpenAI's models, including
     text-based models (e.g., GPT-4) and image generation models (e.g., DALL-E). It supports
-    features such as prompt refinement, chain-of-thought reasoning, code extraction, 
+    features such as associative prompt refinement, chain-of-thought reasoning, code extraction, 
     logging, and unit testing.
 
     Attributes:
@@ -26,6 +26,7 @@ class OpenAIQueryHandler:
         refine_prompt (bool): If True, refines the prompt before submission.
         chain_of_thought (bool): If True, enables chain-of-thought reasoning.
         save_code (bool): If True, extracts and saves code snippets from the response.
+        scan_files (bool): If True, scans prompt for existing files, extracts contents, and adds to prompt.
         logging (bool): If True, logs the session to a file.
         api_key (str): The API key for OpenAI or Deepseek. Defaults to system environment variable.
         seed (int or str): Seed for reproducibility. Can be an integer or a string converted to binary.
@@ -39,6 +40,18 @@ class OpenAIQueryHandler:
         client (OpenAI): The OpenAI client instance for API requests.
         glyph_prompt (bool): If True, restructures queries into associative glyph formatting (NEEDS TESTING)
 
+    Current role shortcuts:
+        assistant (default): Standard personal assistant with improved ability to help with tasks
+        compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
+        developer: Generates complete, functional application code based on user requirements, ensuring clarity and structure.
+        refactor: Senior full stack developer with emphases in correct syntax and documentation
+        project: Project planner focused on creating detailed, actionable plans to enhance and optimize existing businesses based on provided parameters.
+        writer: Writing assistant to help with generating science & technology related content
+        editor: Text editing assistant to help with clarity and brevity
+        artist: Creates an images described by the prompt, default style leans toward illustrations
+        photographer: Generates more photo-realistic images
+        investor: Provides advice in technology stock investment and wealth management.
+
     Methods:
         __init__: Initializes the handler with default or provided values.
         request: Submits a query to the OpenAI API and processes the response.
@@ -51,7 +64,6 @@ class OpenAIQueryHandler:
         _select_model: Validates and selects the model based on user input or defaults.
         _select_role: Selects the role based on user input or defaults.
         _append_file_scanner: Scans files in the message and appends their contents.
-        _calculate_iterations: Determines the number of response iterations.
         _handle_image_params: Sets image dimensions and quality parameters.
         _validate_image_params: Validates image dimensions and quality for the model.
         _report_query_params: Reports the current query configuration.
@@ -72,6 +84,7 @@ class OpenAIQueryHandler:
                 refine_prompt=False,
                 chain_of_thought=False,
                 save_code=False,
+                scan_files=False,
                 logging=False,
                 api_key="system",
                 seed=42,
@@ -91,6 +104,7 @@ class OpenAIQueryHandler:
         self.glyph_prompt = glyph_prompt
         self.chain_of_thought = chain_of_thought
         self.save_code = save_code
+        self.scan_files = scan_files
         self.logging = logging
         self.log_text = []
         self.api_key = api_key or self._set_api_key()
@@ -134,8 +148,8 @@ class OpenAIQueryHandler:
         """
         Prepares the query, including prompt modifications and image handling.
         """
-        self.prompt = self._append_file_scanner(self.prompt)
-        self._calculate_iterations()
+        if self.scan_files == True:
+            self.prompt = self._append_file_scanner(self.prompt)
         if self.model in ['dall-e-2', 'dall-e-3']:
             self._handle_image_params()
         self._log_and_print(self._report_query_params())
@@ -191,37 +205,22 @@ class OpenAIQueryHandler:
         if isinstance(message, list):
             message = ' '.join(message)
         words = set(message.split())
-        appended_message, new_words = self._scan_directories_and_files(words)
+        appended_message = self._scan_directories_and_files(words)
         return message + appended_message
 
     def _scan_directories_and_files(self, words):
         """Scan for existing files in user-provided text to append to messages."""
         new_message = ''
-        new_words = set()
         for word in words:
             word = word.rstrip('.!?:;')
             if os.path.isfile(word):
-                new_message += self._read_file_contents(word)
-            elif len(word) > 2 and os.path.exists(word) and '/' in word:
-                new_message += self._read_directory_contents(word)
-        return new_message, new_words
+                new_message += f"{word}:\n" + self._read_file_contents(word) + "\n"
+        return new_message
 
     def _read_file_contents(self, filename):
         """Reads the contents of a given file."""
         with open(filename, 'r') as handle:
-            return ' '.join([x.strip() for x in handle.readlines()])
-
-    def _read_directory_contents(self, dirname):
-        """Reads contents of files in a directory."""
-        new_message = ''
-        for file_name in os.listdir(dirname):
-            new_message += self._read_file_contents(os.path.join(dirname, file_name))
-        return new_message
-
-    def _calculate_iterations(self):
-        """Determines the number of response iterations."""
-        if self.role == 'refine' and self.iterations == 1:
-            self.iterations + 2
+            return ''.join(handle.readlines())
 
     def _handle_image_params(self):
         """Sets image dimensions and quality parameters."""
@@ -521,7 +520,7 @@ System parameters:
         """Refines an LLM prompt using specified rewrite actions."""
         self._log_and_print("\nRefining current user prompt...")
 
-        temperature = 0.7
+        temperature = 0.7 # Altered slightly to somewhat increase diversity in responses
         actions = set(['expand', 'amplify'])
         actions |= set(re.sub(r'[^\w\s]', '', word).lower() for word in self.prompt.split() if word.lower() in refineDict)
         action_str = "\n".join(refineDict[a] for a in actions) + '\n\n'
@@ -530,7 +529,7 @@ System parameters:
             updated_prompt += modifierDict['glyph']
 
         refined = self.client.chat.completions.create(
-            model=self.model, temperature=temperature, n=self.iterations,
+            model=self.model, temperature=temperature, n=1,
             seed=self.seed,
             messages=[
                 {"role": "system", "content": self.role},
