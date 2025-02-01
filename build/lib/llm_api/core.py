@@ -32,7 +32,7 @@ class OpenAIQueryHandler:
         model (str): The model to use for the query (e.g., 'gpt-4o-mini', 'dall-e-3').
         verbose (bool): If True, prints detailed logs and status messages.
         silent (bool): If True, silences all StdOut messages.
-        refine_prompt (bool): If True, refines the prompt before submission.
+        refine (bool): If True, refines the prompt before submission.
         chain_of_thought (bool): If True, enables chain-of-thought reasoning.
         save_code (bool): If True, extracts and saves code snippets from the response.
         scan_dirs (bool): If True, recursively scans directories found in prompt for existing files, extracts contents, and adds to prompt.
@@ -46,7 +46,7 @@ class OpenAIQueryHandler:
         tokens (dict): Tracks token usage for prompt and completion.
         prefix (str): A unique prefix for log files and outputs.
         client (OpenAI): The OpenAI client instance for API requests.
-        glyph_prompt (bool): If True, restructures queries with representative/associative glyphs and logic flow
+        glyph (bool): If True, restructures queries with representative/associative glyphs and logic flow
         temperature (float): Range from 0.0 to 2.0, lower values increase randomness, and higher values increase randomness.
         top_p (float): Range from 0.0 to 2.0, lower values increase determinism, and higher values increase determinism.
 
@@ -92,20 +92,21 @@ class OpenAIQueryHandler:
         model="gpt-4o",
         verbose=True,
         silent=False,
-        refine_prompt=False,
+        refine=False,
         chain_of_thought=False,
         save_code=True,
         scan_dirs=False,
         logging=True,
         api_key="system",
-        seed=42,
+        seed="t634e``R75T86979UYIUHGVCXZ",
         iterations=1,
         temperature=0.7,
         top_p=1.0,
         dimensions="NA",
         quality="NA",
         role="assistant",
-        glyph_prompt=False,
+        glyph=False,
+        mode='normal',
     ):
         """
         Initialize the handler with default or provided values.
@@ -114,8 +115,8 @@ class OpenAIQueryHandler:
         self.model = model
         self.verbose = verbose
         self.silent = silent
-        self.refine_prompt = refine_prompt
-        self.glyph_prompt = glyph_prompt
+        self.refine_prompt = refine
+        self.glyph_prompt = glyph
         self.chain_of_thought = chain_of_thought
         self.save_code = save_code
         self.scan_dirs = scan_dirs
@@ -134,6 +135,8 @@ class OpenAIQueryHandler:
         self.request_calls = 0
         self.temperature = temperature
         self.top_p = top_p
+        self._validate_probability_params()
+        self.mode = mode
 
         # Initialize client
         if self.model == "deepseek-chat":
@@ -154,6 +157,19 @@ class OpenAIQueryHandler:
             os.makedirs("logs", exist_ok=True)
             with open(self.log_file, "w") as f:
                 f.write("New session initiated.\n")
+
+    def _validate_probability_params(self):
+        """Ensure temperature and top_p are valid"""
+
+        # Acceptable ranges
+        if self.temperature < 0.0 or self.temperature > 2.0:
+            self.temperature = 0.7
+        if self.top_p < 0.0 or self.top_p > 2.0:
+            self.top_p = 1.0
+
+        # Only one variable is changed at a time
+        if self.temperature != 0.7 and self.top_p != 1.0:
+            self.top_p = 1.0
 
     def _setup_model_and_role(self):
         """
@@ -297,19 +313,19 @@ Agent parameters:
         self.prompt = self.original_query = prompt
         self._prepare_query()
 
-        if self.role != "test":
+        if self.mode != "test_init":
             if self.refine_prompt == True or self.glyph_prompt == True:
                 self._log_and_print(
                     f"\n{self.model} processing restructured user request...",
                     True,
                     self.logging,
                 )
-
-            if self.label not in ["artist", "photographer"]:
-                self._process_text_response()
-            else:
-                self._process_image_response()
-            token_report = self._gen_token_report()
+            if self.mode != 'test_refine':
+                if self.label not in ["artist", "photographer"]:
+                    self._process_text_response()
+                else:
+                    self._process_image_response()
+                token_report = self._gen_token_report()
             self._log_and_print(token_report, self.verbose, self.logging)
 
             if self.logging:
@@ -533,7 +549,7 @@ Agent parameters:
     def _string_to_binary(input_string):
         """Create a binary-like variable from a string for use a random seed"""
         # Convert all characters in a str to ASCII values and then to 8-bit binary
-        binary = [format(ord(char), "08b") for char in input_string]
+        binary = ''.join([format(ord(char), "08b") for char in input_string])
         # Constrain length
         return int(binary[0 : len(str(sys.maxsize))])
 

@@ -8,7 +8,7 @@ packages = ["llm_api"]
 [project]
 name = "llm_api"
 version = "1.2.0"
-description = "Python based tool for improved conversations using ChatGPT API package."
+description = "Python based tool for improved LLM interations using the ChatGPT API package."
 readme = "README.md"
 authors = [
     {name = "Matt Jenior", email = "mattjenior@gmail.com"}

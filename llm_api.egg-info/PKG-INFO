@@ -1,5 +1,18 @@
+Metadata-Version: 2.2
+Name: llm_api
+Version: 1.2.0
+Summary: Python based tool for improved conversations using ChatGPT API package.
+Author-email: Matt Jenior <mattjenior@gmail.com>
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+Requires-Dist: openai>=1.59.0
+
 # llm_api
-Python based tool for improved LLM interations using the ChatGPT API package.
+Python-based tool for easier and more efficient interactions with LLM APIs
 
 #### VERSION = 1.2.0
 
