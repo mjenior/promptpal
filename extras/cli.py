@@ -79,6 +79,12 @@ silent : bool
 logging : bool
     Save all StdOut for current interaction to text file.
     Default is True
+temperature : float
+    Range from 0.0 to 2.0, lower values increase randomness, and higher values increase randomness.
+    Default is 0.7
+top_p : float
+    Range from 0.0 to 2.0, lower values increase determinism, and higher values increase determinism.
+    Default is 1.0
 """
 
 def parse_arguments():
@@ -102,8 +108,9 @@ def parse_arguments():
     parser.add_argument("-v", "--verbose", type=bool, default=True, help="Print all additional information to StdOut.")
     parser.add_argument("-q", "--silent", type=bool, default=False, help="Silences all StdOut messages.")
     parser.add_argument("-l", "--logging", type=bool, default=True, help="Save full conversation log.")
+    parser.add_argument("-t", "--temperature", type=float, default=0.7, help="Range from 0.0 to 2.0, lower values increase randomness, and higher values increase randomness.")
+    parser.add_argument("-o", "--top_p", type=float, default=1.0, help="Range from 0.0 to 2.0, lower values increase determinism, and higher values increase determinism.")
     return parser.parse_args()
-
 
 def main():
     """
@@ -127,6 +134,8 @@ def main():
         seed=args.seed,
         iterations=args.iterations,
         role=args.role,
+        temperature=args.temperature,
+        top_p=args.top_p,
         dimensions=args.dimensions,
         quality=args.quality)
 
