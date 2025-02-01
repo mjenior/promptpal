@@ -40,7 +40,7 @@ This package is a Python-based LLM API tool that allows users to automate signif
 
 ## Installation and Setup
 
-Clone the repository and install using <pip>:
+Clone the repository and install using [pip]:
 
 ```bash
 git clone https://github.com/mjenior/llmatic.git
@@ -48,7 +48,7 @@ cd llmatic
 pip install .
 ```
 
-That's it! Now you are able to initialize a <core.OpenAIQueryHandler> class instance in a python environment to set up a customized API client with any of the built-in settings. After that, use the method <agent.request("your prompt here")> to submit queries.
+That's it! Now you are able to initialize a [core.OpenAIQueryHandler] class instance in a python environment to set up a customized API client with any of the built-in settings. After that, use the method [agent.request("your prompt here")] to submit queries.
 
 Example:
 ```python
@@ -86,7 +86,7 @@ agent = OpenAIQueryHandler(api_key=YOUR_API_KEY_HERE)
 
 ## Usage
 
-Current OpenAIQueryHandler() adjustable attributes:
+Current [OpenAIQueryHandler()] adjustable attributes:
 - model (str): The model to use for the query (e.g., 'gpt-4o-mini', 'dall-e-3').
 - refine (bool): If True, refines the prompt before submission.
 - glyph (bool): If True, restructures queries with representative/associative glyphs and logic flow
@@ -105,7 +105,7 @@ Current OpenAIQueryHandler() adjustable attributes:
 - verbose (bool): If True, prints detailed logs and status messages.
 - silent (bool): If True, silences all StdOut messages.
 
-For simplicity, after initializing with the desired parameters the only user-executable method is <OpenAIQueryHandler.request()> to submit prompts to the API. After which the <OpenAIQueryHandler.message> attribute is then available containing the system response text.
+For simplicity, after initializing with the desired parameters the only user-executable method is [OpenAIQueryHandler.request()] to submit prompts to the API. After which the [OpenAIQueryHandler.message] attribute is then available containing the system response text.
 
 
 ### System Role Selection
