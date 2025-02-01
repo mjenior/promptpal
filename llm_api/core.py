@@ -98,7 +98,7 @@ class OpenAIQueryHandler:
         scan_dirs=False,
         logging=True,
         api_key="system",
-        seed=42,
+        seed="t634e``R75T86979UYIUHGVCXZ",
         iterations=1,
         temperature=0.7,
         top_p=1.0,
@@ -535,7 +535,7 @@ Agent parameters:
     def _string_to_binary(input_string):
         """Create a binary-like variable from a string for use a random seed"""
         # Convert all characters in a str to ASCII values and then to 8-bit binary
-        binary = [format(ord(char), "08b") for char in input_string]
+        binary = ''.join([format(ord(char), "08b") for char in input_string])
         # Constrain length
         return int(binary[0 : len(str(sys.maxsize))])
 

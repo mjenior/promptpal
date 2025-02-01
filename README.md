@@ -18,6 +18,7 @@ This package is a Python-based LLM API tool that allows users to interact with m
 - **Flexible Parameterization**: Simple, yet powerful, argumenets during agent initialization allow easy interaction with the LLM APIs.
 - **Iterative Response Iterpretation**: Collects multiple responses to each query for model reflection, and condenses the best components into a single, higher quality response
 - **Chain of Thought Enforcement**: Adds prompts that track reasoning and thought process, improving responses in scenarios requiring step-by-step reasoning.
+- **Automated Prompt Refinement and Glyph Representation**: Will automatically refactor prompts to be more descriptive and structured for improved LLM interpretability. The tool is also able to translate prompts into an associative glyph format, based on [recent findings](https://github.com/severian42/Computational-Model-for-Symbolic-Representations), to further improve potential results.
 
 
 ## Table of Contents
@@ -322,6 +323,7 @@ artist.request('Generate an image of a bacterial cell dissolving into matix code
 
 Result:
 
+![image](./extras/dalle3.20240927_083555.image.png)
 
 
 ## Advanced Usage
