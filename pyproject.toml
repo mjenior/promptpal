@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
@@ -7,8 +7,8 @@ packages = ["llm_api"]
 
 [project]
 name = "llm_api"
-version = "1.1.0"
-description = "Python based tool for improved conversation using ChatGPT API package."
+version = "1.2.0"
+description = "Python based tool for improved conversations using ChatGPT API package."
 readme = "README.md"
 authors = [
     {name = "Matt Jenior", email = "mattjenior@gmail.com"}
@@ -20,6 +20,6 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "openai >= 1.59.0",
-    "black >= 24.10.0",
+    "openai >= 1.59.0"
+
 ]

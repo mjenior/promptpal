@@ -1,25 +1,23 @@
 # llm_api
-Python based tool for improved conversation using ChatGPT API package
+Python-based tool for easier and more efficient interactions with LLM APIs
 
-
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+#### VERSION = 1.2.0
 
 ## Overview
 
-**ChatGPT-API Tool** is a Python-based LLM API tool that allows users to interact with OpenAI's ChatGPT API efficiently. This tool provides several powerful features, including automated system role selection, code identification, and the ability to save identified code snippets as separate scripts. Additionally, the tool can scan previous conversation history for context and includes basic chain of thought tracking in prompts. Whether you're looking for insightful conversations, code suggestions, or a simple chat interface, this CLI tool streamlines your interactions with the ChatGPT API.
+This package is a Python-based LLM API tool that allows users to interact with multiple LLM APIs efficiently. It provides several powerful features, including automated system role selection, prompt refinement, iterative response parsing, and the ability to save identified code snippets as separate scripts. Additionally, it includes basic chain of thought enforcement in prompts and associative glyph representation in prompts. Whether you're looking for insightful project planning, code suggestions, scientific writer help, or just a simple chat interface, this package can streamline any interaction with the ChatGPT API.
 
-## Requirements
+## Requirement(s)
 - openai >= 1.59.0
-- black >= 24.10.0
 
 ## Key Features
 
-- **Automated System Role Selection**: Automatically assign system roles for your ChatGPT interaction, optimizing the model's responses based on your desired use case 
-- **Code Detection**: The tool automatically identifies code snippets in the responses from the ChatGPT model and formats them properly.
-- **Save Code as Separate Scripts**: Detected code snippets can be saved as separate script files in your working directory for future use or execution.
-- **Flexible Command-Line Interface**: Simple, yet powerful, CLI commands allow easy interaction with the OpenAI ChatGPT API.
+- **Automated System Role Selection**: Automatically assign system roles for your LLM interaction, optimizing the model's responses based on your desired use case 
+- **Code Detection**: The tool automatically identifies code snippets in the responses from the model, formats them properly, saves as separate script files for future use or execution.
+- **File and Directory Structure Comprehension**: Understands and reads in content of files listed directly in the prompt, and is also able to recursively read in entire subdirectories.
+- **Flexible Parameterization**: Simple, yet powerful, argumenets during agent initialization allow easy interaction with the LLM APIs.
 - **Iterative Response Iterpretation**: Collects multiple responses to each query for model reflection, and condenses the best components into a single, higher quality response
-- **Chain of Thought Tracking**: Adds prompts that track reasoning and thought process, improving responses in scenarios requiring step-by-step reasoning.
+- **Chain of Thought Enforcement**: Adds prompts that track reasoning and thought process, improving responses in scenarios requiring step-by-step reasoning.
 
 
 ## Table of Contents
@@ -27,11 +25,13 @@ Python based tool for improved conversation using ChatGPT API package
 1. [Installation and Setup](#installation)
 2. [Usage](#usage)
    - [System Role Selection](#system-role-selection)
-   - [Chain of Thought Tracking](#chain-of-thought-tracking)
+   - [Identify and Save Code Snippets](#identify-code-snippets)
+   - [Chain of Thought Enforcement](#chain-of-thought-enforcement)
    - [Query Prompt Refinement](#query-prompt-refinement)
    - [Response Iterations](#response-iterations)
-   - [Identify and Save Code Snippets](#identify-code-snippets)
+   - [Recursive Directory Scanning](#recursive-directory-scanning)
    - [Associative Glyph Prompting](#associative-glyph-prompting)
+   - [Image Generation Parameters](#image-generation-parameters)
 4. [Advanced Usage](#advanced-usage)
 5. [Contributing](#contributing)
 6. [License](#license)
@@ -39,9 +39,7 @@ Python based tool for improved conversation using ChatGPT API package
 
 ## Installation and Setup
 
-First, ensure you have Python 3.10+ installed on your system. You can install the ChatGPT-CLI tool directly from the repository.
-
-Clone the repository and install:
+Clone the repository and install using <pip>:
 
 ```bash
 git clone https://github.com/mjenior/llm_api.git
@@ -49,7 +47,7 @@ cd llm_api
 pip install .
 ```
 
-Now you are able to initialize a <assistant.OpenAIQueryHandler> class instance in a python environment to set up a customized API client with any of the built-in settings. After that, use the method <.request("your prompt here")> to submit queries.
+That's it! Now you are able to initialize a <core.OpenAIQueryHandler> class instance in a python environment to set up a customized API client with any of the built-in settings. After that, use the method <agent.request("your prompt here")> to submit queries.
 
 Example:
 ```python
@@ -57,11 +55,11 @@ from llm_api.core import OpenAIQueryHandler
 
 assistant = OpenAIQueryHandler()
 assistant.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
-````
+```
 
 ### Command Line Execution
 
-Optionally: [alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with a chosen command which can be run from any relative path. Results will be quickly returned to StdOut for quicker reference for certain tasks. Once [alias.py] is run, you can invoke the ChatGPT CLI tool directly from the terminal.
+Optionally: [extras/alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with a chosen command which can be run from any relative path. Results will be quickly returned to StdOut for quicker reference for certain tasks. Once [extras/alias.py] is run, you can invoke the ChatGPT CLI tool directly from the terminal.
 
 Example:
 ```bash
@@ -70,7 +68,7 @@ llmapi "Write a python script to scrape web pages for numeric data and return as
 
 ### API Keys
 
-Before using the tool, a final helpful step is to also set up your API keys. Otherwise you'll need to provide to the app directly (described below).
+IMPORTANT: Before using the tool, another helpful step is to also set up your API keys.
 
 Set the environment variable(s):
 ```bash
@@ -78,96 +76,129 @@ export OPENAI_API_KEY="your_openai_api_key"
 ```
 Also will parse <DEEPSEEK_API_KEY> if <deepseek-chat> is the requested model. Can also be provided directly, identical to OpenAI key.
 
+You are also able to instead provide the key directly to the assistant if it is not specified by your system. The default settings attempt to pull from system-wide environmental variables.
+
+Example:
+```python
+agent = OpenAIQueryHandler(api_key=YOUR_API_KEY_HERE)
+```
 
 ## Usage
 
-All arguments:
-```
-REQUIRED
-prompt : str
-    User prompt text, request that is sent to ChatGPT
+Current OpenAIQueryHandler() adjustable attributes:
+- model (str): The model to use for the query (e.g., 'gpt-4o-mini', 'dall-e-3').
+- refine_prompt (bool): If True, refines the prompt before submission.
+- glyph_prompt (bool): If True, restructures queries with representative/associative glyphs and logic flow
+- chain_of_thought (bool): If True, enables chain-of-thought reasoning.
+- save_code (bool): If True, extracts and saves code snippets from the response.
+- scan_dirs (bool): If True, recursively scans directories found in prompt for existing files, extracts contents, and adds to prompt.
+- logging (bool): If True, logs the session to a file.
+- api_key (str): The API key for OpenAI or Deepseek. Defaults to system environment variable.
+- seed (int or str): Seed for reproducibility. Can be an integer or a string converted to binary.
+- iterations (int): Number of response iterations for refining or condensing outputs.
+- dimensions (str): Dimensions for image generation (e.g., '1024x1024').
+- quality (str): Quality setting for image generation (e.g., 'hd').
+- role (str): The role or persona for the query (e.g., 'assistant', 'artist').
+- temperature (float): Range from 0.0 to 2.0, lower values increase randomness, and higher values increase randomness.
+- top_p (float): Range from 0.0 to 2.0, lower values increase determinism, and higher values increase determinism.
+- verbose (bool): If True, prints detailed logs and status messages.
+- silent (bool): If True, silences all StdOut messages.
 
-OPTIONAL
-role : str
-    System role text, predefines system behaviours or type of expertise
-    Several built-in options are available, refer to README for details
-    Default is assistant
-model : str
-    LLM to use in queiries.
-    Default is gpt-4o-mini
-chain_of_thought : bool
-    Include chain of thought enforcement in user prompt.
-    Default is False
-refine_prompt : bool
-    Automatically improve user prompt to improve query specificity.
-    Default is False
-glyph_prompt : bool 
-    Restructures queries into associative glyph formatting (NEEDS TESTING)
-    Default is False
-iterations : int
-    Number of responses to generate and parse for model reflection
-    Default is 1
-save_code: bool
-    Extracts and saves code snippets from the response.
-    Default is False
-scan_files: bool
-    Scans prompt for existing files, extracts contents, and adds to prompt.
-    Default is False
-seed : str or int
-    Set moded seed for more deterministic reponses
-    Converts strings into binary-like equivalent, constrained by max system bit size
-    Default is based on the pinnacle code from Freakazoid
-dimensions : str
-    Dimensions for Dall-e image generation
-    Default is 1024x1024
-quality : str
-    Image quality for Dall-e images
-    Default is standard
-unit_testing : bool
-    rite comprehesive unit tests for any generated code.
-    Default is False
-api_key : str
-    User-specific OpenAI API key. 
-    Default looks for pre-set OPENAI_API_KEY environmental variable.
-verbose : bool
-    Print all additional information to StdOut.
-    Default is False
-```
+For simplicity, after initializing with the desired parameters the only user-executable method is <OpenAIQueryHandler.request()> to submit prompts to the API. After which the <OpenAIQueryHandler.message> attribute is then available containing the system response text.
+
 
 ### System Role Selection
 
-The --role option allows you to specify a system role for ChatGPT, which will optimize its responses based on the role you choose. Any text that does not match one of the existing role shortcuts will be submitted as a new custom role. The default is an improved personal assistant.
+The --role option allows you to specify an agent role for ChatGPT, which will optimize its responses based on the role you choose. Any text that does not match one of the existing role shortcuts will be submitted as a new custom role. The default is an improved personal assistant.
 
 Available role shortcuts:
 - assistant (default): Standard personal assistant with improved ability to help with tasks
-- compbio: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
+- analyst: Expertise in bioinformatics and systems biology. Knowledgeable in statistics and commonly used computational biology platforms.
 - developer: Generates complete, functional application code based on user requirements, ensuring clarity and structure.
 - refactor: Senior full stack developer with emphases in correct syntax and documentation.
-- project: Project planner focused on creating detailed, actionable plans to enhance and optimize existing businesses based on provided parameters.
+- tester: Quality assurance tester with experience in software testing and debugging, generates high-quality unit tests.
+- dataviz: Create clear, insightful data visualizations and provide analysis, focusing solely on visualization requests and recommendations.
 - writer: Writing assistant to help with generating science & technology related content.
 - editor: Text editing assistant to help with clarity and brevity.
 - artist: Creates an images described by the prompt, default style leans toward illustrations.
 - photographer: Generates more photo-realistic images
-- investor: Provides advice in technology stock investment and wealth management.
 
 Built-in roles:
 ```python
-agent = OpenAIQueryHandler(role="compbio")
-````
+agent = OpenAIQueryHandler(role="refactor")
+print(agent.role)
+```
 
-```bash
-cli.py --role compbio --prompt "Generate a Python script to align DNA sequences and analyze the data. Add code to generate at least 2 figures summarizing the results."
+```
+System Role: Code Refactoring Specialist
+Primary Function: You are a code refactoring specialist focused on both technical and architectural improvements. Your goal is to enhance code quality, maintainability, and performance while preserving the original functionality.
+
+Input Requirements:
+1. Must receive valid code to proceed
+2. Must specify programming language if not evident
+
+Output Format (strictly follow this order):
+1. Original Code Analysis:
+   - Outline the intended functionality of the original code
+   - Identify potential bugs and shortcomings
+
+2. Refactored Code:
+
+   ```[language]
+   [Refactored code here with inline comments]
+   ```
+   
+2. Improvements Made:
+   - Technical improvements (performance, type hints, error handling)
+   - Architectural improvements (design patterns, structure)
+   - Interpretability improvements (consolidate or eliminate any redundancies)
+   - Documentation enhancements
+
+3. Performance Analysis:
+   - Time complexity changes
+   - Memory usage implications
+   - Potential bottlenecks addressed
+
+4. Future Considerations:
+   - Scalability recommendations
+   - Maintenance considerations
+   - Modern alternatives (if applicable)
+
+Refactoring Constraints:
+1. Preserve original output data structures exactly
+2. Balance readability with performance
+3. Implement type hints where applicable
+4. Follow language-specific best practices
+5. Do not make assumptions about unclear code
+
+Boundaries:
+1. Only add new features or dependencies which significantly improve performance or brevity
+2. Do not exclude ANY code for brevity
+3. Balance readability with performance
+4. Implement type hints where applicable
+5. Follow language-specific best practices
+
+For each significant change, explain the reasoning, and thoroughly document it.
 ```
 
 Alternatively, the user can describe their own custom role easily by simply adding s description string to the role arguement instead of a keyword.
 
 User-defined role:
 ```python
-agent = OpenAIQueryHandler(role="You are a Senior game developer.")
-````
 
-```bash
-cli.py --role "You are a Senior game developer." --prompt "Recreate the game Chip's Challenge in python."
+new_role = '''
+**System Role: Expert Game Developer**
+
+You are an expert game developer with extensive knowledge and experience in game design, development, and production. Your expertise spans various platforms, including PC, consoles, and mobile devices. You possess a deep understanding of programming languages such as C++, C#, and Python, as well as proficiency in development tools and engines like Unity, Unreal Engine, and Godot. Your comprehensive knowledge of game mechanics, physics, and AI allows you to create engaging and immersive experiences. 
+
+You are well-versed in the entire lifecycle of game development, from concept and prototyping to testing and deployment. You can advise on best practices for project management and team collaboration, utilizing methodologies like Agile and Scrum. Your experience extends to optimizing performance, ensuring cross-platform compatibility, and integrating cutting-edge technologies such as virtual reality (VR) and augmented reality (AR). 
+
+Additionally, you have a keen eye for aesthetics and user experience, enabling you to work effectively with artists and designers to achieve a cohesive vision. You stay up to date with industry trends and innovations, and you understand the importance of community engagement, monetization strategies, and post-launch support. 
+
+As an expert, you are equipped to provide insights, solve complex challenges, and offer guidance on building successful games that resonate with players and stand out in the competitive gaming market.
+'''
+
+game_dev = OpenAIQueryHandler(role=new_role)
 ```
 
 ### Identify Code Snippets
@@ -177,10 +208,6 @@ The tool can automatically detects code snippets within an LLM's responses and s
 Example:
 ```python
 agent = OpenAIQueryHandler(save_code=True)
-````
-
-```bash
-cli.py --save_code True --prompt "Show me a Python function to find the maximum element in a list."
 ```
 
 Example output snippet:
@@ -189,19 +216,15 @@ def find_max(lst):
     return max(lst)
 ```
 
-It will then automatically save the generated code into find_max.time_stamp.py in the current working directory. Set to [True] by default.
+It will then automatically save the generated code into find_max.[time_stamp].py in the current working directory. Set to [True] by default.
 
-### Chain of Thought Tracking
+### Chain of Thought Enforcement
 
-This feature helps guide the model's response by breaking down the steps in complex reasoning tasks. The --chain_of_thought flag enables the tool to append "chain of thought" prompts to ensure more detailed responses. It is [True] by default and automatically added to the default assistant, combio, developer, and invest system role prompts. The chain of thought flag will prompt the model to provide a step-by-step explanation or breakdown of reasoning, which can be especially useful in educational or technical explanations. It also helps mitigate the occurence of hallucinations.
+This feature helps guide the model's response by breaking down the steps in complex reasoning tasks. The --chain_of_thought flag enables the tool to append "chain of thought" prompts to ensure more detailed responses. It is [False] by default but automatically added to the default assistant, analyst, and developer system role prompts. The chain of thought flag will require the model to provide a step-by-step explanation or breakdown of reasoning, which can be especially useful in educational or technical explanations. It also helps mitigate the occurence of hallucinations.
 
 Example:
 ```python
 agent = OpenAIQueryHandler(chain_of_thought=True)
-````
-
-```bash
-cli.py --chain_of_thought True --prompt "Can you write out a list of directions to change a tire?"
 ```
 
 ### Query Prompt Refinement
@@ -211,10 +234,6 @@ Attempts to improve the clarity, focus, and specificity of a prompt to align wit
 Example:
 ```python
 agent = OpenAIQueryHandler(refine_prompt=True)
-````
-
-```bash
-cli.py --refine_prompt True --prompt "Can you write out a list of directions to change a tire?" 
 ```
 
 Result:
@@ -224,17 +243,33 @@ You should include comprehensive details like how to safely park the car, the im
 Also, expand on how to properly remove the lug nuts, replace the tire, and ensure everything is secure before driving again.
 ```
 
+### Response Iterations
+
+This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --iterations flag accepts an integer value representing the number of separate reponse iterations the model will create for the given prompt. Increasing this value past the 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point. Recommended to use in combination with changing temperatature OR top_p for more creativity across responses (NOTE: OpenAI recommendeds NOT to change both of these parameters at once, could increase hallucinations).
+
+Example:
+```python
+agent = OpenAIQueryHandler(iterations=3, temperatature=0.9)
+```
+
+This will generate 3 distinct versions of the reponse, and then synthesize them into a single higher quality response.
+
+### Recursive Directory Scanning
+
+This feature allows the tool to traverse all subdirectories within a specified root directory to systematically read and collect files throughout an entire codebase. This automation efficiently gathers and processes files regardless of their nesting level, ensuring comprehensive codebase analysis and management.
+
+Example:
+```python
+agent = OpenAIQueryHandler(scan_dirs=True)
+```
+
 ### Associative Glyph Prompting
 
-During prompt refinement, the addition --glyph_prompt flag will restructure the revised prompt utilizing concepts from [Symbolic Representations Framework](https://github.com/severian42/Computational-Model-for-Symbolic-Representations) to create user-defined symbolic representations (glyphs) guide AI interactions. Glyphs serve as conceptual tags, steering AI focus within specific domains like storytelling or thematic development without altering the model's architecture. Instead, they leverage existing AI mechanisms—contextual priming, attention, and latent space activation—repurposing them to create a shared symbolic framework for dynamic and intuitive collaboration. This feature *requires* the --refine_prompt flag, and still requires additional testing.
+During prompt refinement, the addition --glyph_prompt flag will restructure the revised prompt utilizing concepts from [Symbolic Representations Framework](https://github.com/severian42/Computational-Model-for-Symbolic-Representations) to create user-defined symbolic representations (glyphs) guide AI interactions. Glyphs serve as conceptual tags, steering AI focus within specific domains like storytelling or thematic development without altering the model's architecture. Instead, they leverage existing AI mechanisms—contextual priming, attention, and latent space activation—repurposing them to create a shared symbolic framework for dynamic and intuitive collaboration. These methods have been shown to not only dramatically improve the quality of responses, but also reduce costs for both token generation and compute times.
 
 Example:
 ```python
 agent = OpenAIQueryHandler(glyph_prompt=True)
-````
-
-```bash
-cli.py --refine_prompt True --glyph_prompt True --prompt "Write a plan to improve efficiency of a computational pipeline." 
 ```
 
 Resulting altered user prompt:
@@ -272,53 +307,26 @@ Resulting altered user prompt:
   
   @Output(Final Solution/Understanding, Justification, Reflection on Process) -> Present a clear, actionable plan that outlines the steps to be taken, providing justification for each recommendation and reflecting on the overall process to ensure thoroughness and clarity.
 }
-````
-
-
-### Response Iterations
-
-This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --iterations flag accepts an integer value representing the number of separate reponse iterations the model will create for the given prompt. Increasing this value past the 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point. WANRING: More testing required for reliability, so use with caution.
-
-Example:
-```python
-agent = OpenAIQueryHandler(iterations=3)
-````
-
-```bash
-cli.py --iterations 3 --prompt "Create a python script to download DNA sequence data and preprocess the data."
 ```
-
-This will generate 3 distinct versions of the reponse, each likely with a varied solution, and the work to synthesize them into a single higher quality response.
 
 ### Image Generation Parameters
 
-You are able to set specific parameters of the output image created by Dall-e. Flags for dimenions (--dimenions) in pixels, as well as definition quality (--quality) have been implemented. The agent will try to recognize multiple iterations of quality reponses to differentiate preference in standard versus HD correctly.
+You are able to set specific parameters of the output image created by Dall-e. Flags for dimenions (--dimenions) in pixels, as well as definition quality (--quality) have been implemented. The agent will try to recognize multiple iterations of quality reponses to differentiate preference in standard versus HD correctly. Optionally as list above, built-in roles are included for artist and photographer.
 
 Example:
 ```python
-agent = OpenAIQueryHandler(dimensions="1024x1024", quality="high")
-````
+artist = OpenAIQueryHandler(role="artist", dimensions="1024x1024", quality="high")
 
-```bash
-cli.py --dimensions 1024x1024 --quality high --prompt "Please create an image of a cell dissolving into code in the style of the impressionists." 
+artist.request('Generate an image of a bacterial cell dissolving into matix code in the style of the Impressionists.')
 ```
 
-### User-specific API Keys
+Result:
 
-You are also able to instead provide the key directly to the assistant if it is not specified by your system. The default settings attempt to pull from system-wide environmental variables ().
 
-Example:
-```python
-agent = OpenAIQueryHandler(api_key=YOUR_API_KEY_HERE)
-````
-
-```bash
-cli.py --api_key YOUR_API_KEY_HERE --prompt "How do you make pizza dough?"
-```
 
 ## Advanced Usage
 
-Multiple agents with distinct roles may be called to cooperate in generating the most complete reponses needed by the user. This is most easily accomplised by using with the imported package version. The following example is also implemented in the accompanying jupyter notebook [multiagent_testing.ipynb](https://github.com/mjenior/llm_api/blob/main/multiagent_example.ipynb)
+Multiple agents with distinct roles may be called to cooperate in generating the most complete reponses needed by the user. This is most easily accomplised by using with the imported package version. The following example is also implemented in the accompanying jupyter notebook [multiagent_testing.ipynb](https://github.com/mjenior/llm_api/blob/main/extras/multiagent_example.ipynb)
 
 Example:
 
@@ -328,11 +336,12 @@ First, create a team of distinct agents with differing expertise.
 from llm_api.core import OpenAIQueryHandler
 
 # Initialize agents
-comp_bio = OpenAIQueryHandler(role="compbio", save_code=True, refine_prompt=True, chain_of_thought=True, glyph_prompt=True) # Computational biologist
-recode = OpenAIQueryHandler(role="refactor", save_code=True, unit_testing=True, scan_files=True) # Code refactoring and formatting expert
+comp_bio = OpenAIQueryHandler(role="analyst", refine_prompt=True, chain_of_thought=True, glyph_prompt=True) # Computational biologist
+recode = OpenAIQueryHandler(role="refactor") # Code refactoring and formatting expert
+tests = OpenAIQueryHandler(role="tester") # Unit test generator
 write = OpenAIQueryHandler(role="writer", iterations=5, chain_of_thought=True, glyph_prompt=True) # Creative science writer
-edit = OpenAIQueryHandler(role="editor", refine_prompt=True, logging=True) # Expert copy editor
-````
+edit = OpenAIQueryHandler(role="editor", refine_prompt=True) # Expert copy editor
+```
 
 Use inital agent to start the project:
 
@@ -344,17 +353,23 @@ Then identify all of the sequence variation present in the new genome that is no
 Additionally generate a figure from data generated during the alignment based on quality scores, and 2 more figures to help interpret the results at the end.
 """
 comp_bio.request(query)
-````
+```
+
+Optimize and document any new code, add unit testing.
 
 ```python
-# Optimize and document any new code, add unit testing.
 query = """
 Refactor and format the following scripts for optimal efficiency, useability, and generalization:
 """
-if len(comp_bio.scripts) > 0:
-    query += " ".join(comp_bio.scripts)
-    recode.request(query)
-````
+query += " ".join(comp_bio.code_files)
+recode.request(query)
+
+query = """
+Generate unit tests for the following code:
+"""
+query += " ".join(comp_bio.code_files)
+tests.request(query)
+```
 
 Then use the next agents to read through the new pipeline and generate a high-quality blog post describing it's utility.
 
@@ -373,9 +388,9 @@ write.request(query)
 
 # Pass the rough draft text to the editor agent to recieve a more finalize version
 edit.request(write.message)
-````
+```
 
-This is one example of how multiple LLM agents may be leveraged in concert to accelerate the rate that user workloads may be accomplished.
+This is one just example of how multiple LLM agents may be leveraged in concert to accelerate the rate that user workloads may be accomplished.
 
 
 ## Contributing
