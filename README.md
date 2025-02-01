@@ -87,8 +87,8 @@ agent = OpenAIQueryHandler(api_key=YOUR_API_KEY_HERE)
 
 Current OpenAIQueryHandler() adjustable attributes:
 - model (str): The model to use for the query (e.g., 'gpt-4o-mini', 'dall-e-3').
-- refine_prompt (bool): If True, refines the prompt before submission.
-- glyph_prompt (bool): If True, restructures queries with representative/associative glyphs and logic flow
+- refine (bool): If True, refines the prompt before submission.
+- glyph (bool): If True, restructures queries with representative/associative glyphs and logic flow
 - chain_of_thought (bool): If True, enables chain-of-thought reasoning.
 - save_code (bool): If True, extracts and saves code snippets from the response.
 - scan_dirs (bool): If True, recursively scans directories found in prompt for existing files, extracts contents, and adds to prompt.
@@ -229,11 +229,11 @@ agent = OpenAIQueryHandler(chain_of_thought=True)
 
 ### Query Prompt Refinement
 
-Attempts to improve the clarity, focus, and specificity of a prompt to align with the desired outcomes or objectives with the --refine_prompt flag. It involves adjusting language, structure, and scope to ensure the prompt effectively guides responses and generates accurate, relevant, and actionable results. Results are automatically submitted as a new query to the requested LLM.
+Attempts to improve the clarity, focus, and specificity of a prompt to align with the desired outcomes or objectives with the --refine flag. It involves adjusting language, structure, and scope to ensure the prompt effectively guides responses and generates accurate, relevant, and actionable results. Results are automatically submitted as a new query to the requested LLM.
 
 Example:
 ```python
-agent = OpenAIQueryHandler(refine_prompt=True)
+agent = OpenAIQueryHandler(refine=True)
 ```
 
 Result:
@@ -265,11 +265,11 @@ agent = OpenAIQueryHandler(scan_dirs=True)
 
 ### Associative Glyph Prompting
 
-During prompt refinement, the addition --glyph_prompt flag will restructure the revised prompt utilizing concepts from [Symbolic Representations Framework](https://github.com/severian42/Computational-Model-for-Symbolic-Representations) to create user-defined symbolic representations (glyphs) guide AI interactions. Glyphs serve as conceptual tags, steering AI focus within specific domains like storytelling or thematic development without altering the model's architecture. Instead, they leverage existing AI mechanisms—contextual priming, attention, and latent space activation—repurposing them to create a shared symbolic framework for dynamic and intuitive collaboration. These methods have been shown to not only dramatically improve the quality of responses, but also reduce costs for both token generation and compute times.
+During prompt refinement, the addition --glyph flag will restructure the revised prompt utilizing concepts from [Symbolic Representations Framework](https://github.com/severian42/Computational-Model-for-Symbolic-Representations) to create user-defined symbolic representations (glyphs) guide AI interactions. Glyphs serve as conceptual tags, steering AI focus within specific domains like storytelling or thematic development without altering the model's architecture. Instead, they leverage existing AI mechanisms—contextual priming, attention, and latent space activation—repurposing them to create a shared symbolic framework for dynamic and intuitive collaboration. These methods have been shown to not only dramatically improve the quality of responses, but also reduce costs for both token generation and compute times.
 
 Example:
 ```python
-agent = OpenAIQueryHandler(glyph_prompt=True)
+agent = OpenAIQueryHandler(glyph=True)
 ```
 
 Resulting altered user prompt:
@@ -336,11 +336,11 @@ First, create a team of distinct agents with differing expertise.
 from llm_api.core import OpenAIQueryHandler
 
 # Initialize agents
-comp_bio = OpenAIQueryHandler(role="analyst", refine_prompt=True, chain_of_thought=True, glyph_prompt=True) # Computational biologist
+comp_bio = OpenAIQueryHandler(role="analyst", refine=True, chain_of_thought=True, glyph=True) # Computational biologist
 recode = OpenAIQueryHandler(role="refactor") # Code refactoring and formatting expert
 tests = OpenAIQueryHandler(role="tester") # Unit test generator
-write = OpenAIQueryHandler(role="writer", iterations=5, chain_of_thought=True, glyph_prompt=True) # Creative science writer
-edit = OpenAIQueryHandler(role="editor", refine_prompt=True) # Expert copy editor
+write = OpenAIQueryHandler(role="writer", iterations=5, chain_of_thought=True, glyph=True) # Creative science writer
+edit = OpenAIQueryHandler(role="editor", refine=True) # Expert copy editor
 ```
 
 Use inital agent to start the project:
