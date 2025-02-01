@@ -1,5 +1,5 @@
 # llm_api
-Python based tool for improved LLM interations using the ChatGPT API package.
+Python based tool for improved LLM interations using the OpenAI API package.
 
 #### VERSION = 1.2.0
 
