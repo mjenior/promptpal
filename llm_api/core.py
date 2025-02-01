@@ -135,6 +135,7 @@ class OpenAIQueryHandler:
         self.request_calls = 0
         self.temperature = temperature
         self.top_p = top_p
+        self._validate_probability_params()
         self.mode = mode
 
         # Initialize client
@@ -156,6 +157,19 @@ class OpenAIQueryHandler:
             os.makedirs("logs", exist_ok=True)
             with open(self.log_file, "w") as f:
                 f.write("New session initiated.\n")
+
+    def _validate_probability_params(self):
+        """Ensure temperature and top_p are valid"""
+
+        # Acceptable ranges
+        if self.temperature < 0.0 or self.temperature > 2.0:
+            self.temperature = 0.7
+        if self.top_p < 0.0 or self.top_p > 2.0:
+            self.top_p = 1.0
+
+        # Only one variable is changed at a time
+        if self.temperature != 0.7 and self.top_p != 1.0:
+            self.top_p = 1.0
 
     def _setup_model_and_role(self):
         """
