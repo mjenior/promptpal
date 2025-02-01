@@ -1,5 +1,5 @@
 # llm_api
-Python based tool for improved LLM interations using the OpenAI API package.
+Python based tool for improved LLM interactions using the OpenAI API package.
 
 #### VERSION = 1.2.0
 
@@ -328,7 +328,7 @@ Result:
 
 ## Advanced Usage
 
-Multiple agents with distinct roles may be called to cooperate in generating the most complete reponses needed by the user. This is most easily accomplised by using with the imported package version. The following example is also implemented in the accompanying jupyter notebook [multiagent_testing.ipynb](https://github.com/mjenior/llm_api/blob/main/extras/multiagent_example.ipynb)
+Multiple agents with distinct roles may be called to cooperate in generating the most complete reponses needed by the user. This is most easily accomplised by using with the imported package version. The following example is also implemented in the accompanying jupyter notebook [multi-agent_example.ipynb](https://github.com/mjenior/llm_api/blob/main/extras/multi-agent_example.ipynb)
 
 Example:
 
