@@ -10,11 +10,9 @@ from .roles import *
 
 roleDict = {
    'assistant': {'prompt':ASSISTANT, 'name':'Assistant'},
-   'bioworker': {'prompt':SYNBIO, 'name':'Synthetic Biologist'},
    'analyst': {'prompt':COMPBIO, 'name':'Computational Biologist'},
    'developer': {'prompt':DEVELOPER, 'name':'Full Stack Developer'},
    'refactor': {'prompt':REFACTOR, 'name':'Refactoring Expert'},
-   'planner': {'prompt':PROJECT, 'name':'Project Planner'},
    'tester': {'prompt':UNIT_TESTS, 'name':'Unit Tester'},
    'artist': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
    'photographer': {'prompt':PHOTOGRAPHER+IMAGE, 'name':'Photographer'},
