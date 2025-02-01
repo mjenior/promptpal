@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from llm_api.core import OpenAIQueryHandler
+from llmatic.core import OpenAIQueryHandler
 
 """
 ChatGPT API script for conversation with AI assistant in command line
@@ -120,7 +120,7 @@ def main():
     args = parse_arguments()
    
     # Initialize the user argument and query manager
-    llm_api = OpenAIQueryHandler(
+    llmatic = OpenAIQueryHandler(
         model=args.model,
         verbose=args.verbose,
         silent=args.silent,
@@ -140,7 +140,7 @@ def main():
         quality=args.quality)
 
     # Submit query and parse response
-    llm_api.request(args.prompt)
+    llmatic.request(args.prompt)
     
 
 if __name__ == "__main__":

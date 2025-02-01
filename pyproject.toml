@@ -3,10 +3,10 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["llm_api"]
+packages = ["llmatic"]
 
 [project]
-name = "llm_api"
+name = "llmatic"
 version = "1.2.0"
 description = "Python based tool for improved LLM interations using the OpenAI API package."
 readme = "README.md"

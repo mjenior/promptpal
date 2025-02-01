@@ -2,7 +2,6 @@
 
 import os
 from pathlib import Path
-#from llm_api.lib import roleDict
 
 
 def extract_unique_words(file_path):

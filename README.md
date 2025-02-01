@@ -1,11 +1,11 @@
-# llm_api
+# llmatic
 Python based tool for improved LLM interactions using the OpenAI API package.
 
 #### VERSION = 1.2.0
 
 ## Overview
 
-This package is a Python-based LLM API tool that allows users to interact with multiple LLM APIs efficiently. It provides several powerful features, including automated system role selection, prompt refinement, iterative response parsing, and the ability to save identified code snippets as separate scripts. Additionally, it includes basic chain of thought enforcement in prompts and associative glyph representation in prompts. Whether you're looking for insightful project planning, code suggestions, scientific writer help, or just a simple chat interface, this package can streamline any interaction with the ChatGPT API.
+This package is a Python-based LLM API tool that allows users to automate significant portions of interactions with multiple LLM APIs. It provides several powerful features, including automated system role selection, prompt refinement, iterative response parsing, and the ability to save identified code snippets as separate scripts. Additionally, it includes basic chain of thought enforcement in prompts and associative glyph representation in prompts. Whether you're looking for insightful project planning, code suggestions, scientific writer help, or just a simple chat interface, this package can streamline any interaction with the ChatGPT API.
 
 ## Requirement(s)
 - openai >= 1.59.0
@@ -43,8 +43,8 @@ This package is a Python-based LLM API tool that allows users to interact with m
 Clone the repository and install using <pip>:
 
 ```bash
-git clone https://github.com/mjenior/llm_api.git
-cd llm_api
+git clone https://github.com/mjenior/llmatic.git
+cd llmatic
 pip install .
 ```
 
@@ -52,7 +52,7 @@ That's it! Now you are able to initialize a <core.OpenAIQueryHandler> class inst
 
 Example:
 ```python
-from llm_api.core import OpenAIQueryHandler
+from llmatic.core import OpenAIQueryHandler
 
 assistant = OpenAIQueryHandler()
 assistant.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
@@ -328,14 +328,14 @@ Result:
 
 ## Advanced Usage
 
-Multiple agents with distinct roles may be called to cooperate in generating the most complete reponses needed by the user. This is most easily accomplised by using with the imported package version. The following example is also implemented in the accompanying jupyter notebook [multi-agent_example.ipynb](https://github.com/mjenior/llm_api/blob/main/extras/multi-agent_example.ipynb)
+Multiple agents with distinct roles may be called to cooperate in generating the most complete reponses needed by the user. This is most easily accomplised by using with the imported package version. The following example is also implemented in the accompanying jupyter notebook [multi-agent_example.ipynb](https://github.com/mjenior/llmatic/blob/main/extras/multi-agent_example.ipynb)
 
 Example:
 
 First, create a team of distinct agents with differing expertise.
 
 ```python
-from llm_api.core import OpenAIQueryHandler
+from llmatic.core import OpenAIQueryHandler
 
 # Initialize agents
 comp_bio = OpenAIQueryHandler(role="analyst", refine=True, chain_of_thought=True, glyph=True) # Computational biologist
@@ -397,7 +397,7 @@ This is one just example of how multiple LLM agents may be leveraged in concert 
 
 ## Contributing
 
-If you encounter any problems, please [file an issue](https://github.com/mjenior/llm_api/issues) along with a detailed description.
+If you encounter any problems, please [file an issue](https://github.com/mjenior/llmatic/issues) along with a detailed description.
 
 We welcome contributions! If you'd like to contribute to this project, please follow these steps:
 
@@ -405,9 +405,9 @@ We welcome contributions! If you'd like to contribute to this project, please fo
 2. Create a new feature branch (`git checkout -b feature-name`).
 3. Commit your changes (`git commit -m 'Add new feature'`).
 4. Push the branch (`git push origin feature-name`).
-5. Create a [pull request](https://github.com/mjenior/llm_api/pulls).
+5. Create a [pull request](https://github.com/mjenior/llmatic/pulls).
 
 
 ## License
 
-This project is licensed under the [MIT](http://opensource.org/licenses/MIT) License. See the [LICENSE](https://raw.githubusercontent.com/mjenior/llm_api/refs/heads/main/LICENSE.txt) file for more details.
+This project is licensed under the [MIT](http://opensource.org/licenses/MIT) License. See the [LICENSE](https://raw.githubusercontent.com/mjenior/llmatic/refs/heads/main/LICENSE.txt) file for more details.
