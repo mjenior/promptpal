@@ -106,6 +106,7 @@ class CreateAgent:
         role="assistant",
         glyph=False,
         mode='normal',
+        context=True,
     ):
         """
         Initialize the handler with default or provided values.
@@ -136,6 +137,7 @@ class CreateAgent:
         self.top_p = top_p
         self._validate_probability_params()
         self.mode = mode
+        self.context = context
 
         # Initialize client
         if self.model == "deepseek-chat":
@@ -340,6 +342,15 @@ Agent parameters:
 
         return completion
 
+    def _generate_context_summary(self):
+        """Summarize current conversation history for future context parsing."""
+        self._log_and_print(f"\ngpt-4o-mini summarizing current conversation...\n", True, False)
+
+        summarized = self._init_chat_completion(self, 
+            prompt=f"{modifierDict['summarize']}\n\n{"\n".join(self.log_text)}", seed=self.seed):
+        self._update_token_count(condensed)
+        self.current_context = summarized.choices[0].message.content.strip()
+
     def _process_text_response(self):
         """Processes text-based responses from OpenAIs chat models."""
 
@@ -373,6 +384,10 @@ Agent parameters:
                 self._write_script(code, file_name)
 
             self._log_and_print(reportStr, True, self.logging)
+
+        # Summarize current context
+        if self.context == True:
+            self._generate_context_summary(self)
 
     def _write_script(self, content, file_name, outDir="code", lang=None):
         """Writes code to a file."""
@@ -454,15 +469,16 @@ Agent parameters:
         api_responses = [r.message.content.strip() for r in api_response.choices]
         api_responses = self._gen_iteration_str(api_responses)
 
+        self._log_and_print(
+            f"\ngpt-4o-mini condensing response iterations...", self.verbose, self.logging
+        )
         condensed = self._init_chat_completion(self, 
             prompt=f"{modifierDict['condense']}\n\n{api_responses}", 
-            model=self.model,
-            role=self.role,
-            seed=self.seed, temp=self.temperature, top_p=self.top_p):
+            role=self.role, seed=self.seed):
         self._update_token_count(condensed)
         message = condensed.choices[0].message.content.strip()
         self._log_and_print(
-            f"\nCondensed text from iterations:\n{message}", self.verbose, self.logging
+            f"\nCondensed text:\n{message}", self.verbose, self.logging
         )
 
         return message

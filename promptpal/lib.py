@@ -91,12 +91,20 @@ Keep the <human_instructions> unchanged and at the beginning of the new prompt t
 }
 """
 
+SUMMARIZE_CONVERSATION = """
+Summarize the following conversation between a user and an LLM.
+Include all key points from both user requests and agent responses.
+Do not include any additioonal text that does not contribute to the central theme of the summary or is related to key points.
+The complete summary text must be no longer than 256000 characters total.
+"""
+
 # Collected default modifier text
 modifierDict = {
    'cot': CHAIN_OF_THOUGHT, 
    'tests': UNIT_TESTS, 
    'refine': REFINE_PROMPT, 
    'condense': CONDENSE_RESPONSE,
+   'summarize': SUMMARIZE_CONVERSATION,
    'glyph': GLYPH_PROMPT
    }
 
