@@ -78,7 +78,6 @@ class CreateAgent:
         _validate_image_params: Validates image dimensions and quality for the model.
         _process_text_response: Processes text-based responses from OpenAIs chat models.
         _process_image_response: Processes image generation requests using OpenAIs image models.
-        _assemble_query: Assembles the query dictionary for the API request.
         _condense_iterations: Condenses multiple API responses into a single coherent response.
         _refine_user_prompt: Refines an LLM prompt using specified rewrite actions.
         _update_token_count: Updates token count for prompt and completion.
@@ -331,16 +330,27 @@ Agent parameters:
             if self.logging:
                 self._save_chat_transcript()
 
+    def _init_chat_completion(self, prompt, model='gpt-4o-mini', role='user', iters=1, seed=42, temp=0.7, top_p=1.0):
+        """Initialize and submit a single chat completion request"""
+        message = [{"role": "user", "content": prompt}, {"role": "system", "content": role}]
+
+        completion = self.client.chat.completions.create(
+            model=model, messages=message, n=iters,
+            seed=seed, temperature=temp, top_p=top_p)
+
+        return completion
+
     def _process_text_response(self):
         """Processes text-based responses from OpenAIs chat models."""
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=self._assemble_query(),
-            n=self.iterations,
-            seed=self.seed,
-            temperature=self.temperature,
-            top_p=self.top_p,
-        )
+
+        response = self._init_chat_completion(self, self.prompt, 
+            model=self.model,  
+            role=self.role, 
+            iters=self.iterations, 
+            seed=self.seed, 
+            temp=self.temperature, 
+            top_p=self.top_p)
+
         if self.iterations > 1:
             message = self._condense_iterations(response)
         else:
@@ -403,18 +413,6 @@ Agent parameters:
         )
         self._log_and_print(self.message, True, self.logging)
 
-    def _assemble_query(self):
-        """Assembles the query dictionary for the API request."""
-        if "refactor" in self.prompt.lower() or "rewrite" in self.prompt.lower():
-            if len(self.original_query.strip()) > 0:
-                self.prompt += "\n\nImprove the following:\n"
-                self.prompt += self.original_query
-
-        return [
-            {"role": "user", "content": self.prompt},
-            {"role": "system", "content": self.role},
-        ]
-
     def _gen_token_report(self):
         """Generates report string for overall cost of the query."""
         prompt_cost, completion_cost = "Unknown model rate", "Unknown model rate"
@@ -456,21 +454,12 @@ Agent parameters:
         api_responses = [r.message.content.strip() for r in api_response.choices]
         api_responses = self._gen_iteration_str(api_responses)
 
-        condensed = self.client.chat.completions.create(
+        condensed = self._init_chat_completion(self, 
+            prompt=f"{modifierDict['condense']}\n\n{api_responses}", 
             model=self.model,
-            seed=self.seed,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=[
-                {"role": "system", "content": self.role},
-                {
-                    "role": "user",
-                    "content": f"{modifierDict['condense']}\n\n{api_responses}",
-                },
-            ],
-        )
+            role=self.role,
+            seed=self.seed, temp=self.temperature, top_p=self.top_p):
         self._update_token_count(condensed)
-
         message = condensed.choices[0].message.content.strip()
         self._log_and_print(
             f"\nCondensed text from iterations:\n{message}", self.verbose, self.logging
@@ -506,17 +495,12 @@ Agent parameters:
         if self.glyph_prompt == True:
             updated_prompt += modifierDict["glyph"]
 
-        refined = self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            n=1,
-            seed=self.seed,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=[
-                {"role": "system", "content": "user"},
-                {"role": "user", "content": updated_prompt},
-            ],
-        )
+        refined = self._init_chat_completion(self, 
+            prompt=updated_prompt, 
+            seed=self.seed, 
+            temp=self.temperature, 
+            top_p=self.top_p):
+
         self._update_token_count(refined)
         if self.iterations > 1:
             self.prompt = self._condense_iterations(refined)
