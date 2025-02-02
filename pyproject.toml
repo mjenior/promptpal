@@ -7,7 +7,7 @@ packages = ["promptpal"]
 
 [project]
 name = "promptpal"
-version = "1.2.0"
+version = "1.2.1"
 description = "Python based tool for improved LLM interations using the OpenAI API package."
 readme = "README.md"
 authors = [
