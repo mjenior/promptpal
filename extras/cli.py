@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from llmatic.core import OpenAIQueryHandler
+from promptpal.core import OpenAIQueryHandler
 
 """
 ChatGPT API script for conversation with AI assistant in command line
@@ -9,7 +9,7 @@ ChatGPT API script for conversation with AI assistant in command line
 * Requires OPENAI_API_KEY set as environmental variable
 
 USAGE:
-python assistant.py --prompt "Write a script to read fastq files."
+python cli.py --prompt "Write a script to read fastq files."
 
 REQUIRED
 prompt : str
@@ -120,7 +120,7 @@ def main():
     args = parse_arguments()
    
     # Initialize the user argument and query manager
-    llmatic = OpenAIQueryHandler(
+    promptpal = OpenAIQueryHandler(
         model=args.model,
         verbose=args.verbose,
         silent=args.silent,
@@ -140,7 +140,7 @@ def main():
         quality=args.quality)
 
     # Submit query and parse response
-    llmatic.request(args.prompt)
+    promptpal.request(args.prompt)
     
 
 if __name__ == "__main__":

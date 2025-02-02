@@ -9,7 +9,7 @@ from collections import defaultdict
 
 from openai import OpenAI
 
-from llm_api.lib import text_library
+from promptpal.lib import text_library
 
 roleDict = text_library["roles"]
 modifierDict = text_library["modifiers"]
@@ -18,7 +18,7 @@ extDict = text_library["extensions"]
 patternDict = text_library["patterns"]
 
 
-class OpenAIQueryHandler:
+class CreateAgent:
     """
     A handler for managing queries to the OpenAI API, including prompt preparation,
     API request submission, response processing, and logging.

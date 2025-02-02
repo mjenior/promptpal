@@ -30,8 +30,8 @@ if __name__ == "__main__":
     ## Complex args
 
     # Determine alias string
-    alias = input('Preferred alias string (Default: llmapi): ')
-    alias = alias if alias != '' else 'llmapi'
+    alias = input('Preferred alias string (Default: promptpal): ')
+    alias = alias if alias != '' else 'promptpal'
 
     # Preferred model
     model = input('Preferred model (refer to README): ')

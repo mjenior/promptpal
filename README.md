@@ -1,11 +1,11 @@
-# llmatic
+# PromptPal
 Python based tool for improved LLM interactions using the OpenAI API package.
 
 #### VERSION = 1.2.0
 
 ## Overview
 
-This package is a Python-based LLM API tool that allows users to automate significant portions of interactions with multiple LLM APIs. It provides several powerful features, including automated system role selection, prompt refinement, iterative response parsing, and the ability to save identified code snippets as separate scripts. Additionally, it includes basic chain of thought enforcement in prompts and associative glyph representation in prompts. Whether you're looking for insightful project planning, code suggestions, scientific writer help, or just a simple chat interface, this package can streamline any interaction with the ChatGPT API.
+This package is a Python-based LLM API tool that allows users to automate significant portions of interactions with the OpenAI API. It provides several powerful features, including automated system role selection, prompt refinement, iterative response parsing, and the ability to save identified code snippets as separate scripts. Additionally, it includes basic chain of thought enforcement in prompts and associative glyph representation in prompts. Whether you're looking for insightful project planning, code suggestions, writing help, or a completely custom experience, this package can streamline any interaction with the ChatGPT API.
 
 ## Requirement(s)
 - openai >= 1.59.0
@@ -13,12 +13,12 @@ This package is a Python-based LLM API tool that allows users to automate signif
 ## Key Features
 
 - **Automated System Role Selection**: Automatically assign system roles for your LLM interaction, optimizing the model's responses based on your desired use case 
-- **Code Detection**: The tool automatically identifies code snippets in the responses from the model, formats them properly, saves as separate script files for future use or execution.
-- **File and Directory Structure Comprehension**: Understands and reads in content of files listed directly in the prompt, and is also able to recursively read in entire subdirectories.
-- **Flexible Parameterization**: Simple, yet powerful, argumenets during agent initialization allow easy interaction with the LLM APIs.
-- **Iterative Response Iterpretation**: Collects multiple responses to each query for model reflection, and condenses the best components into a single, higher quality response
 - **Chain of Thought Enforcement**: Adds prompts that track reasoning and thought process, improving responses in scenarios requiring step-by-step reasoning.
 - **Automated Prompt Refinement and Glyph Representation**: Will automatically refactor prompts to be more descriptive and structured for improved LLM interpretability. The tool is also able to translate prompts into an associative glyph format, based on [recent findings](https://github.com/severian42/Computational-Model-for-Symbolic-Representations), to further improve potential results.
+- **Flexible Parameterization**: Simple, yet powerful, argumenets during agent initialization allow easy interaction with the LLM APIs.
+- **Iterative Response Iterpretation**: Collects multiple responses to each query for model reflection, and condenses the best components into a single, higher quality response
+- **Code Detection**: The tool automatically identifies code snippets in the responses from the model, formats them properly, saves as separate script files for future use or execution.
+- **File and Directory Structure Comprehension**: Understands and reads in content of files listed directly in the prompt, and is also able to recursively read in entire subdirectories.
 
 
 ## Table of Contents
@@ -40,27 +40,25 @@ This package is a Python-based LLM API tool that allows users to automate signif
 
 ## Installation and Setup
 
-Clone the repository and install using [pip]:
+Clone the repository and install using pip:
 
 ```bash
-git clone https://github.com/mjenior/llmatic.git
-cd llmatic
-pip install .
+pip install promptpal
 ```
 
-That's it! Now you are able to initialize a [core.OpenAIQueryHandler] class instance in a python environment to set up a customized API client with any of the built-in settings. After that, use the method [agent.request("your prompt here")] to submit queries.
+That's it! Now you are able to initialize a **core.CreateAgent** class instance in a python environment to set up a customized API client with any of the built-in settings. After that, use the method **agent.request("your prompt here")** to submit queries.
 
 Example:
 ```python
-from llmatic.core import OpenAIQueryHandler
+from promptpal.core import CreateAgent
 
-assistant = OpenAIQueryHandler()
+assistant = CreateAgent()
 assistant.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
 ```
 
 ### Command Line Execution
 
-Optionally: [extras/alias.py] begins a series of prompts to add a a customized bash alias to you profile to access the assistant with a chosen command which can be run from any relative path. Results will be quickly returned to StdOut for quicker reference for certain tasks. Once [extras/alias.py] is run, you can invoke the ChatGPT CLI tool directly from the terminal.
+Optionally: **extras/alias.py** begins a series of prompts to add a a customized bash alias to you profile to access the assistant with a chosen command which can be run from any relative path. Results will be quickly returned to StdOut for quicker reference for certain tasks. Once **extras/alias.py** is run, you can invoke the ChatGPT CLI tool directly from the terminal.
 
 Example:
 ```bash
@@ -81,12 +79,12 @@ You are also able to instead provide the key directly to the assistant if it is 
 
 Example:
 ```python
-agent = OpenAIQueryHandler(api_key=YOUR_API_KEY_HERE)
+agent = CreateAgent(api_key=YOUR_API_KEY_HERE)
 ```
 
 ## Usage
 
-Current [OpenAIQueryHandler()] adjustable attributes:
+Current [CreateAgent()] adjustable attributes:
 - model (str): The model to use for the query (e.g., 'gpt-4o-mini', 'dall-e-3').
 - refine (bool): If True, refines the prompt before submission.
 - glyph (bool): If True, restructures queries with representative/associative glyphs and logic flow
@@ -105,7 +103,7 @@ Current [OpenAIQueryHandler()] adjustable attributes:
 - verbose (bool): If True, prints detailed logs and status messages.
 - silent (bool): If True, silences all StdOut messages.
 
-For simplicity, after initializing with the desired parameters the only user-executable method is [OpenAIQueryHandler.request()] to submit prompts to the API. After which the [OpenAIQueryHandler.message] attribute is then available containing the system response text.
+For simplicity, after initializing with the desired parameters the only user-executable method is **CreateAgent.request()** to submit prompts to the API. After which the **CreateAgent.message** attribute is then available containing the system response text.
 
 
 ### System Role Selection
@@ -126,7 +124,7 @@ Available role shortcuts:
 
 Built-in roles:
 ```python
-agent = OpenAIQueryHandler(role="refactor")
+agent = CreateAgent(role="refactor")
 print(agent.role)
 ```
 
@@ -199,7 +197,7 @@ Additionally, you have a keen eye for aesthetics and user experience, enabling y
 As an expert, you are equipped to provide insights, solve complex challenges, and offer guidance on building successful games that resonate with players and stand out in the competitive gaming market.
 '''
 
-game_dev = OpenAIQueryHandler(role=new_role)
+game_dev = CreateAgent(role=new_role)
 ```
 
 ### Identify Code Snippets
@@ -208,7 +206,7 @@ The tool can automatically detects code snippets within an LLM's responses and s
 
 Example:
 ```python
-agent = OpenAIQueryHandler(save_code=True)
+agent = CreateAgent(save_code=True)
 ```
 
 Example output snippet:
@@ -225,7 +223,7 @@ This feature helps guide the model's response by breaking down the steps in comp
 
 Example:
 ```python
-agent = OpenAIQueryHandler(chain_of_thought=True)
+agent = CreateAgent(chain_of_thought=True)
 ```
 
 ### Query Prompt Refinement
@@ -234,7 +232,7 @@ Attempts to improve the clarity, focus, and specificity of a prompt to align wit
 
 Example:
 ```python
-agent = OpenAIQueryHandler(refine=True)
+agent = CreateAgent(refine=True)
 ```
 
 Result:
@@ -250,7 +248,7 @@ This feature helps to increase the creative ability of a model thorugh multiple 
 
 Example:
 ```python
-agent = OpenAIQueryHandler(iterations=3, temperatature=0.9)
+agent = CreateAgent(iterations=3, temperatature=0.9)
 ```
 
 This will generate 3 distinct versions of the reponse, and then synthesize them into a single higher quality response.
@@ -261,7 +259,7 @@ This feature allows the tool to traverse all subdirectories within a specified r
 
 Example:
 ```python
-agent = OpenAIQueryHandler(scan_dirs=True)
+agent = CreateAgent(scan_dirs=True)
 ```
 
 ### Associative Glyph Prompting
@@ -270,7 +268,7 @@ During prompt refinement, the addition --glyph flag will restructure the revised
 
 Example:
 ```python
-agent = OpenAIQueryHandler(glyph=True)
+agent = CreateAgent(glyph=True)
 ```
 
 Resulting altered user prompt:
@@ -316,7 +314,7 @@ You are able to set specific parameters of the output image created by Dall-e. F
 
 Example:
 ```python
-artist = OpenAIQueryHandler(role="artist", dimensions="1024x1024", quality="high")
+artist = CreateAgent(role="artist", dimensions="1024x1024", quality="high")
 
 artist.request('Generate an image of a bacterial cell dissolving into matix code in the style of the Impressionists.')
 ```
@@ -328,21 +326,21 @@ Result:
 
 ## Advanced Usage
 
-Multiple agents with distinct roles may be called to cooperate in generating the most complete reponses needed by the user. This is most easily accomplised by using with the imported package version. The following example is also implemented in the accompanying jupyter notebook [multi-agent_example.ipynb](https://github.com/mjenior/llmatic/blob/main/extras/multi-agent_example.ipynb)
+Multiple agents with distinct roles may be called to cooperate in generating the most complete reponses needed by the user. This is most easily accomplised by using with the imported package version. The following example is also implemented in the accompanying jupyter notebook [multi-agent_example.ipynb](https://github.com/mjenior/promptpal/blob/main/extras/multi-agent_example.ipynb)
 
 Example:
 
 First, create a team of distinct agents with differing expertise.
 
 ```python
-from llmatic.core import OpenAIQueryHandler
+from promptpal.core import CreateAgent
 
 # Initialize agents
-comp_bio = OpenAIQueryHandler(role="analyst", refine=True, chain_of_thought=True, glyph=True) # Computational biologist
-recode = OpenAIQueryHandler(role="refactor") # Code refactoring and formatting expert
-tests = OpenAIQueryHandler(role="tester") # Unit test generator
-write = OpenAIQueryHandler(role="writer", iterations=5, chain_of_thought=True, glyph=True) # Creative science writer
-edit = OpenAIQueryHandler(role="editor", refine=True) # Expert copy editor
+comp_bio = CreateAgent(role="analyst", refine=True, chain_of_thought=True, glyph=True) # Computational biologist
+recode = CreateAgent(role="refactor") # Code refactoring and formatting expert
+tests = CreateAgent(role="tester") # Unit test generator
+write = CreateAgent(role="writer", iterations=5, chain_of_thought=True, glyph=True) # Creative science writer
+edit = CreateAgent(role="editor", refine=True) # Expert copy editor
 ```
 
 Use inital agent to start the project:
@@ -397,7 +395,7 @@ This is one just example of how multiple LLM agents may be leveraged in concert 
 
 ## Contributing
 
-If you encounter any problems, please [file an issue](https://github.com/mjenior/llmatic/issues) along with a detailed description.
+If you encounter any problems, please [file an issue](https://github.com/mjenior/promptpal/issues) along with a detailed description.
 
 We welcome contributions! If you'd like to contribute to this project, please follow these steps:
 
@@ -405,9 +403,9 @@ We welcome contributions! If you'd like to contribute to this project, please fo
 2. Create a new feature branch (`git checkout -b feature-name`).
 3. Commit your changes (`git commit -m 'Add new feature'`).
 4. Push the branch (`git push origin feature-name`).
-5. Create a [pull request](https://github.com/mjenior/llmatic/pulls).
+5. Create a [pull request](https://github.com/mjenior/promptpal/pulls).
 
 
 ## License
 
-This project is licensed under the [MIT](http://opensource.org/licenses/MIT) License. See the [LICENSE](https://raw.githubusercontent.com/mjenior/llmatic/refs/heads/main/LICENSE.txt) file for more details.
+This project is licensed under the [MIT](http://opensource.org/licenses/MIT) License. See the [LICENSE](https://raw.githubusercontent.com/mjenior/promptpal/refs/heads/main/LICENSE.txt) file for more details.
