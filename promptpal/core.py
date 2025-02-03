@@ -47,6 +47,7 @@ class CreateAgent:
         save_code (bool): If True, extracts and saves code snippets from the response.
         scan_dirs (bool): If True, recursively scans directories found in prompt for existing files, extracts contents, and adds to prompt.
         logging (bool): If True, logs the session to a file.
+        summary (bool): If True, summarizes the current conversation context to reference later.
         api_key (str): The API key for OpenAI. Defaults to system environment variable.
         seed (int or str): Seed for reproducibility. Can be an integer or a string converted to binary.
         iterations (int): Number of response iterations for refining or condensing outputs.
@@ -75,6 +76,7 @@ class CreateAgent:
     Methods:
         __init__: Initializes the handler with default or provided values.
         request: Submits a query to the OpenAI API and processes the response.
+        new_thread: Start a new thread with only the current agent.
         _save_chat_transcript: Saves the conversation transcript to a file.
         _extract_and_save_code: Extracts code snippets from the response and saves them to files.
         _setup_logging: Prepares logging setup.
@@ -103,7 +105,7 @@ class CreateAgent:
         chain_of_thought=False,
         save_code=False,
         scan_dirs=False,
-        context=False,
+        summary=False,
         model="gpt-4o-mini",
         role="assistant",
         seed="t634e``R75T86979UYIUHGVCXZ",
@@ -131,7 +133,7 @@ class CreateAgent:
         self.save_code = save_code
         self.scan_dirs = scan_dirs
         self.iterations = iterations
-        self.context = context
+        self.summary = summary
 
         # Additional hyperparams
         self.mode = mode if mode == 'refine_only' else 'normal'
@@ -265,6 +267,10 @@ Agent parameters:
     """
         return status
 
+    def new_thread(self):
+        """Start a new thread with only the current agent."""
+        self.thread = self.client.beta.threads.create()
+
     def request(self, prompt, thread=None):
         """Submits the query to OpenAIs API and processes the response."""
 
@@ -328,7 +334,7 @@ Agent parameters:
             self._log_and_print(reportStr, True, self.logging)
 
         # Summarize current context
-        if self.context == True:
+        if self.summary == True:
             self._generate_context_summary(self)
 
     def _write_script(self, content, file_name, outDir="code", lang=None):
@@ -647,38 +653,20 @@ Agent parameters:
         except Exception as e:
             raise RuntimeError(f"Failed to create message: {e}")
 
+        # Run the assistant on the thread
+        self.current_run = self.client.beta.threads.runs.create(
+            thread_id=self.thread.id,
+            assistant_id=self.agent.id)
 
-
-
-
-        # Run the assistant on the thread and wait for completion
+        # Wait for completion and retrieve responses
         while True:
-            run_status = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+            run_status = self.client.beta.threads.runs.retrieve(thread_id=self.thread.id, run_id=self.current_run.id)
             if run_status.status in ["completed", "failed"]:
                 break
-            print("Waiting for assistant response...")
-            time.sleep(2)  # Wait before polling again
+            else:
+                time.sleep(2)  # Wait before polling again
 
         if run_status.status == "completed":
-            messages = client.beta.threads.messages.list(thread_id=thread.id)
-            for msg in messages.data:
-                print(f"{msg.role.capitalize()}: {msg.content[0]['text']['value']}")
-        else:
-            print("Assistant failed to generate a response.")
-
-
-
-
-
-        try:
-            self.current_run = self.client.beta.threads.runs.create_and_poll(
-                thread_id=self.thread.id, assistant_id=self.agent.id
-            )
-        except Exception as e:
-            raise RuntimeError(f"Failed to run the assistant: {e}")
-
-        # Extract results
-        if self.current_run.status == "completed":
             messages = self.client.beta.threads.messages.list(thread_id=self.thread.id)
             if messages.data:  # Check if messages list is not empty
                 return messages.data[0].content[0].text.value
