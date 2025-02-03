@@ -144,12 +144,12 @@ class CreateAgent:
         self._validate_model_selection(model)
         if self.model in ["dall-e-2", "dall-e-3"]:
             self._validate_image_params(dimensions, quality)
-        self._create_new_agent(self, interpreter=save_code)
+        self._create_new_agent(interpreter=self.save_code)
 
         # Initialize reporting and related vars
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"        
-        if self.logging: self._setup_logging(logging)
+        self._setup_logging(logging)
         self._log_and_print(self._generate_status(), self.verbose, self.logging)
 
     def _setup_logging(self, log):
@@ -303,7 +303,7 @@ Agent parameters:
 
         summarized = self._init_chat_completion(self, 
             prompt=f"{modifierDict['summarize']}\n\n{"\n".join(self.log_text)}", 
-            iters=self.iterations, seed=self.seed):
+            iters=self.iterations, seed=self.seed)
         self._update_token_count(condensed)
         self.current_context = summarized.choices[0].message.content.strip()
 
@@ -311,7 +311,7 @@ Agent parameters:
         """Processes text-based responses from OpenAIs chat models."""
         self.message = self._run_thread_request()
         self._update_token_count(self.current_run)
-        self._log_and_print(message, True, self.logging)
+        self._log_and_print(self.message, True, self.logging)
 
         # Extract code snippets
         code_snippets = self._extract_code_snippets()
@@ -416,7 +416,7 @@ Agent parameters:
         )
         condensed = self._init_chat_completion(self, 
             prompt=f"{modifierDict['condense']}\n\n{api_responses}", 
-            role=self.role, iters=self.iterations, seed=self.seed):
+            role=self.role, iters=self.iterations, seed=self.seed)
         self._update_token_count(condensed)
         message = condensed.choices[0].message.content.strip()
         self._log_and_print(
@@ -458,7 +458,7 @@ Agent parameters:
             seed=self.seed, 
             iters=self.iterations,
             temp=self.temperature, 
-            top_p=self.top_p):
+            top_p=self.top_p)
 
         self._update_token_count(refined)
         if self.iterations > 1:
@@ -647,7 +647,29 @@ Agent parameters:
         except Exception as e:
             raise RuntimeError(f"Failed to create message: {e}")
 
+
+
+
+
         # Run the assistant on the thread and wait for completion
+        while True:
+            run_status = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+            if run_status.status in ["completed", "failed"]:
+                break
+            print("Waiting for assistant response...")
+            time.sleep(2)  # Wait before polling again
+
+        if run_status.status == "completed":
+            messages = client.beta.threads.messages.list(thread_id=thread.id)
+            for msg in messages.data:
+                print(f"{msg.role.capitalize()}: {msg.content[0]['text']['value']}")
+        else:
+            print("Assistant failed to generate a response.")
+
+
+
+
+
         try:
             self.current_run = self.client.beta.threads.runs.create_and_poll(
                 thread_id=self.thread.id, assistant_id=self.agent.id
@@ -656,7 +678,7 @@ Agent parameters:
             raise RuntimeError(f"Failed to run the assistant: {e}")
 
         # Extract results
-        if run.status == "completed":
+        if self.current_run.status == "completed":
             messages = self.client.beta.threads.messages.list(thread_id=self.thread.id)
             if messages.data:  # Check if messages list is not empty
                 return messages.data[0].content[0].text.value
