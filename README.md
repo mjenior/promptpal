@@ -1,11 +1,11 @@
 # PromptPal
 Python based tool for improved LLM interactions using the OpenAI API package.
 
-#### VERSION = 1.2.1
+#### VERSION = 1.3.0
 
 ## Overview
 
-This package is a Python-based LLM API tool that allows users to automate significant portions of interactions with the OpenAI API. It provides several powerful features, including automated system role selection, prompt refinement, iterative response parsing, and the ability to save identified code snippets as separate scripts. Additionally, it includes basic chain of thought enforcement in prompts and associative glyph representation in prompts. Whether you're looking for insightful project planning, code suggestions, writing help, or a completely custom experience, this package can streamline any interaction with the ChatGPT API.
+This package is a Python-based prompt enhancing tool that allows users to automate significant portions of interactions with the OpenAI API. It provides several powerful features, including automated system role selection, prompt refinement, iterative response parsing, and the ability to save identified code snippets as separate scripts. Additionally, it includes basic chain of thought enforcement in prompts and associative glyph representation in prompts. Whether you're looking for insightful project planning, code suggestions, writing help, or a completely custom experience, this package can streamline any interaction with the ChatGPT API.
 
 ## Requirement(s)
 - openai >= 1.59.0
@@ -15,7 +15,7 @@ This package is a Python-based LLM API tool that allows users to automate signif
 - **Automated System Role Selection**: Automatically assign system roles for your LLM interaction, optimizing the model's responses based on your desired use case 
 - **Chain of Thought Enforcement**: Adds prompts that track reasoning and thought process, improving responses in scenarios requiring step-by-step reasoning.
 - **Automated Prompt Refinement and Glyph Representation**: Will automatically refactor prompts to be more descriptive and structured for improved LLM interpretability. The tool is also able to translate prompts into an associative glyph format, based on [recent findings](https://github.com/severian42/Computational-Model-for-Symbolic-Representations), to further improve potential results.
-- **Flexible Parameterization**: Simple, yet powerful, argumenets during agent initialization allow easy interaction with the LLM APIs.
+- **Flexible Parameterization**: Simple, yet powerful, argumenets during agent initialization allow easy interaction with the OpenAI's API.
 - **Iterative Response Iterpretation**: Collects multiple responses to each query for model reflection, and condenses the best components into a single, higher quality response
 - **Code Detection**: The tool automatically identifies code snippets in the responses from the model, formats them properly, saves as separate script files for future use or execution.
 - **File and Directory Structure Comprehension**: Understands and reads in content of files listed directly in the prompt, and is also able to recursively read in entire subdirectories.
@@ -46,7 +46,7 @@ Clone the repository and install using pip:
 pip install promptpal
 ```
 
-That's it! Now you are able to initialize a **core.CreateAgent** class instance in a python environment to set up a customized API client with any of the built-in settings. After that, use the method **agent.request("your prompt here")** to submit queries.
+That's it! Now you are able to initialize a **core.CreateAgent** class instance in a python environment. After that, use the method **agent.request("your prompt here")** to submit queries.
 
 Example:
 ```python
@@ -56,43 +56,26 @@ assistant = CreateAgent()
 assistant.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
 ```
 
-### Command Line Execution
-
-Optionally: **extras/alias.py** begins a series of prompts to add a a customized bash alias to you profile to access the assistant with a chosen command which can be run from any relative path. Results will be quickly returned to StdOut for quicker reference for certain tasks. Once **extras/alias.py** is run, you can invoke the ChatGPT CLI tool directly from the terminal.
-
-Example:
-```bash
-promptpal "Write a python script to scrape web pages for numeric data and return as a formatted dataframe."
-```
-
 ### API Keys
 
-IMPORTANT: Before using the tool, another helpful step is to also set up your API keys.
+IMPORTANT: Before using the tool, another important step is to also set up your OpenAI API key. The package natively attempts to pull from system-wide environmental variables.
 
 Set the environment variable(s):
 ```bash
 export OPENAI_API_KEY="your_openai_api_key"
-```
-Also will parse <DEEPSEEK_API_KEY> if <deepseek-chat> is the requested model. Can also be provided directly, identical to OpenAI key.
-
-You are also able to instead provide the key directly to the assistant if it is not specified by your system. The default settings attempt to pull from system-wide environmental variables.
-
-Example:
-```python
-agent = CreateAgent(api_key=YOUR_API_KEY_HERE)
 ```
 
 ## Usage
 
 Current [CreateAgent()] adjustable attributes:
 - model (str): The model to use for the query (e.g., 'gpt-4o-mini', 'dall-e-3').
+- client (OpenAI): The OpenAI client instance for API requests.
 - refine (bool): If True, refines the prompt before submission.
 - glyph (bool): If True, restructures queries with representative/associative glyphs and logic flow
 - chain_of_thought (bool): If True, enables chain-of-thought reasoning.
 - save_code (bool): If True, extracts and saves code snippets from the response.
 - scan_dirs (bool): If True, recursively scans directories found in prompt for existing files, extracts contents, and adds to prompt.
 - logging (bool): If True, logs the session to a file.
-- api_key (str): The API key for OpenAI or Deepseek. Defaults to system environment variable.
 - seed (int or str): Seed for reproducibility. Can be an integer or a string converted to binary.
 - iterations (int): Number of response iterations for refining or condensing outputs.
 - dimensions (str): Dimensions for image generation (e.g., '1024x1024').
@@ -102,6 +85,8 @@ Current [CreateAgent()] adjustable attributes:
 - top_p (float): Range from 0.0 to 2.0, lower values increase determinism, and higher values increase determinism.
 - verbose (bool): If True, prints detailed logs and status messages.
 - silent (bool): If True, silences all StdOut messages.
+- tokens (dict): Tracks token usage for prompt and completion.
+- summary (bool): If True, summarizes the current conversation context to reference later.
 
 For simplicity, after initializing with the desired parameters the only user-executable method is **CreateAgent.request()** to submit prompts to the API. After which the **CreateAgent.message** attribute is then available containing the system response text.
 
@@ -144,7 +129,7 @@ Output Format (strictly follow this order):
 
    ```[language]
    [Refactored code here with inline comments]
-   ```
+   \```
    
 2. Improvements Made:
    - Technical improvements (performance, type hints, error handling)
@@ -358,15 +343,13 @@ Optimize and document any new code, add unit testing.
 
 ```python
 query = """
-Refactor and format the following scripts for optimal efficiency, useability, and generalization:
+Refactor and format the previous for optimal efficiency, useability, and generalization:
 """
-query += " ".join(developer.code_files)
 recode.request(query)
 
 query = """
-Generate unit tests for the following code:
+Create unit tests for the newly refactored code.
 """
-query += " ".join(developer.code_files)
 tests.request(query)
 ```
 
@@ -375,18 +358,19 @@ Then use the next agents to read through the new pipeline and generate a high-qu
 ```python
 # Utilize the writer agent to generate an informed post on the background and utility of the newly created pipeline
 query = """
-Write a biotechnology blog post about the pipeline described below. 
+Write a biotechnology blog post about the pipeline described you have just outlined. 
 Include relevant background that would necessitate this type of analysis, and add at least one example use case for the workflow. 
 Extrapolate how the pipeline may be useful in cell engineering efforts, and what future improvements could lead to with continued work. 
 The resulting post should be at least 3 paragraphs long with 4-5 sentences in each.
 Speak in a conversational tone and cite all sources with biological relevance to you discussion.
 """
-query = f"{query}\n{comp_bio.message}"
-
 write.request(query)
 
 # Pass the rough draft text to the editor agent to recieve a more finalize version
-edit.request(write.message)
+query ="""
+Edit the previous post to be much more polished and ready for release.
+"""
+edit.request(query)
 ```
 
 This is one just example of how multiple LLM agents may be leveraged in concert to accelerate the rate that user workloads may be accomplished.
