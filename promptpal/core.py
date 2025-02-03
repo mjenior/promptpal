@@ -259,6 +259,7 @@ Agent parameters:
     Time stamp: {self.timestamp}
     Seed: {self.seed}
     Text logging: {self.logging}
+    Verbose StdOut: {self.verbose}
     Snippet logging: {self.save_code}
     """
         if "dall-e" in self.model:
@@ -277,7 +278,7 @@ Agent parameters:
         # Update user prompt 
         self._prepare_query_text(prompt)
         self._log_and_print(
-            f"\n{self.model} processing updated conversation thread...",
+            f"\n{self.model} processing updated conversation thread...\n",
                 True, self.logging)
 
         if self.mode != "refine_only":
@@ -316,7 +317,7 @@ Agent parameters:
     def _handle_text_request(self):
         """Processes text-based responses from OpenAIs chat models."""
         self.message = self._run_thread_request()
-        self._update_token_count(self.current_run)
+        self._update_token_count(self.run_status)
         self._log_and_print(self.message, True, self.logging)
 
         # Extract code snippets
@@ -477,10 +478,10 @@ Agent parameters:
 
         return new_prompt
 
-    def _update_token_count(self, response):
+    def _update_token_count(self, response_obj):
         """Updates token count for prompt and completion."""
-        self.tokens["prompt"] += response.usage.prompt_tokens
-        self.tokens["completion"] += response.usage.completion_tokens
+        self.tokens["prompt"] += response_obj.usage.prompt_tokens
+        self.tokens["completion"] += response_obj.usage.completion_tokens
 
     def _log_and_print(self, message, verb=True, log=True):
         """Logs and prints the provided message if verbose."""
@@ -648,25 +649,24 @@ Agent parameters:
         # Adds user prompt to existing thread.
         try:
             new_message = self.client.beta.threads.messages.create(
-                thread_id=self.thread.id, role="user", content=self.prompt
-            )
+                thread_id=self.thread.id, role="user", content=self.prompt)
         except Exception as e:
             raise RuntimeError(f"Failed to create message: {e}")
 
         # Run the assistant on the thread
-        self.current_run = self.client.beta.threads.runs.create(
+        current_run = self.client.beta.threads.runs.create(
             thread_id=self.thread.id,
             assistant_id=self.agent.id)
 
         # Wait for completion and retrieve responses
         while True:
-            run_status = self.client.beta.threads.runs.retrieve(thread_id=self.thread.id, run_id=self.current_run.id)
-            if run_status.status in ["completed", "failed"]:
+            self.run_status = self.client.beta.threads.runs.retrieve(thread_id=self.thread.id, run_id=current_run.id)
+            if self.run_status.status in ["completed", "failed"]:
                 break
             else:
                 time.sleep(2)  # Wait before polling again
 
-        if run_status.status == "completed":
+        if self.run_status.status == "completed":
             messages = self.client.beta.threads.messages.list(thread_id=self.thread.id)
             if messages.data:  # Check if messages list is not empty
                 return messages.data[0].content[0].text.value
