@@ -302,7 +302,8 @@ Agent parameters:
         self._log_and_print(f"\ngpt-4o-mini summarizing current conversation...\n", True, False)
 
         summarized = self._init_chat_completion(self, 
-            prompt=f"{modifierDict['summarize']}\n\n{"\n".join(self.log_text)}", seed=self.seed):
+            prompt=f"{modifierDict['summarize']}\n\n{"\n".join(self.log_text)}", 
+            iters=self.iterations, seed=self.seed):
         self._update_token_count(condensed)
         self.current_context = summarized.choices[0].message.content.strip()
 
@@ -415,7 +416,7 @@ Agent parameters:
         )
         condensed = self._init_chat_completion(self, 
             prompt=f"{modifierDict['condense']}\n\n{api_responses}", 
-            role=self.role, seed=self.seed):
+            role=self.role, iters=self.iterations, seed=self.seed):
         self._update_token_count(condensed)
         message = condensed.choices[0].message.content.strip()
         self._log_and_print(
