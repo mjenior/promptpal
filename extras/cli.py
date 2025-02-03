@@ -60,16 +60,13 @@ scan_dirs: bool
 seed : str or int
     Set moded seed for more deterministic reponses
     Converts strings into binary-like equivalent, constrained by max system bit size
-    Default is based on the pinnacle code from Freakazoid
+    Default is "t634e``R75T86979UYIUHGVCXZ"
 dimensions : str
     Dimensions for Dall-e image generation
     Default is 1024x1024
 quality : str
     Image quality for Dall-e images
     Default is standard
-api_key : str
-    User-specific OpenAI API key. 
-    Default looks for pre-set OPENAI_API_KEY environmental variable.
 verbose : bool
     Print all additional information to StdOut.
     Default is True
@@ -100,7 +97,7 @@ def parse_arguments():
     parser.add_argument("-g", "--glyph_prompt", type=bool, default=False, help="Restructures queries with representative/associative glyphs and logic flow.")
     parser.add_argument("-s", "--save_code", type=bool, default=True, help="Save detected code in responses to separate scripts.")
     parser.add_argument("-a", "--scan_dirs", type=bool, default=False, help="Recursively scans directories found in prompt for existing files, extracts contents, and adds to prompt.")
-    parser.add_argument("-x", "--seed", default=r'"@[=g3,8d]\&fbb=-q]/hk%fg"', help="Set moded seed for more deterministic reponses, accepts integer or strings")
+    parser.add_argument("-x", "--seed", default="t634e``R75T86979UYIUHGVCXZ", help="Set moded seed for more deterministic reponses, accepts integer or strings")
     parser.add_argument("-k", "--api_key", type=str, default="system", help="OpenAI API key.")
     parser.add_argument("-d", "--dimensions", type=str, default="1024x1024", help="Image dimensions.")
     parser.add_argument("-q", "--quality", type=str, default="standard", help="Image quality.")

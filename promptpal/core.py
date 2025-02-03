@@ -2,6 +2,7 @@
 import os
 import re
 import sys
+import time
 import string
 import requests
 from datetime import datetime
@@ -16,6 +17,15 @@ modifierDict = text_library["modifiers"]
 refineDict = text_library["refinement"]
 extDict = text_library["extensions"]
 patternDict = text_library["patterns"]
+
+    
+# Confirm environment API key
+api_key = os.getenv("OPENAI_API_KEY")
+if api_key is None:
+    raise EnvironmentError("OPENAI_API_KEY environment variable not found!")
+
+# Initialize OpenAI client
+client = OpenAI(api_key=api_key)
 
 
 class CreateAgent:
@@ -37,7 +47,7 @@ class CreateAgent:
         save_code (bool): If True, extracts and saves code snippets from the response.
         scan_dirs (bool): If True, recursively scans directories found in prompt for existing files, extracts contents, and adds to prompt.
         logging (bool): If True, logs the session to a file.
-        api_key (str): The API key for OpenAI or Deepseek. Defaults to system environment variable.
+        api_key (str): The API key for OpenAI. Defaults to system environment variable.
         seed (int or str): Seed for reproducibility. Can be an integer or a string converted to binary.
         iterations (int): Number of response iterations for refining or condensing outputs.
         dimensions (str): Dimensions for image generation (e.g., '1024x1024').
@@ -68,13 +78,10 @@ class CreateAgent:
         _save_chat_transcript: Saves the conversation transcript to a file.
         _extract_and_save_code: Extracts code snippets from the response and saves them to files.
         _setup_logging: Prepares logging setup.
-        _setup_model_and_role: Processes model and role selections.
         _prepare_query: Prepares the query, including prompt modifications and image handling.
-        _set_api_key: Sets the OpenAI API key.
-        _select_model: Validates and selects the model based on user input or defaults.
-        _select_role: Selects the role based on user input or defaults.
+        _validate_model_selection: Validates and selects the model based on user input or defaults.
+        _prepare_system_role: Selects the role based on user input or defaults.
         _append_file_scanner: Scans files in the message and appends their contents.
-        _handle_image_params: Sets image dimensions and quality parameters.
         _validate_image_params: Validates image dimensions and quality for the model.
         _process_text_response: Processes text-based responses from OpenAIs chat models.
         _process_image_response: Processes image generation requests using OpenAIs image models.
@@ -88,31 +95,32 @@ class CreateAgent:
 
     def __init__(
         self,
-        model="gpt-4o",
+        logging=True,
         verbose=True,
         silent=False,
         refine=False,
+        glyph=False,
         chain_of_thought=False,
-        save_code=True,
+        save_code=False,
         scan_dirs=False,
-        logging=True,
-        api_key="system",
+        context=False,
+        model="gpt-4o-mini",
+        role="assistant",
         seed="t634e``R75T86979UYIUHGVCXZ",
         iterations=1,
         temperature=0.7,
         top_p=1.0,
         dimensions="NA",
         quality="NA",
-        role="assistant",
-        glyph=False,
         mode='normal',
-        context=True,
     ):
         """
         Initialize the handler with default or provided values.
         """
-        self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        self.model = model
+        self.client = client
+        self.api_key = api_key
+
+        # Booleans
         self.verbose = verbose
         self.silent = silent
         self.refine_prompt = refine
@@ -120,47 +128,45 @@ class CreateAgent:
         self.chain_of_thought = chain_of_thought
         self.save_code = save_code
         self.scan_dirs = scan_dirs
-        self.logging = logging
-        self.log_text = []
-        self.api_key = api_key or self._set_api_key()
         self.iterations = iterations
-        self.dimensions = dimensions
-        self.quality = quality
-        self.role = role
-        self.tokens = {"prompt": 0, "completion": 0}
-        self.seed = seed if isinstance(seed, int) else self._string_to_binary(seed)
-        self._setup_model_and_role()
-        self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"
-        self._setup_logging()
-        self.request_calls = 0
-        self.temperature = temperature
-        self.top_p = top_p
-        self._validate_probability_params()
-        self.mode = mode
         self.context = context
 
-        # Initialize client
-        if self.model == "deepseek-chat":
-            self.client = OpenAI(
-                api_key=self.api_key, base_url="https://api.deepseek.com"
-            )
-        else:
-            self.client = OpenAI(api_key=self.api_key)
+        # System params
+        self.mode = mode if mode in ['test_init','test_refine'] else 'normal'
+        self.tokens = {"prompt": 0, "completion": 0}
+        self.seed = seed if isinstance(seed, int) else self._string_to_binary(seed)
+        self.thread = self.client.beta.threads.create()
+        self._validate_probability_params(temperature, top_p)
+        
+        # Validate user inputs
+        self._prepare_system_role(role)
+        self._validate_model_selection(model)
+        if self.model in ["dall-e-2", "dall-e-3"]:
+            self._validate_image_params(dimensions, quality)
+        self._create_new_agent(self, code_interpreter=save_code)
 
+        # Initialize reporting and related vars
+        self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"        
+        if self.logging: self._setup_logging(logging)
         self._log_and_print(self._generate_status(), self.verbose, self.logging)
 
-    def _setup_logging(self):
+
+    def _setup_logging(self, log):
         """
         Prepare logging setup.
         """
+        self.logging = log
+        self.log_text = []
         self.log_file = f"logs/{self.prefix}.transcript.log"
-        if self.logging:
-            os.makedirs("logs", exist_ok=True)
-            with open(self.log_file, "w") as f:
-                f.write("New session initiated.\n")
+        os.makedirs("logs", exist_ok=True)
+        with open(self.log_file, "w") as f:
+            f.write("New session initiated.\n")
 
-    def _validate_probability_params(self):
+    def _validate_probability_params(self, temp, topp):
         """Ensure temperature and top_p are valid"""
+        self.temperature = temp
+        self.top_p = topp
 
         # Acceptable ranges
         if self.temperature < 0.0 or self.temperature > 2.0:
@@ -171,14 +177,6 @@ class CreateAgent:
         # Only one variable is changed at a time
         if self.temperature != 0.7 and self.top_p != 1.0:
             self.top_p = 1.0
-
-    def _setup_model_and_role(self):
-        """
-        Processes model and role selections.
-        """
-        self._select_role()
-        self.model, self.base_url = self._select_model()
-        self._set_api_key()
 
     def _prepare_query(self):
         """
@@ -193,91 +191,54 @@ class CreateAgent:
             for d in paths:
                 self.prompt += "\n\n" + self._scan_directory(d)
 
-        if self.model in ["dall-e-2", "dall-e-3"]:
-            self._handle_image_params()
+        # Refine prompt if required
         if self.refine_prompt or self.glyph_prompt:
             self._refine_user_prompt()
-        if self.chain_of_thought:
-            self.role += modifierDict["cot"]
 
-    def _set_api_key(self):
-        """Sets the OpenAI API key."""
-        if self.api_key == "system":
-            self.api_key = os.getenv("OPENAI_API_KEY", None)
-            if self.model == "deepseek-chat":
-                self.api_key = os.getenv("DEEPSEEK_API_KEY")
-            if not self.api_key:
-                raise EnvironmentError("OPENAI_API_KEY environment variable not found!")
-        else:
-            env_key = (
-                "DEEPSEEK_API_KEY"
-                if self.model == "deepseek-chat"
-                else "OPENAI_API_KEY"
-            )
-            os.environ[env_key] = self.api_key
-
-    def _select_model(self):
+    def _validate_model_selection(self, input_model):
         """Validates and selects the model based on user input or defaults."""
-        model_to_url = {
-            "deepseek-chat": "https://api.deepseek.com",
-            "gpt-4o": "https://api.openai.com",
-            "gpt-4o-mini": "https://api.openai.com",
-            "o1-mini": "https://api.openai.com",
-            "o1-preview": "https://api.openai.com",
-            "dall-e-3": "https://api.openai.com",
-            "dall-e-2": "https://api.openai.com",
-        }
-        return (
-            self.model.lower() if self.model.lower() in model_to_url else "gpt-4o-mini"
-        ), model_to_url.get(self.model.lower(), "https://api.openai.com")
+        openai_models = ["gpt-4o","o1","o1-mini","o1-preview","dall-e-3","dall-e-2"]
+        self.model = input_model.lower() if input_model.lower() in openai_models else "gpt-4o-mini"
 
-    def _select_role(self):
-        """Selects the role based on user input or defaults."""
-        if self.role in roleDict:
-            self.label = self.role
-            builtin = roleDict[self.role]
+    def _prepare_system_role(self, input_role):
+        """Prepares system role tetx."""
+
+        # Selects the role based on user input or defaults.
+        if input_role.lower() in roleDict:
+            self.label = input_role.lower()
+            builtin = roleDict[input_role.lower()]
             self.role = builtin["prompt"]
             self.role_name = builtin["name"]
-        elif self.role in ["user", ""]:
+        elif input_role.lower() in ["user", ""]:
             self.role = "user"
             self.label = "default"
             self.role_name = "Default User"
         else:
+            self.role = role
             self.label = "custom"
             self.role_name = "User-defined custom role"
+
+        # Add chain of thought reporting
+        if self.chain_of_thought:
+            self.role += modifierDict["cot"]
 
     def _read_file_contents(self, filename):
         """Reads the contents of a given file."""
         with open(filename, "r", encoding="utf-8") as f:
             return f"# File: {filename}\n{f.read()}"
 
-    def _handle_image_params(self):
-        """Sets image dimensions and quality parameters."""
-        if self.label in {"artist", "photographer"}:
-            self.dimensions, self.quality = self._validate_image_params(
-                self.dimensions, self.quality, self.model
-            )
-            self.quality = "hd" if self.label == "photographer" else self.quality
-
-    @staticmethod
-    def _validate_image_params(dimensions, quality, model):
+    def _validate_image_params(self, dimensions, quality):
         """Validates image dimensions and quality for the model."""
-        valid_dimensions = {
-            "dall-e-3": ["1024x1024", "1792x1024", "1024x1792"],
-            "dall-e-2": ["1024x1024", "512x512", "256x256"],
-        }
-        if (
-            model in valid_dimensions
-            and dimensions.lower() not in valid_dimensions[model]
-        ):
-            dimensions = "1024x1024"
-        quality = (
-            "hd"
-            if quality.lower() in {"h", "hd", "high", "higher", "highest"}
-            else "standard"
-        )
-        return dimensions, quality
+        valid_dimensions = {"dall-e-3": ["1024x1024", "1792x1024", "1024x1792"],
+                            "dall-e-2": ["1024x1024", "512x512", "256x256"]}
+        if (self.model in valid_dimensions and dimensions.lower() not in valid_dimensions[self.model]):
+            self.dimensions = "1024x1024"
+        else:
+            self.dimensions = dimensions
 
+        self.quality = "hd" if quality.lower() in {"h", "hd", "high", "higher", "highest"} else "standard"
+        self.quality = "hd" if self.label == "photographer" else self.quality # Check for photo role
+        
     def _generate_status(self):
         """Generate status message."""
         status = f"""
@@ -300,7 +261,7 @@ Agent parameters:
     """
         return status
 
-    def request(self, prompt):
+    def request(self, prompt, thread=None):
         """Submits the query to OpenAIs API and processes the response."""
         if self.refine_prompt == True or self.glyph_prompt == True:
             self._log_and_print(
@@ -310,7 +271,6 @@ Agent parameters:
             self._log_and_print(
                 f"\n{self.model} processing user request...\n", True, self.logging
             )
-        self.request_calls += 1
         self.prompt = self.original_query = prompt
         self._prepare_query()
 
@@ -321,7 +281,7 @@ Agent parameters:
                     True,
                     self.logging,
                 )
-            if self.mode != 'test_refine':
+            if self.mode != "test_refine":
                 if self.label not in ["artist", "photographer"]:
                     self._process_text_response()
                 else:
@@ -353,6 +313,11 @@ Agent parameters:
 
     def _process_text_response(self):
         """Processes text-based responses from OpenAIs chat models."""
+
+        # self._run_thread_request(self)
+        
+
+        #self._update_token_count(self.run)
 
         response = self._init_chat_completion(self, self.prompt, 
             model=self.model,  
@@ -665,3 +630,59 @@ Agent parameters:
                     line_counts[current_object] += 1
 
         return max(line_counts, key=line_counts.get)
+
+    def _create_new_agent(self, code_interpreter=False):
+        """
+        Creates a new assistant based on user-defined parameters
+
+        Args:
+            enable_code_interpreter (bool): Whether to enable the code interpreter tool.
+
+        Returns:
+            New assistant agent class instance
+        """
+        try:
+            self.agent = self.client.beta.assistants.create(
+                name=self.role_name,
+                instructions=self.role,
+                model=self.model,
+                tools=[{"type": "code_interpreter"}] if code_interpreter == True else [])
+        except Exception as e:
+            raise RuntimeError(f"Failed to create assistant: {e}")
+
+    def _run_thread_request(self) -> str:
+        """
+        Sends a user prompt to an existing thread, runs the assistant, 
+        and retrieves the response if successful.
+        
+        Returns:
+            str: The text response from the assistant.
+        
+        Raises:
+            ValueError: If the assistant fails to generate a response.
+        """
+        # Adds user prompt to existing thread.
+        try:
+            message = self.client.beta.threads.messages.create(
+                thread_id=self.thread.id, role="user", content=self.prompt
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to create message: {e}")
+
+        # Run the assistant on the thread and wait for completion
+        try:
+            self.run = self.client.beta.threads.runs.create_and_poll(
+                thread_id=self.thread.id, assistant_id=self.agent.id
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to run the assistant: {e}")
+
+        # Extract results
+        if run.status == "completed":
+            messages = self.client.beta.threads.messages.list(thread_id=self.thread.id)
+            if messages.data:  # Check if messages list is not empty
+                return messages.data[0].content[0].text.value
+            else:
+                raise ValueError("No messages found in the thread.")
+        else:
+            raise ValueError("Assistant failed to generate a response.")
