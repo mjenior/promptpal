@@ -24,9 +24,9 @@ api_key = os.getenv("OPENAI_API_KEY")
 if api_key is None:
     raise EnvironmentError("OPENAI_API_KEY environment variable not found!")
 
-# Initialize OpenAI client
+# Initialize OpenAI client and conversation thread
 client = OpenAI(api_key=api_key)
-
+thread = client.beta.threads.create()
 
 class CreateAgent:
     """
@@ -78,13 +78,13 @@ class CreateAgent:
         _save_chat_transcript: Saves the conversation transcript to a file.
         _extract_and_save_code: Extracts code snippets from the response and saves them to files.
         _setup_logging: Prepares logging setup.
-        _prepare_query: Prepares the query, including prompt modifications and image handling.
+        _prepare_query_text: Prepares the query, including prompt modifications and image handling.
         _validate_model_selection: Validates and selects the model based on user input or defaults.
         _prepare_system_role: Selects the role based on user input or defaults.
         _append_file_scanner: Scans files in the message and appends their contents.
         _validate_image_params: Validates image dimensions and quality for the model.
-        _process_text_response: Processes text-based responses from OpenAIs chat models.
-        _process_image_response: Processes image generation requests using OpenAIs image models.
+        _handle_text_request: Processes text-based responses from OpenAIs chat models.
+        _handle_image_request: Processes image generation requests using OpenAIs image models.
         _condense_iterations: Condenses multiple API responses into a single coherent response.
         _refine_user_prompt: Refines an LLM prompt using specified rewrite actions.
         _update_token_count: Updates token count for prompt and completion.
@@ -117,7 +117,9 @@ class CreateAgent:
         """
         Initialize the handler with default or provided values.
         """
+        # Globals
         self.client = client
+        self.thread = thread
         self.api_key = api_key
 
         # Booleans
@@ -131,11 +133,10 @@ class CreateAgent:
         self.iterations = iterations
         self.context = context
 
-        # System params
-        self.mode = mode if mode in ['test_init','test_refine'] else 'normal'
+        # Additional hyperparams
+        self.mode = mode if mode == 'refine_only' else 'normal'
         self.tokens = {"prompt": 0, "completion": 0}
         self.seed = seed if isinstance(seed, int) else self._string_to_binary(seed)
-        self.thread = self.client.beta.threads.create()
         self._validate_probability_params(temperature, top_p)
         
         # Validate user inputs
@@ -143,14 +144,13 @@ class CreateAgent:
         self._validate_model_selection(model)
         if self.model in ["dall-e-2", "dall-e-3"]:
             self._validate_image_params(dimensions, quality)
-        self._create_new_agent(self, code_interpreter=save_code)
+        self._create_new_agent(self, interpreter=save_code)
 
         # Initialize reporting and related vars
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"        
         if self.logging: self._setup_logging(logging)
         self._log_and_print(self._generate_status(), self.verbose, self.logging)
-
 
     def _setup_logging(self, log):
         """
@@ -178,10 +178,12 @@ class CreateAgent:
         if self.temperature != 0.7 and self.top_p != 1.0:
             self.top_p = 1.0
 
-    def _prepare_query(self):
+    def _prepare_query_text(self, prompt_text):
         """
         Prepares the query, including prompt modifications and image handling.
         """
+        self.prompt = prompt_text
+
         # Identifies files to be read in
         files = self._find_existing_files()
         for f in files:
@@ -193,7 +195,9 @@ class CreateAgent:
 
         # Refine prompt if required
         if self.refine_prompt or self.glyph_prompt:
-            self._refine_user_prompt()
+            self._log_and_print(
+                "\ngpt-4o-mini optimizing initial user request...\n", True, self.logging)
+            self.prompt = self._refine_user_prompt(self.prompt)
 
     def _validate_model_selection(self, input_model):
         """Validates and selects the model based on user input or defaults."""
@@ -263,34 +267,25 @@ Agent parameters:
 
     def request(self, prompt, thread=None):
         """Submits the query to OpenAIs API and processes the response."""
-        if self.refine_prompt == True or self.glyph_prompt == True:
-            self._log_and_print(
-                "\ngpt-4o-mini optimizing initial user request...\n", True, self.logging
-            )
-        else:
-            self._log_and_print(
-                f"\n{self.model} processing user request...\n", True, self.logging
-            )
-        self.prompt = self.original_query = prompt
-        self._prepare_query()
 
-        if self.mode != "test_init":
-            if self.refine_prompt == True or self.glyph_prompt == True:
-                self._log_and_print(
-                    f"\n{self.model} processing restructured user request...",
-                    True,
-                    self.logging,
-                )
-            if self.mode != "test_refine":
-                if self.label not in ["artist", "photographer"]:
-                    self._process_text_response()
-                else:
-                    self._process_image_response()
-                token_report = self._gen_token_report()
-            self._log_and_print(token_report, self.verbose, self.logging)
+        # Update user prompt 
+        self._prepare_query_text(prompt)
+        self._log_and_print(
+            f"\n{self.model} processing updated conversation thread...",
+                True, self.logging)
 
-            if self.logging:
-                self._save_chat_transcript()
+        if self.mode != "refine_only":
+            if "dall-e" not in self.model:
+                self._handle_text_request()
+            else:
+                self._handle_image_request()
+
+        token_report = self._gen_token_report()
+        self._log_and_print(token_report, self.verbose, self.logging)
+
+        # Save chat logs to file
+        if self.logging:
+            self._save_chat_transcript()
 
     def _init_chat_completion(self, prompt, model='gpt-4o-mini', role='user', iters=1, seed=42, temp=0.7, top_p=1.0):
         """Initialize and submit a single chat completion request"""
@@ -311,30 +306,11 @@ Agent parameters:
         self._update_token_count(condensed)
         self.current_context = summarized.choices[0].message.content.strip()
 
-    def _process_text_response(self):
+    def _handle_text_request(self):
         """Processes text-based responses from OpenAIs chat models."""
-
-        # self._run_thread_request(self)
-        
-
-        #self._update_token_count(self.run)
-
-        response = self._init_chat_completion(self, self.prompt, 
-            model=self.model,  
-            role=self.role, 
-            iters=self.iterations, 
-            seed=self.seed, 
-            temp=self.temperature, 
-            top_p=self.top_p)
-
-        if self.iterations > 1:
-            message = self._condense_iterations(response)
-        else:
-            message = response.choices[0].message.content.strip()
-
-        self._update_token_count(response)
+        self.message = self._run_thread_request()
+        self._update_token_count(self.current_run)
         self._log_and_print(message, True, self.logging)
-        self.message = message
 
         # Extract code snippets
         code_snippets = self._extract_code_snippets()
@@ -364,7 +340,7 @@ Agent parameters:
             f.write(f"# Code generated by {self.model}\n\n")
             f.write(content)
 
-    def _process_image_response(self):
+    def _handle_image_request(self):
         """Processes image generation requests using OpenAIs image models."""
         os.makedirs("images", exist_ok=True)
         response = self.client.images.generate(
@@ -460,18 +436,18 @@ Agent parameters:
 
         return outStr
 
-    def _refine_user_prompt(self):
+    def _refine_user_prompt(self, old_prompt):
         """Refines an LLM prompt using specified rewrite actions."""
-        updated_prompt = self.prompt
+        updated_prompt = old_prompt
         if self.refine_prompt == True:
             actions = set(["expand", "amplify"])
             actions |= set(
                 re.sub(r"[^\w\s]", "", word).lower()
-                for word in self.prompt.split()
+                for word in old_prompt.split()
                 if word.lower() in refineDict
             )
             action_str = "\n".join(refineDict[a] for a in actions) + "\n\n"
-            updated_prompt = modifierDict["refine"] + action_str + self.prompt
+            updated_prompt = modifierDict["refine"] + action_str + old_prompt
 
         if self.glyph_prompt == True:
             updated_prompt += modifierDict["glyph"]
@@ -479,18 +455,20 @@ Agent parameters:
         refined = self._init_chat_completion(self, 
             prompt=updated_prompt, 
             seed=self.seed, 
+            iters=self.iterations,
             temp=self.temperature, 
             top_p=self.top_p):
 
         self._update_token_count(refined)
         if self.iterations > 1:
-            self.prompt = self._condense_iterations(refined)
+            new_prompt = self._condense_iterations(refined)
         else:
-            self.prompt = refined.choices[0].message.content.strip()
+            new_prompt = refined.choices[0].message.content.strip()
 
         self._log_and_print(
-            f"\nRefined query prompt:\n{self.prompt}", self.verbose, self.logging
-        )
+            f"\nRefined query prompt:\n{new_prompt}", self.verbose, self.logging)
+
+        return new_prompt
 
     def _update_token_count(self, response):
         """Updates token count for prompt and completion."""
@@ -610,7 +588,7 @@ Agent parameters:
             object_names (list): A list of object names to count lines for.
 
         Returns:
-            dict: A dictionary mapping object names to their line counts.
+            str: Name of object with the largest line count.
         """
         rm_names = ["main", "functions", "classes", "variables"]
         line_counts = {name: 0 for name in object_names if name not in rm_names}
@@ -625,28 +603,27 @@ Agent parameters:
                     break
 
             # Count lines for the current object
-            if current_object and line.strip():
-                if current_object not in rm_names:
-                    line_counts[current_object] += 1
+            if current_object and line.strip() and current_object not in rm_names:
+                line_counts[current_object] += 1
 
         return max(line_counts, key=line_counts.get)
 
-    def _create_new_agent(self, code_interpreter=False):
+    def _create_new_agent(self, interpreter=False):
         """
         Creates a new assistant based on user-defined parameters
 
         Args:
-            enable_code_interpreter (bool): Whether to enable the code interpreter tool.
+            interpreter (bool): Whether to enable the code interpreter tool.
 
         Returns:
-            New assistant agent class instance
+            New assistant assistant class instance
         """
         try:
             self.agent = self.client.beta.assistants.create(
                 name=self.role_name,
                 instructions=self.role,
                 model=self.model,
-                tools=[{"type": "code_interpreter"}] if code_interpreter == True else [])
+                tools=[{"type": "code_interpreter"}] if interpreter == True else [])
         except Exception as e:
             raise RuntimeError(f"Failed to create assistant: {e}")
 
@@ -663,7 +640,7 @@ Agent parameters:
         """
         # Adds user prompt to existing thread.
         try:
-            message = self.client.beta.threads.messages.create(
+            new_message = self.client.beta.threads.messages.create(
                 thread_id=self.thread.id, role="user", content=self.prompt
             )
         except Exception as e:
@@ -671,7 +648,7 @@ Agent parameters:
 
         # Run the assistant on the thread and wait for completion
         try:
-            self.run = self.client.beta.threads.runs.create_and_poll(
+            self.current_run = self.client.beta.threads.runs.create_and_poll(
                 thread_id=self.thread.id, assistant_id=self.agent.id
             )
         except Exception as e:
