@@ -158,7 +158,8 @@ extDict = {
    'python': '.py',
    'ruby': '.rb',
    'shell': '.sh',
-   'text':'.txt'
+   'text':'.txt',
+   'plaintext': '.txt',
    }
 
 patternDict = {
