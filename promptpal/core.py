@@ -308,10 +308,9 @@ Agent parameters:
         """Summarize current conversation history for future context parsing."""
         self._log_and_print(f"\ngpt-4o-mini summarizing current conversation...\n", True, False)
 
-        summarized = self._init_chat_completion(self, 
-            prompt=f"{modifierDict['summarize']}\n\n{"\n".join(self.log_text)}", 
-            iters=self.iterations, seed=self.seed)
-        self._update_token_count(condensed)
+        summary_prompt = f"{modifierDict['summarize']}\n\n{'\n'.join(self.log_text)}"
+        summarized = self._init_chat_completion(prompt=summary_prompt, iters=self.iterations, seed=self.seed)
+        self._update_token_count(summarized)
         self.current_context = summarized.choices[0].message.content.strip()
 
     def _handle_text_request(self):
