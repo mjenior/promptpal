@@ -1,7 +1,7 @@
 # PromptPal
 Python based tool for improved LLM interactions using the OpenAI API package.
 
-#### VERSION = 1.3.2
+#### VERSION = 1.3.3
 
 ## Overview
 
@@ -24,7 +24,13 @@ This package is a Python-based prompt enhancing tool that allows users to automa
 ## Table of Contents
 
 1. [Installation and Setup](#installation)
-2. [Usage](#usage)
+2. [Changelog](#changelog)
+   - Latest: 1.3...
+   - 1.3.0
+   - 1.2.0
+   - 1.1.0
+   - 1.0.0
+3. [Usage](#usage)
    - [System Role Selection](#system-role-selection)
    - [Identify and Save Code Snippets](#identify-code-snippets)
    - [Chain of Thought Enforcement](#chain-of-thought-enforcement)
@@ -46,24 +52,25 @@ Clone the repository and install using pip:
 pip install promptpal
 ```
 
-That's it! Now you are able to initialize a **core.CreateAgent** class instance in a python environment. After that, use the method **agent.request("your prompt here")** to submit queries.
-
-Example:
-```python
-from promptpal.core import CreateAgent
-
-assistant = CreateAgent()
-assistant.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
-```
+That's it! Now you are able to initialize a **core.CreateAgent** class instance in a python environment. After that, use the method **agent.request("your prompt here")** to submit queries. Other available options are explained in greater detail below.
 
 ### API Keys
 
-IMPORTANT: Before using the tool, another important step is to also set up your OpenAI API key. The package natively attempts to pull from system-wide environmental variables.
+IMPORTANT: Before using the tool, another critical step is to also set up your OpenAI API key. The package natively attempts to pull it from system-wide environmental variables in order to submit queries to ChatGPT.
 
 Set the environment variable(s):
 ```bash
 export OPENAI_API_KEY="your_openai_api_key"
 ```
+
+## Changelog
+   - Latest: 1.3...
+   - 1.3.0
+   - 1.2.0
+   - 1.1.0
+   - 1.0.0
+
+
 
 ## Usage
 
@@ -90,6 +97,13 @@ Current [CreateAgent()] adjustable attributes:
 
 For simplicity, after initializing with the desired parameters the only user-executable method is **CreateAgent.request()** to submit prompts to the API. After which the **CreateAgent.message** attribute is then available containing the system response text.
 
+Example:
+```python
+from promptpal.core import CreateAgent
+
+assistant = CreateAgent()
+assistant.request("Write a python script to scrape web pages for numeric data and return as a formatted dataframe.")
+```
 
 ### System Role Selection
 
