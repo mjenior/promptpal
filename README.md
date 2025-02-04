@@ -25,11 +25,6 @@ This package is a Python-based prompt enhancing tool that allows users to automa
 
 1. [Installation and Setup](#installation)
 2. [Changelog](#changelog)
-   - Latest: 1.3...
-   - 1.3.0
-   - 1.2.0
-   - 1.1.0
-   - 1.0.0
 3. [Usage](#usage)
    - [System Role Selection](#system-role-selection)
    - [Identify and Save Code Snippets](#identify-code-snippets)
@@ -46,10 +41,18 @@ This package is a Python-based prompt enhancing tool that allows users to automa
 
 ## Installation and Setup
 
-Clone the repository and install using pip:
+Promptpal is available of Pypi so install using pip directly:
 
 ```bash
 pip install promptpal
+```
+
+Or install from source with: 
+
+```bash
+git clone https://github.com/mjenior/promptpal.git
+cd promptpal
+pip install .
 ```
 
 That's it! Now you are able to initialize a **core.CreateAgent** class instance in a python environment. After that, use the method **agent.request("your prompt here")** to submit queries. Other available options are explained in greater detail below.
@@ -63,13 +66,13 @@ Set the environment variable(s):
 export OPENAI_API_KEY="your_openai_api_key"
 ```
 
-## Changelog
-   - Latest: 1.3...
-   - 1.3.0
-   - 1.2.0
-   - 1.1.0
-   - 1.0.0
 
+## Changelog
+- Latest: 1.3.3 = Added URL checking and user input validation
+- 1.3.0 = Refactored agent class and request method to now use assistant and threads beta features
+- 1.2.0 = Greatly improved automatic code extraction
+- 1.1.0 = Added glyph representation options to prompt refinement
+- 1.0.0 = Initial release
 
 
 ## Usage

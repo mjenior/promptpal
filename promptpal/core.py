@@ -124,7 +124,6 @@ class CreateAgent:
             save_code, scan_dirs, summary, model, role, seed, iterations, temperature, top_p, 
             dimensions, quality, mode)
 
-
         # Globals
         self.client = client
         self.thread = thread
@@ -750,6 +749,7 @@ Agent parameters:
         url_pattern = r'https?://[^\s]+|ftp://[^\s]+'
         urls = re.findall(url_pattern, self.message)
         
+        # Check if identified URLs are real
         existing_urls = non_existing_urls = []
         for url in urls:
             try:
@@ -770,4 +770,3 @@ Agent parameters:
                 non_existing_urls.append(url)  # Append URL in case of any exception
 
         return existing_urls, non_existing_urls
-
