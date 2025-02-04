@@ -383,10 +383,14 @@ Agent parameters:
 
         # Check URL annotations
         existing, not_existing = self._check_response_urls()
-        if len(not_existing) >= 1:
-            # urls found
-            pass
+        if len(not_existing) >= 1 or len(existing) >= 1:
+            reportStr = "\nURL citations detecting in system message\n"
+            if len(existing) >= 1:
+                reportStr += 'Found:\n\t' '\n\t'.join(existing) + '\n'
+            if len(not_existing) >= 1:
+                reportStr += 'NOT found:\n\t' '\n\t'.join(not_existing) + '\n'
 
+            self._log_and_print(reportStr, self.verbose, self.logging)
 
         # Summarize current context
         if self.summary == True:
