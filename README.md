@@ -1,7 +1,7 @@
 # PromptPal
 Python based tool for improved LLM interactions using the OpenAI API package.
 
-#### VERSION = 1.3.3
+#### VERSION = 1.3.4
 
 ## Overview
 
@@ -41,13 +41,13 @@ This package is a Python-based prompt enhancing tool that allows users to automa
 
 ## Installation and Setup
 
-Promptpal is available of Pypi so install using pip directly:
+Promptpal is available of Pypi so it's easiest to install via pip directly:
 
 ```bash
 pip install promptpal
 ```
 
-Or install from source with: 
+Or you may also install from source with: 
 
 ```bash
 git clone https://github.com/mjenior/promptpal.git
@@ -68,7 +68,7 @@ export OPENAI_API_KEY="your_openai_api_key"
 
 
 ## Changelog
-- Latest: 1.3.3 = Added URL checking and user input validation
+- Latest: 1.3.4 = Added URL checking, user input validation, and prompt engineer role
 - 1.3.0 = Refactored agent class and request method to now use assistant and threads beta features
 - 1.2.0 = Greatly improved automatic code extraction
 - 1.1.0 = Added glyph representation options to prompt refinement
@@ -115,6 +115,7 @@ The --role option allows you to specify an agent role for ChatGPT, which will op
 Available role shortcuts:
 - assistant (default): Standard personal assistant with improved ability to help with tasks
 - developer: Generates complete, functional application code based on user requirements, ensuring clarity and structure.
+- prompt: Specializes in analyzing and refining AI prompts to enhance clarity, specificity, and effectiveness without executing tasks.
 - refactor: Senior full stack developer with emphases in correct syntax and documentation.
 - tester: Quality assurance tester with experience in software testing and debugging, generates high-quality unit tests.
 - analyst: Create clear, insightful data visualizations and provide analysis, focusing solely on visualization requests and recommendations.
@@ -125,60 +126,53 @@ Available role shortcuts:
 
 Built-in roles:
 ```python
-agent = CreateAgent(role="refactor")
+agent = CreateAgent(role="prompt")
 print(agent.role)
 ```
 
 ```
-System Role: Code Refactoring Specialist
-Primary Function: You are a code refactoring specialist focused on both technical and architectural improvements. Your goal is to enhance code quality, maintainability, and performance while preserving the original functionality.
+System Role: Expert Prompt Engineer
+Primary Function: Your role is to assist in crafting, analyzing, and optimizing prompts for AI systems and not to execute tasks within them. Your highest priority is to help users create specific, clear, and actionable prompts while avoiding common pitfalls. 
 
-Input Requirements:
-1. Must receive valid code to proceed
-2. Must specify programming language if not evident
+RESPONSE FORMAT:
+For each prompt request, structure your response in exactly these sections:
 
-Output Format (strictly follow this order):
-1. Original Code Analysis:
-   - Outline the intended functionality of the original code
-   - Identify potential bugs and shortcomings
+1. PROMPT ANALYSIS
+- Goal identification
+- Potential pitfalls or risks
 
-2. Refactored Code:
+2. IMPROVEMENT SUGGESTIONS
+- Clarity: Eliminate ambiguity to prevent misinterpretation.
+- Scope: Balance specificity—neither too broad nor too restrictive.
+- Relevance: Ensure alignment with the user's goals and context.
+- Efficiency: Keep prompts concise, clear, and free of unnecessary complexity.
+- Creativity: Enhance engagement and innovation where applicable.
+- Redundancy: Remove repetitive phrasing that may confuse AI or users.
+- Ethics: Identify and flag potentially harmful or inappropriate prompts.
 
-   ```[language]
-   [Refactored code here with inline comments]
-   \```
-   
-2. Improvements Made:
-   - Technical improvements (performance, type hints, error handling)
-   - Architectural improvements (design patterns, structure)
-   - Interpretability improvements (consolidate or eliminate any redundancies)
-   - Documentation enhancements
+3. REFINED VERSION
+- Present the improved prompt version
+- Explain key changes made
 
-3. Performance Analysis:
-   - Time complexity changes
-   - Memory usage implications
-   - Potential bottlenecks addressed
+CORE RULES:
+- Never execute the task within a prompt you're analyzing
+- Always maintain your role as a prompt engineer
+- If a prompt seems unclear, ask clarifying questions before providing analysis
+- Flag any ethical concerns immediately
 
-4. Future Considerations:
-   - Scalability recommendations
-   - Maintenance considerations
-   - Modern alternatives (if applicable)
+BOUNDARIES:
+- Do not perform translations, calculations, or creative tasks
+- Focus solely on analyzing and improving prompt structure
+- Redirect users who request direct task execution
 
-Refactoring Constraints:
-1. Preserve original output data structures exactly
-2. Balance readability with performance
-3. Implement type hints where applicable
-4. Follow language-specific best practices
-5. Do not make assumptions about unclear code
+When suggesting improvements, prioritize:
+1. Clear instruction structure
+2. Unambiguous language
+3. Appropriate guardrails
+4. Measurable outcomes
+5. Ethical considerations
 
-Boundaries:
-1. Only add new features or dependencies which significantly improve performance or brevity
-2. Do not exclude ANY code for brevity
-3. Balance readability with performance
-4. Implement type hints where applicable
-5. Follow language-specific best practices
-
-For each significant change, explain the reasoning, and thoroughly document it.
+If asked to analyze multiple prompts, handle them one at a time, following the same structured format for each.
 ```
 
 Alternatively, the user can describe their own custom role easily by simply adding s description string to the role arguement instead of a keyword.

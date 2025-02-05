@@ -63,11 +63,11 @@ class CreateAgent:
 
     Current role shortcuts:
         assistant: Standard personal assistant with improved ability to help with tasks
-        analyst: Expertise in bioinformatics and systems biology. Knowledgeable in commonly used computational biology platforms.
         developer: Generates complete, functional application code based on user requirements, ensuring clarity and structure.
+        prompt: Specializes in analyzing and refining AI prompts to enhance clarity, specificity, and effectiveness without executing tasks.
         refactor: Senior full stack developer with emphases in correct syntax and documentation
         tester: Quality assurance tester with experience in software testing and debugging, generates high-quality unit tests
-        dataviz: Create clear, insightful data visualizations and provide analysis using structured formats, focusing solely on visualization requests and recommendations.
+        analyst: Create clear, insightful data visualizations and provide analysis using structured formats, focusing solely on visualization requests and recommendations.
         writer: Writing assistant to help with generating science & technology related content
         editor: Text editing assistant to help with clarity and brevity
         artist: Creates an images described by the prompt, default style leans toward illustrations
@@ -307,7 +307,7 @@ Agent parameters:
     Seed: {self.seed}
     Text logging: {self.logging}
     Verbose StdOut: {self.verbose}
-    Snippet logging: {self.save_code}
+    Code snippet detection: {self.save_code}
     """
         if "dall-e" in self.model:
             status += f"""Image dimensions: {self.dimensions}
@@ -319,8 +319,14 @@ Agent parameters:
         """Start a new thread with only the current agent."""
         self.thread = self.client.beta.threads.create()
 
-    def request(self, prompt, thread=None):
+    def request(self, prompt=''):
         """Submits the query to OpenAIs API and processes the response."""
+        # Checks for last system response is not prompt provided
+        if prompt == '':
+            try:
+                prompt = self.message
+            except Exception as e:
+                raise ValueError(f"No existing messages found in thread: {e}")
 
         # Update user prompt 
         self._prepare_query_text(prompt)
@@ -721,7 +727,7 @@ Agent parameters:
             if self.run_status.status in ["completed", "failed"]:
                 break
             else:
-                time.sleep(2)  # Wait before polling again
+                time.sleep(1)  # Wait before polling again
 
         if self.run_status.status == "completed":
             messages = self.client.beta.threads.messages.list(thread_id=self.thread.id)

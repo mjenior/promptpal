@@ -11,6 +11,7 @@ from .roles import *
 roleDict = {
    'assistant': {'prompt':ASSISTANT, 'name':'Assistant'},
    'developer': {'prompt':DEVELOPER, 'name':'Full Stack Developer'},
+   'prompt': {'prompt':PROMPT_ENGINEER, 'name':'Prompt Engineer'},
    'refactor': {'prompt':REFACTOR, 'name':'Refactoring Expert'},
    'tester': {'prompt':UNIT_TESTS, 'name':'Unit Tester'},
    'artist': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
