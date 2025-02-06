@@ -168,7 +168,7 @@ class CreateAgent:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"        
         if self.logging: self._setup_logging()
-        self._log_and_print(self.report_status(), self.verbose, self.logging)
+        self._log_and_print(self.report_status(), False, self.logging)
 
     def _validate_types(self):
         """
@@ -328,8 +328,8 @@ Agent parameters:
         if "dall-e" in self.model:
             status += f"""Image dimensions: {self.dimensions}
     Image quality: {self.quality}
-    """
-        return status
+"""
+        print(status)
 
     def start_new_thread(self, context=None):
         """Start a new thread with only the current agent and adds previous context if needed."""
