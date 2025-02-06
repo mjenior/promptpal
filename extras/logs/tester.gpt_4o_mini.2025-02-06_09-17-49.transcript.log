@@ -1,0 +1,21 @@
+New session initiated.
+
+Agent parameters:
+    Model: gpt-4o-mini
+    Role: Unit Tester
+    
+    Chain-of-thought: False
+    Prompt refinement: False
+    Associative glyphs: False
+    Response iterations: 1
+    Subdirectory scanning: False
+    Text logging: True
+    Verbose StdOut: True
+    Code snippet detection: True
+    Time stamp: 2025-02-06_09-17-49
+    Assistant ID: asst_Mk4nQFX7N39Iz9LfdXRjG24r
+    Thread ID: thread_DXlENUO7whoNrAuPFyCjzZSv
+    Seed: 111010000110110001
+    Requests in current thread: 0
+    Current total cost: $0.0
+    

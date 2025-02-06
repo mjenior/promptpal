@@ -1,0 +1,19 @@
+New session initiated.
+
+Agent parameters:
+    Model: gpt-4o-mini
+    Role: Unit Tester
+    
+    Chain-of-thought: False
+    Prompt refinement: False
+    Associative glyphs: False
+    Response iterations: 1
+    Subdirectory scanning: False
+    Text logging: True
+    Verbose StdOut: True
+    Code snippet detection: True
+    Time stamp: 2025-02-06_05-40-42
+    Assistant ID: asst_eV0olxqHxFvS7UMqwqRze5M5
+    Thread ID: thread_wG3Xls8FNKaI8GhTeUAcifU2
+    Seed: 111010000110110001
+    
