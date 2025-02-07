@@ -27,6 +27,10 @@ if api_key is None:
 # Initialize OpenAI client and conversation thread
 client = OpenAI(api_key=api_key)
 thread = client.beta.threads.create()
+thread.current_thread_calls = 0
+total_cost = 0.0
+total_tokens = {}
+
 
 class CreateAgent:
     """
@@ -47,7 +51,6 @@ class CreateAgent:
         save_code (bool): If True, extracts and saves code snippets from the response.
         scan_dirs (bool): If True, recursively scans directories found in prompt for existing files, extracts contents, and adds to prompt.
         logging (bool): If True, logs the session to a file.
-        api_key (str): The API key for OpenAI. Defaults to system environment variable.
         seed (int or str): Seed for reproducibility. Can be an integer or a string converted to binary.
         iterations (int): Number of response iterations for refining or condensing outputs.
         dimensions (str): Dimensions for image generation (e.g., '1024x1024').
@@ -59,7 +62,7 @@ class CreateAgent:
         glyph (bool): If True, restructures queries with representative/associative glyphs and logic flow
         temperature (float): Range from 0.0 to 2.0, lower values increase randomness, and higher values increase randomness.
         top_p (float): Range from 0.0 to 2.0, lower values increase determinism, and higher values increase determinism.
-        thread_limit (int): Maximum number of messages to a single thread before summarizing content and passing to new instance
+        message_limit (int): Maximum number of messages to a single thread before summarizing content and passing to new instance
         last_message (str): Last returned system message
 
     Current role shortcuts:
@@ -100,24 +103,25 @@ class CreateAgent:
 
     def __init__(
         self,
-        logging=True,
-        verbose=True,
-        silent=False,
-        refine=False,
-        glyph=False,
-        chain_of_thought=False,
-        save_code=False,
-        scan_dirs=False,
-        model="gpt-4o-mini",
-        role="assistant",
-        seed="t634e``R75T86979UYIUHGVCXZ",
-        iterations=1,
-        temperature=0.7,
-        top_p=1.0,
-        dimensions="NA",
-        quality="NA",
-        stage='normal',
-        thread_limit=10):
+        logging = True,
+        verbose = True,
+        silent = False,
+        refine = False,
+        glyph = False,
+        chain_of_thought = False,
+        save_code = False,
+        scan_dirs = False,
+        new_thread = False,
+        model = "gpt-4o-mini",
+        role = "assistant",
+        seed = "t634e``R75T86979UYIUHGVCXZ",
+        iterations = 1,
+        temperature = 0.7,
+        top_p = 1.0,
+        dimensions = "NA",
+        quality = "NA",
+        stage = 'normal',
+        message_limit = 10):
         """
         Initialize the handler with default or provided values.
         """
@@ -129,6 +133,7 @@ class CreateAgent:
         self.chain_of_thought = chain_of_thought
         self.save_code = save_code
         self.scan_dirs = scan_dirs
+        self.new_thread = new_thread
         self.model = model
         self.role = role
         self.seed = seed
@@ -138,22 +143,25 @@ class CreateAgent:
         self.dimensions = dimensions
         self.quality = quality
         self.stage = stage
-        self.current_thread_limit = thread_limit
+        self.message_limit = message_limit
 
         # Check user input types
         self._validate_types()
 
-        # API data
-        self.api_key = api_key
-        self.client = client
-        self.thread = thread
-        self.thread.current_thread_calls = 0
-        self.thread.current_thread_limit = self.current_thread_limit
-        self.total_cost = 0.0
+        # Agent-specific thread params
+        global thread
+        thread.message_limit = message_limit
+        if self.new_thread == True:
+            self.start_new_thread()
+
+        # Update token counters
+        global total_tokens
+        self.tokens = {"prompt": 0, "completion": 0}
+        if self.model not in total_tokens.keys():
+            total_tokens[self.model] = {"prompt": 0, "completion": 0}
         
         # Validdate specific hyperparams
         self.stage = self.stage if self.stage == 'refine_only' else 'normal'
-        self.tokens = {"prompt": 0, "completion": 0}
         self.seed = self.seed if isinstance(self.seed, int) else self._string_to_binary(self.seed)
         self.temperature, self.top_p = self._validate_probability_params(self.temperature, self.top_p)
         
@@ -187,6 +195,7 @@ class CreateAgent:
             'chain_of_thought': bool,
             'save_code': bool,
             'scan_dirs': bool,
+            'new_thread': bool,
             'model': str,
             'role': str,
             'seed': (int, str),  # seed can be either int or str
@@ -196,7 +205,7 @@ class CreateAgent:
             'dimensions': str,
             'quality': str,
             'stage': str,
-            'current_thread_limit': int
+            'message_limit': int
         }
 
         for attr_name, expected_type in expected_types.items():
@@ -320,10 +329,10 @@ Agent parameters:
     Code snippet detection: {self.save_code}
     Time stamp: {self.timestamp}
     Assistant ID: {self.agent}
-    Thread ID: {self.thread.id}
+    Thread ID: {thread.id}
     Seed: {self.seed}
-    Requests in current thread: {self.thread.current_thread_calls}
-    Current total cost: ${round(self.total_cost, 5)}
+    Requests in current thread: {thread.current_thread_calls}
+    Current total cost: ${round(total_cost, 5)}
     """
         if "dall-e" in self.model:
             status += f"""Image dimensions: {self.dimensions}
@@ -333,14 +342,15 @@ Agent parameters:
 
     def start_new_thread(self, context=None):
         """Start a new thread with only the current agent and adds previous context if needed."""
-        self.thread = self.client.beta.threads.create()
-        self.thread.current_thread_calls = 0
-        self.thread.current_thread_limit = self.current_thread_limit
+        global thread
+        thread = client.beta.threads.create()
+        thread.current_thread_calls = 0
+        thread.message_limit = self.message_limit
 
         # Add previous context
         if context:
             previous_context = client.beta.threads.messages.create(
-                thread_id=self.thread.id, role="user", content=context)
+                thread_id=thread.id, role="user", content=context)
 
     def request(self, prompt=''):
         """Submits the query to OpenAIs API and processes the response."""
@@ -359,7 +369,7 @@ Agent parameters:
 
         if self.stage != "refine_only":
             if "dall-e" not in self.model:
-                self.thread.current_thread_calls += 1
+                thread.current_thread_calls += 1
                 self._handle_text_request()
             else:
                 self._handle_image_request()
@@ -368,7 +378,7 @@ Agent parameters:
         self._log_and_print(token_report, self.verbose, self.logging)
 
         # Check current scope thread
-        if self.thread.current_thread_calls >= self.thread.current_thread_limit:
+        if thread.current_thread_calls >= thread.message_limit:
             self._log_and_print(f"\nReached end of current thread limit.\n", self.verbose, False)
             summary = self.summarize_current_thread()
             self.start_new_thread("The following is a summary of a ongoing conversation with a user and an AI assistant:\n" + summary)
@@ -377,7 +387,7 @@ Agent parameters:
         """Initialize and submit a single chat completion request"""
         message = [{"role": "user", "content": prompt}, {"role": "system", "content": role}]
 
-        completion = self.client.chat.completions.create(
+        completion = client.chat.completions.create(
             model=model, messages=message, n=iters,
             seed=seed, temperature=temp, top_p=top_p)
 
@@ -399,7 +409,7 @@ Agent parameters:
 
     def _get_thread_messages(self, join_messages=True):
         """Fetches all messages from a thread in order and returns them as a list."""
-        messages = self.client.beta.threads.messages.list(thread_id=self.thread.id)
+        messages = client.beta.threads.messages.list(thread_id=thread.id)
         sorted_messages = sorted(messages.data, key=lambda msg: msg.created_at)
         conversation = "\n".join(sorted_messages)
 
@@ -451,7 +461,7 @@ Agent parameters:
     def _handle_image_request(self):
         """Processes image generation requests using OpenAIs image models."""
         os.makedirs("images", exist_ok=True)
-        response = self.client.images.generate(
+        response = client.images.generate(
             model=self.model,
             prompt=self.prompt,
             n=1,
@@ -478,9 +488,11 @@ Agent parameters:
         self._log_and_print(self.last_message, True, self.logging)
 
     def _gen_token_report(self):
-        """Generates report string for overall cost of the query."""
-        prompt_cost, completion_cost = "Unknown model rate", "Unknown model rate"
-        total_tokens = self.tokens["prompt"] + self.tokens["completion"]
+        """Generates session token and cost report."""
+
+        global total_cost
+        global total_tokens
+
         rates = {
             "gpt-4o": (2.5, 10),
             "gpt-4o-mini": (0.150, 0.600),
@@ -493,14 +505,17 @@ Agent parameters:
             prompt_rate, completion_rate = rates.get(self.model)
             prompt_cost = self._calculate_cost(self.tokens["prompt"], prompt_rate)
             completion_cost = self._calculate_cost(
-                self.tokens["completion"], completion_rate
-            )
-            self.total_cost += round(prompt_cost + completion_cost, 5)
-        return (
-            f"\nCurrent total tokens generated by this agent: {total_tokens}  (${self.total_cost})"
-            f"\n - prompt tokens (i.e. input): {self.tokens['prompt']}  (${prompt_cost})"
-            f"\n - completion tokens (i.e. output): {self.tokens['completion']}  (${completion_cost})"
-        )
+                self.tokens["completion"], completion_rate)
+
+            total_cost += round(prompt_cost + completion_cost, 5)
+
+        token_report = f"""
+Overall session total cost: ${total_cost}
+    Current agent using: {self.model}
+        Input tokens: {self.tokens['prompt']} = ${round(prompt_cost, 5)}
+        Output tokens: {self.tokens['completion']} = ${round(completion_cost, 5)}
+"""
+        return token_report
 
     def _condense_iterations(self, api_response):
         """Condenses multiple API responses into a single coherent response."""
@@ -572,6 +587,10 @@ Agent parameters:
 
     def _update_token_count(self, response_obj):
         """Updates token count for prompt and completion."""
+        global total_tokens
+        total_tokens[self.model]["prompt"] += response_obj.usage.prompt_tokens
+        total_tokens[self.model]["completion"] += response_obj.usage.completion_tokens
+        # Agent-specific counts
         self.tokens["prompt"] += response_obj.usage.prompt_tokens
         self.tokens["completion"] += response_obj.usage.completion_tokens
 
@@ -720,7 +739,7 @@ Agent parameters:
             New assistant assistant class instance
         """
         try:
-            agent = self.client.beta.assistants.create(
+            agent = client.beta.assistants.create(
                 name=self.role_name,
                 instructions=self.role,
                 model=self.model,
@@ -742,26 +761,26 @@ Agent parameters:
         """
         # Adds user prompt to existing thread.
         try:
-            new_message = self.client.beta.threads.messages.create(
-                thread_id=self.thread.id, role="user", content=self.prompt)
+            new_message = client.beta.threads.messages.create(
+                thread_id=thread.id, role="user", content=self.prompt)
         except Exception as e:
             raise RuntimeError(f"Failed to create message: {e}")
 
         # Run the assistant on the thread
-        current_run = self.client.beta.threads.runs.create(
-            thread_id=self.thread.id,
+        current_run = client.beta.threads.runs.create(
+            thread_id=thread.id,
             assistant_id=self.agent)
 
         # Wait for completion and retrieve responses
         while True:
-            self.run_status = self.client.beta.threads.runs.retrieve(thread_id=self.thread.id, run_id=current_run.id)
+            self.run_status = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=current_run.id)
             if self.run_status.status in ["completed", "failed"]:
                 break
             else:
                 time.sleep(1)  # Wait before polling again
 
         if self.run_status.status == "completed":
-            messages = self.client.beta.threads.messages.list(thread_id=self.thread.id)
+            messages = client.beta.threads.messages.list(thread_id=thread.id)
             if messages.data:  # Check if messages list is not empty
                 return messages.data[0].content[0].text.value
             else:

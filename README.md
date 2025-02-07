@@ -1,7 +1,7 @@
 # PromptPal
 Python based tool for improved LLM interactions using the OpenAI API package.
 
-#### VERSION = 1.3.5
+#### VERSION = 1.3.6
 
 ## Overview
 
