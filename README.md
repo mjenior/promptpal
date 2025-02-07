@@ -1,7 +1,7 @@
 # PromptPal
 Python based tool for improved LLM interactions using the OpenAI API package.
 
-#### VERSION = 1.3.8
+#### VERSION = 1.3.9
 
 ## Overview
 
@@ -30,6 +30,7 @@ This package is a Python-based prompt enhancing tool that allows users to automa
    - [Identify and Save Code Snippets](#identify-code-snippets)
    - [Chain of Thought Enforcement](#chain-of-thought-enforcement)
    - [Query Prompt Refinement](#query-prompt-refinement)
+   - [Manage Threads](#manage-threads)
    - [Response Iterations](#response-iterations)
    - [Recursive Directory Scanning](#recursive-directory-scanning)
    - [Associative Glyph Prompting](#associative-glyph-prompting)
@@ -70,7 +71,7 @@ export OPENAI_API_KEY="your_openai_api_key"
 
 
 ## Changelog
-- Latest: - 1.3.8 = Automated custom role refinement
+- Latest: 1.3.9 = Improved status reports and bug fixes
 - 1.3.7 = Improved status reports
 - 1.3.6 = Global thread tracking
 - 1.3.5 = Thread context summarizing and scope limit
@@ -246,6 +247,33 @@ Can you provide detailed, step-by-step instructions for changing a tire, emphasi
 You should include comprehensive details like how to safely park the car, the importance of using a wheel chock, and the correct way to position the jack. 
 Also, expand on how to properly remove the lug nuts, replace the tire, and ensure everything is secure before driving again.
 ```
+
+### Manage Threads
+
+By default, all agents around initialized onto the same global thread for the current instance that has a default limit of 20 messages before an internal summary of the entire thread is generated and then passed as context to a new thread instance. An option the user has is to create an agent into a brand new thread, with a different message limit.
+
+```python
+agent = CreateAgent(message_limit=30, new_thread=True)
+```
+
+Alternatively, a new thread can be initiated any time with:
+
+```python
+agent.start_new_thread()
+```
+
+Also, an agent from another thread can be brought into another existing conversation just by changing the thread ID it is pointing to.
+
+```python
+agent.thread_id = "thread_dZcjYTBMthN6F1WqrEtCfFxS"
+```
+
+Additionally, the thread summary method can also be called at any time to see a brief recap of the current ongoing conversation.
+
+```python
+agent.summarize_current_thread()
+```
+
 
 ### Response Iterations
 
