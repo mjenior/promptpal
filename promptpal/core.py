@@ -81,7 +81,9 @@ class CreateAgent:
     Methods:
         __init__: Initializes the handler with default or provided values.
         request: Submits a query to the OpenAI API and processes the response.
-        report_status: Reports current attributes and status of agent
+        status: Reports current attributes and status of agent and session information 
+        cost_report: Reports spending information
+        token_report: Reports token generation information
         start_new_thread: Start a new thread with only the current agent.
         summarize_current_thread: Summarize current conversation history for future context parsing.
         _extract_and_save_code: Extracts code snippets from the response and saves them to files.
@@ -156,6 +158,7 @@ class CreateAgent:
 
         # Update token counters
         global total_tokens
+        self.cost = {"prompt": 0.0, "completion": 0.0}
         self.tokens = {"prompt": 0, "completion": 0}
         if self.model not in total_tokens.keys():
             total_tokens[self.model] = {"prompt": 0, "completion": 0}
@@ -176,7 +179,7 @@ class CreateAgent:
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"        
         if self.logging: self._setup_logging()
-        self._log_and_print(self.report_status(), False, self.logging)
+        self._log_and_print(self.status(), False, self.logging)
 
     def _validate_types(self):
         """
@@ -312,9 +315,9 @@ class CreateAgent:
         self.quality = "hd" if quality.lower() in {"h", "hd", "high", "higher", "highest"} else "standard"
         self.quality = "hd" if self.label == "photographer" else self.quality # Check for photo role
         
-    def report_status(self):
+    def status(self):
         """Generate status message."""
-        status = f"""
+        statusStr = f"""
 Agent parameters:
     Model: {self.model}
     Role: {self.role_name}
@@ -327,18 +330,23 @@ Agent parameters:
     Text logging: {self.logging}
     Verbose StdOut: {self.verbose}
     Code snippet detection: {self.save_code}
+
+    Image dimensions: {self.dimensions}
+    Image quality: {self.quality}
+
     Time stamp: {self.timestamp}
+    Seed: {self.seed}
     Assistant ID: {self.agent}
     Thread ID: {thread.id}
-    Seed: {self.seed}
     Requests in current thread: {thread.current_thread_calls}
-    Current total cost: ${round(total_cost, 5)}
     """
-        if "dall-e" in self.model:
-            status += f"""Image dimensions: {self.dimensions}
-    Image quality: {self.quality}
-"""
-        print(status)
+        self._log_and_print(statusStr, True, self.logging)
+
+        # Token usage report
+        self.token_report()
+        
+        # $$$ report
+        self.cost_report()
 
     def start_new_thread(self, context=None):
         """Start a new thread with only the current agent and adds previous context if needed."""
@@ -351,6 +359,10 @@ Agent parameters:
         if context:
             previous_context = client.beta.threads.messages.create(
                 thread_id=thread.id, role="user", content=context)
+
+        # Report
+        self._log_and_print(f"New thread created: {thread.id}\n", 
+            self.verbose, self.logging)
 
     def request(self, prompt=''):
         """Submits the query to OpenAIs API and processes the response."""
@@ -373,9 +385,6 @@ Agent parameters:
                 self._handle_text_request()
             else:
                 self._handle_image_request()
-
-        token_report = self._gen_token_report()
-        self._log_and_print(token_report, self.verbose, self.logging)
 
         # Check current scope thread
         if thread.current_thread_calls >= thread.message_limit:
@@ -404,6 +413,7 @@ Agent parameters:
         summary_prompt = modifierDict['summarize'] + "\n\n" + all_messages
         summarized = self._init_chat_completion(prompt=summary_prompt, iters=self.iterations, seed=self.seed)
         self._update_token_count(summarized)
+        self._calculate_cost()
 
         return summarized.choices[0].message.content.strip()
 
@@ -422,6 +432,7 @@ Agent parameters:
         """Processes text-based responses from OpenAIs chat models."""
         self.last_message = self._run_thread_request()
         self._update_token_count(self.run_status)
+        self._calculate_cost()
         self._log_and_print(self.last_message, True, self.logging)
 
         # Extract code snippets
@@ -469,6 +480,7 @@ Agent parameters:
             quality=self.quality,
         )
         self._update_token_count(response)
+        self._calculate_cost()
         self._log_and_print(
             f"\nRevised initial prompt:\n{response.data[0].revised_prompt}",
             self.verbose,
@@ -487,12 +499,34 @@ Agent parameters:
         )
         self._log_and_print(self.last_message, True, self.logging)
 
-    def _gen_token_report(self):
-        """Generates session token and cost report."""
-
-        global total_cost
+    def _update_token_count(self, response_obj):
+        """Updates token count for prompt and completion."""
         global total_tokens
+        total_tokens[self.model]["prompt"] += response_obj.usage.prompt_tokens
+        total_tokens[self.model]["completion"] += response_obj.usage.completion_tokens
+        # Agent-specific counts
+        self.tokens["prompt"] += response_obj.usage.prompt_tokens
+        self.tokens["completion"] += response_obj.usage.completion_tokens
 
+    def token_report(self):
+        """Generates session token report."""
+        allTokensStr = ""
+        for x in total_tokens.keys():
+            allTokensStr += f"{x}: Input = {total_tokens[x]['prompt']}; Completion = {total_tokens[x]['completion']}\n"
+
+        tokenStr = f"""Overall session tokens:
+    {allTokensStr}
+    Current agent tokens: 
+        Input: {self.tokens['prompt']}
+        Output: {self.tokens['completion']}
+"""
+        self._log_and_print(tokenStr, True, self.logging)
+
+    def _calculate_cost(self, dec=5):
+        """Calculates approximate cost (USD) of LLM tokens generated to a given decimal place"""
+        global total_cost
+
+        # As of January 24, 2025
         rates = {
             "gpt-4o": (2.5, 10),
             "gpt-4o-mini": (0.150, 0.600),
@@ -503,19 +537,26 @@ Agent parameters:
         }
         if self.model in rates:
             prompt_rate, completion_rate = rates.get(self.model)
-            prompt_cost = self._calculate_cost(self.tokens["prompt"], prompt_rate)
-            completion_cost = self._calculate_cost(
-                self.tokens["completion"], completion_rate)
+            prompt_cost = round((self.tokens["prompt"] * prompt_rate) / 1e6, dec)
+            completion_cost = round((self.tokens["completion"] * completion_rate) / 1e6, dec)
+        else:
+            prompt_cost = completion_cost = 0.0
 
-            total_cost += round(prompt_cost + completion_cost, 5)
+        total_cost += round(prompt_cost + completion_cost, dec)
+        self.cost["prompt"] += prompt_cost
+        self.cost["completion"] += completion_cost
 
-        token_report = f"""
-Overall session total cost: ${total_cost}
+    def cost_report(self, dec=5):
+        """Generates session cost report."""
+        
+        costStr = f"""Overall session cost: ${total_cost}
+
     Current agent using: {self.model}
-        Input tokens: {self.tokens['prompt']} = ${round(prompt_cost, 5)}
-        Output tokens: {self.tokens['completion']} = ${round(completion_cost, 5)}
-"""
-        return token_report
+        Subtotal: ${round(self.cost['prompt'] + self.cost['completion'], dec)}
+        Input: ${self.cost['prompt']}
+        Output: ${self.cost['completion']}
+"""     
+        self._log_and_print(costStr, True, self.logging)
 
     def _condense_iterations(self, api_response):
         """Condenses multiple API responses into a single coherent response."""
@@ -531,6 +572,7 @@ Overall session total cost: ${total_cost}
             prompt= modifierDict['condense'] + "\n\n" + api_responses, 
             iters=self.iterations, seed=self.seed)
         self._update_token_count(condensed)
+        self._calculate_cost()
         message = condensed.choices[0].message.content.strip()
         self._log_and_print(
             f"\nCondensed text:\n{message}", self.verbose, self.logging
@@ -575,6 +617,7 @@ Overall session total cost: ${total_cost}
             top_p=self.top_p)
 
         self._update_token_count(refined)
+        self._calculate_cost()
         if self.iterations > 1:
             new_prompt = self._condense_iterations(refined)
         else:
@@ -585,15 +628,6 @@ Overall session total cost: ${total_cost}
 
         return new_prompt
 
-    def _update_token_count(self, response_obj):
-        """Updates token count for prompt and completion."""
-        global total_tokens
-        total_tokens[self.model]["prompt"] += response_obj.usage.prompt_tokens
-        total_tokens[self.model]["completion"] += response_obj.usage.completion_tokens
-        # Agent-specific counts
-        self.tokens["prompt"] += response_obj.usage.prompt_tokens
-        self.tokens["completion"] += response_obj.usage.completion_tokens
-
     def _log_and_print(self, message, verb=True, log=True):
         """Logs and prints the provided message if verbose."""
         if message:
@@ -602,11 +636,6 @@ Overall session total cost: ${total_cost}
             if log == True:
                 with open(self.log_file, "a", encoding="utf-8") as f:
                     f.write(message + "\n")
-
-    @staticmethod
-    def _calculate_cost(tokens, perM, dec=5):
-        """Calculates approximate cost (USD) of LLM tokens generated to a given decimal place"""
-        return round((tokens * perM) / 1e6, dec)
 
     @staticmethod
     def _string_to_binary(input_string):

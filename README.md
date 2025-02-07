@@ -1,7 +1,7 @@
 # PromptPal
 Python based tool for improved LLM interactions using the OpenAI API package.
 
-#### VERSION = 1.3.6
+#### VERSION = 1.3.7
 
 ## Overview
 
@@ -33,6 +33,7 @@ This package is a Python-based prompt enhancing tool that allows users to automa
    - [Response Iterations](#response-iterations)
    - [Recursive Directory Scanning](#recursive-directory-scanning)
    - [Associative Glyph Prompting](#associative-glyph-prompting)
+   - [Checking Agent and Session Status](#checking-agent-and-session-status)
    - [Image Generation Parameters](#image-generation-parameters)
 4. [Advanced Usage](#advanced-usage)
 5. [Contributing](#contributing)
@@ -47,11 +48,12 @@ Promptpal is available of Pypi so it's easiest to install via pip directly:
 pip install promptpal
 ```
 
-Or you may also install from source for the latest developments with: 
+Or you may also install from source on the latest development branch with: 
 
 ```bash
 git clone https://github.com/mjenior/promptpal.git
 cd promptpal
+git checkout development
 pip install .
 ```
 
@@ -68,7 +70,9 @@ export OPENAI_API_KEY="your_openai_api_key"
 
 
 ## Changelog
-- Latest: 1.3.5 = Thread context summarizing and scope limit
+- Latest: 1.3.7 = Improved status reports
+- 1.3.6 = Global thread tracking
+- 1.3.5 = Thread context summarizing and scope limit
 - 1.3.4 = Added URL checking, user input validation, and prompt engineer role
 - 1.3.0 = Refactored agent class and request method to now use assistant and threads beta features
 - 1.2.0 = Greatly improved automatic code extraction
@@ -304,6 +308,84 @@ Resulting altered user prompt:
   @Output(Final Solution/Understanding, Justification, Reflection on Process) -> Present a clear, actionable plan that outlines the steps to be taken, providing justification for each recommendation and reflecting on the overall process to ensure thoroughness and clarity.
 }
 ```
+
+### Checking Agent and Session Status 
+
+The initial status of agents in the current session are reported any time a new agent is created. This report can be regenerated at any time to see the current status with [agent.status()].
+
+Example:
+```python
+agent.status()
+```
+Output:
+```
+Agent parameters:
+    Model: gpt-4o-mini
+    Role: Full Stack Developer
+    
+    Chain-of-thought: True
+    Prompt refinement: False
+    Associative glyphs: False
+    Response iterations: 1
+    Subdirectory scanning: False
+    Text logging: False
+    Verbose StdOut: True
+    Code snippet detection: True
+
+    Image dimensions: NA
+    Image quality: NA
+
+    Time stamp: 2025-02-07_09-12-50
+    Seed: 111010000110110001
+    Assistant ID: asst_MHB9mANhwivKgYo4VB0iGZcU
+    Thread ID: thread_8ATeHKR9SK4aI7lrEfxpyTaH
+    Requests in current thread: 2
+    
+Overall session tokens:
+    gpt-4o-mini: Input = 25362; Completion = 2424
+
+    Current agent tokens: 
+        Input: 25362
+        Output: 2424
+
+Overall session cost: $0.0072
+
+    Current agent using: gpt-4o-mini
+        Subtotal: $0.0072
+        Input: $0.00505
+        Output: $0.00215
+```
+
+Separate token and cost reports can be generated individually any time as well using [agent.token_report()] and [agent.cost_report()] respectively. Tokens will be shown for all models called by agents into the current thread.
+
+```python
+agent.token_report()
+```
+Output:
+```
+Overall session tokens:
+    gpt-4o-mini: Input = 25362; Completion = 2424
+
+    Current agent tokens: 
+        Input: 25362
+        Output: 2424
+```
+
+Total cost is a function of input and output tokens along with their associated model input/output pricing rates.
+
+```python
+agent.cost_report()
+```
+Output:
+```
+Overall session cost: $0.0072
+
+    Current agent using: gpt-4o-mini
+        Subtotal: $0.0072
+        Input: $0.00505
+        Output: $0.00215
+```
+
 
 ### Image Generation Parameters
 
