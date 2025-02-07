@@ -82,6 +82,7 @@ class CreateAgent:
         __init__: Initializes the handler with default or provided values.
         request: Submits a query to the OpenAI API and processes the response.
         report_status: Reports current attributes and status of agent
+        cost_report: 
         start_new_thread: Start a new thread with only the current agent.
         summarize_current_thread: Summarize current conversation history for future context parsing.
         _extract_and_save_code: Extracts code snippets from the response and saves them to files.
@@ -327,18 +328,24 @@ Agent parameters:
     Text logging: {self.logging}
     Verbose StdOut: {self.verbose}
     Code snippet detection: {self.save_code}
+    Image dimensions: {self.dimensions}
+    Image quality: {self.quality}
     Time stamp: {self.timestamp}
     Assistant ID: {self.agent}
     Thread ID: {thread.id}
     Seed: {self.seed}
     Requests in current thread: {thread.current_thread_calls}
-    Current total cost: ${round(total_cost, 5)}
+    Total session cost: ${round(total_cost, 5)}
     """
-        if "dall-e" in self.model:
-            status += f"""Image dimensions: {self.dimensions}
-    Image quality: {self.quality}
-"""
         print(status)
+
+
+        # Token usage report
+
+
+        # $$$ report
+
+        
 
     def start_new_thread(self, context=None):
         """Start a new thread with only the current agent and adds previous context if needed."""
@@ -374,8 +381,8 @@ Agent parameters:
             else:
                 self._handle_image_request()
 
-        token_report = self._gen_token_report()
-        self._log_and_print(token_report, self.verbose, self.logging)
+        reportStr = self.cost_report()
+        self._log_and_print(reportStr, self.verbose, self.logging)
 
         # Check current scope thread
         if thread.current_thread_calls >= thread.message_limit:
@@ -487,7 +494,7 @@ Agent parameters:
         )
         self._log_and_print(self.last_message, True, self.logging)
 
-    def _gen_token_report(self):
+    def cost_report(self):
         """Generates session token and cost report."""
 
         global total_cost

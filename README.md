@@ -50,7 +50,7 @@ pip install promptpal
 Or you may also install from source for the latest developments with: 
 
 ```bash
-git clone https://github.com/mjenior/promptpal.git
+git clone https://github.com/mjenior/promptpal/development.git
 cd promptpal
 pip install .
 ```
