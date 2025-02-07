@@ -277,7 +277,7 @@ class CreateAgent:
         self.model = input_model.lower() if input_model.lower() in openai_models else "gpt-4o-mini"
 
     def _prepare_system_role(self, input_role):
-        """Prepares system role tetx."""
+        """Prepares system role text."""
 
         # Selects the role based on user input or defaults.
         if input_role.lower() in roleDict:
@@ -290,9 +290,8 @@ class CreateAgent:
             self.label = "default"
             self.role_name = "Default User"
         else:
-            self.role = input_role
+            self.role_name, self.role = self._refine_custom_role(input_role)
             self.label = "custom"
-            self.role_name = "User-defined custom role"
 
         # Add chain of thought reporting
         if self.chain_of_thought:
@@ -302,6 +301,29 @@ class CreateAgent:
         """Reads the contents of a given file."""
         with open(filename, "r", encoding="utf-8") as f:
             return f"# File: {filename}\n{f.read()}"
+
+    def _refine_custom_role(self, init_role):
+        """Reformat input custom user roles for improved outcomes."""
+
+        self._log_and_print(f"Refining custom role text...\n", self.verbose, self.logging)
+
+        # Reformat role text
+        refine_prompt = "Format and improve the following system role propmt to maximize clarity and potential output quality:\n\n" + init_role
+        response = self._init_chat_completion(refine_prompt)
+        custom_role = response.choices[0].message.content.strip()
+        
+        # Name custom role
+        refine_prompt = "Generate a short and accurate name for the following system role prompt:\n\n" + custom_role
+        response = self._init_chat_completion(refine_prompt)
+        role_name = response.choices[0].message.content.strip()
+
+        reportStr = f"""Role name: {role_name}
+Description: {custom_role}
+
+        """
+        self._log_and_print(reportStr, self.verbose, self.logging)
+
+        return role_name, custom_role
 
     def _validate_image_params(self, dimensions, quality):
         """Validates image dimensions and quality for the model."""
@@ -399,6 +421,8 @@ Agent parameters:
         completion = client.chat.completions.create(
             model=model, messages=message, n=iters,
             seed=seed, temperature=temp, top_p=top_p)
+        self._update_token_count(completion)
+        self._calculate_cost()
 
         return completion
 
@@ -412,8 +436,6 @@ Agent parameters:
         # Generate concise summary
         summary_prompt = modifierDict['summarize'] + "\n\n" + all_messages
         summarized = self._init_chat_completion(prompt=summary_prompt, iters=self.iterations, seed=self.seed)
-        self._update_token_count(summarized)
-        self._calculate_cost()
 
         return summarized.choices[0].message.content.strip()
 
@@ -571,8 +593,7 @@ Agent parameters:
         condensed = self._init_chat_completion( 
             prompt= modifierDict['condense'] + "\n\n" + api_responses, 
             iters=self.iterations, seed=self.seed)
-        self._update_token_count(condensed)
-        self._calculate_cost()
+
         message = condensed.choices[0].message.content.strip()
         self._log_and_print(
             f"\nCondensed text:\n{message}", self.verbose, self.logging
@@ -616,8 +637,6 @@ Agent parameters:
             temp=self.temperature, 
             top_p=self.top_p)
 
-        self._update_token_count(refined)
-        self._calculate_cost()
         if self.iterations > 1:
             new_prompt = self._condense_iterations(refined)
         else:
