@@ -268,7 +268,7 @@ class CreateAgent:
         # Refine prompt if required
         if self.refine_prompt or self.glyph_prompt:
             self._log_and_print(
-                "\ngpt-4o-mini optimizing initial user request...\n", True, self.logging)
+                "\nAgent using gpt-4o-mini to optimize initial user request...\n", True, self.logging)
             self.prompt = self._refine_user_prompt(self.prompt)
 
     def _validate_model_selection(self, input_model):
@@ -376,7 +376,7 @@ Agent parameters:
         # Update user prompt 
         self._prepare_query_text(prompt)
         self._log_and_print(
-            f"\n{self.model} processing updated conversation thread...\n",
+            f"\n{self.role_name} using {self.model} to process updated conversation thread...\n",
                 True, self.logging)
 
         if self.stage != "refine_only":
@@ -404,7 +404,7 @@ Agent parameters:
 
     def summarize_current_thread(self):
         """Summarize current conversation history for future context parsing."""
-        self._log_and_print(f"\ngpt-4o-mini summarizing current thread...\n", self.verbose, False)
+        self._log_and_print(f"\nAgent using gpt-4o-mini to summarize current thread...\n", self.verbose, False)
 
         # Get all thread messages
         all_messages = self._get_thread_messages()
@@ -549,7 +549,7 @@ Agent parameters:
     def cost_report(self, dec=5):
         """Generates session cost report."""
         
-        costStr = f"""Overall session cost: ${total_cost}
+        costStr = f"""Overall session cost: ${round(total_cost, dec)}
 
     Current agent using: {self.model}
         Subtotal: ${round(self.cost['prompt'] + self.cost['completion'], dec)}
@@ -566,7 +566,7 @@ Agent parameters:
             for i in range(len(api_responses))])
 
         self._log_and_print(
-            f"\ngpt-4o-mini condensing response iterations...", self.verbose, self.logging
+            f"\nAgent using gpt-4o-mini to condense system responses...", self.verbose, self.logging
         )
         condensed = self._init_chat_completion( 
             prompt= modifierDict['condense'] + "\n\n" + api_responses, 
