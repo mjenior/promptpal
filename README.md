@@ -333,10 +333,10 @@ First, create a team of distinct agents with differing expertise.
 from promptpal.core import CreateAgent
 
 # Initialize agents
-comp_bio = CreateAgent(role="analyst", refine=True, chain_of_thought=True, glyph=True) # Computational biologist
+dev = CreateAgent(role="developer", refine=True, chain_of_thought=True) # Full Stack Developer
 recode = CreateAgent(role="refactor") # Code refactoring and formatting expert
 tests = CreateAgent(role="tester") # Unit test generator
-write = CreateAgent(role="writer", iterations=5, chain_of_thought=True, glyph=True) # Creative science writer
+write = CreateAgent(role="writer", iterations=3, chain_of_thought=True) # Creative science writer
 edit = CreateAgent(role="editor", refine=True) # Expert copy editor
 ```
 
@@ -345,11 +345,13 @@ Use inital agent to start the project:
 ```python
 # Make initial request to first agent for computational biology project
 query = """
-Write an analysis pipeline in python to assemble long nanopore reads into contigs and then align them to an annotated reference genome.
-Then identify all of the sequence variation present in the new genome that is not present in the reference.
-Additionally generate a figure from data generated during the alignment based on quality scores, and 2 more figures to help interpret the results at the end.
+Write a python GUI for the CreateAgent class in core.py to more easily interact with the OpenAI API.
+Use the Streamlit package to create an interactive HTML interface rather than using the built-in tkinter package.
+Include checkboxes for each of the input attribute options and small text input boxes for the string type attributes.
+Also include a large scrollable output text box to display all of the system responses.
+All input options should be in a single panel on the left and the output text box should be on the right, sized to max the height of the input panel.
 """
-developer.request(query)
+dev.request(query)
 ```
 
 Optimize and document any new code, add unit testing.
@@ -371,11 +373,10 @@ Then use the next agents to read through the new pipeline and generate a high-qu
 ```python
 # Utilize the writer agent to generate an informed post on the background and utility of the newly created pipeline
 query = """
-Write a biotechnology blog post about the pipeline described you have just outlined. 
-Include relevant background that would necessitate this type of analysis, and add at least one example use case for the workflow. 
-Extrapolate how the pipeline may be useful in cell engineering efforts, and what future improvements could lead to with continued work. 
-The resulting post should be at least 3 paragraphs long with 4-5 sentences in each.
-Speak in a conversational tone and cite all sources with biological relevance to you discussion.
+Write a technology blog post about the pipeline described you have just outlined. 
+Include relevant background and add at least one example use case for the interface. 
+The resulting post should be at least 2 paragraphs long with 4-5 sentences in each.
+Speak in a casual and conversational tone.
 """
 write.request(query)
 
