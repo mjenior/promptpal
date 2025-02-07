@@ -72,6 +72,7 @@ export OPENAI_API_KEY="your_openai_api_key"
 
 ## Changelog
 - Latest: 1.3.9 = Improved status reports and bug fixes
+- 1.3.7 = Improved status reports
 - 1.3.6 = Global thread tracking
 - 1.3.5 = Thread context summarizing and scope limit
 - 1.3.4 = Added URL checking, user input validation, and prompt engineer role
@@ -201,6 +202,9 @@ As an expert, you are equipped to provide insights, solve complex challenges, an
 
 game_dev = CreateAgent(role=new_role)
 ```
+
+If a very simple role description is provided such as "You are an Expert Game Developer", it will be automatically refined for improved guidance.
+
 
 ### Identify Code Snippets
 
