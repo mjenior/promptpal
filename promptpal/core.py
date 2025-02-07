@@ -18,7 +18,6 @@ refineDict = text_library["refinement"]
 extDict = text_library["extensions"]
 patternDict = text_library["patterns"]
 
-    
 # Confirm environment API key
 api_key = os.getenv("OPENAI_API_KEY")
 if api_key is None:
@@ -28,6 +27,7 @@ if api_key is None:
 client = OpenAI(api_key=api_key)
 thread = client.beta.threads.create()
 thread.current_thread_calls = 0
+client.thread_ids = set([thread.id])
 total_cost = 0.0
 total_tokens = {}
 
@@ -84,6 +84,7 @@ class CreateAgent:
         status: Reports current attributes and status of agent and session information 
         cost_report: Reports spending information
         token_report: Reports token generation information
+        thread_report: Report active threads from current session
         start_new_thread: Start a new thread with only the current agent.
         summarize_current_thread: Summarize current conversation history for future context parsing.
         _extract_and_save_code: Extracts code snippets from the response and saves them to files.
@@ -123,7 +124,7 @@ class CreateAgent:
         dimensions = "NA",
         quality = "NA",
         stage = 'normal',
-        message_limit = 10):
+        message_limit = 20):
         """
         Initialize the handler with default or provided values.
         """
@@ -152,6 +153,7 @@ class CreateAgent:
 
         # Agent-specific thread params
         global thread
+        self.thread_id = thread.id
         thread.message_limit = message_limit
         if self.new_thread == True:
             self.start_new_thread()
@@ -348,6 +350,9 @@ Agent parameters:
         # $$$ report
         self.cost_report()
 
+        # Thread report
+        self.thread_report()
+
     def start_new_thread(self, context=None):
         """Start a new thread with only the current agent and adds previous context if needed."""
         global thread
@@ -360,8 +365,12 @@ Agent parameters:
             previous_context = client.beta.threads.messages.create(
                 thread_id=thread.id, role="user", content=context)
 
+        global client
+        client.thread_ids |= set([thread.id])
+        self.thread_id = thread.id
+
         # Report
-        self._log_and_print(f"New thread created: {thread.id}\n", 
+        self._log_and_print(f"New thread created and added to current agent: {self.thread_id}\n", 
             self.verbose, self.logging)
 
     def request(self, prompt=''):
@@ -417,16 +426,13 @@ Agent parameters:
 
         return summarized.choices[0].message.content.strip()
 
-    def _get_thread_messages(self, join_messages=True):
-        """Fetches all messages from a thread in order and returns them as a list."""
-        messages = client.beta.threads.messages.list(thread_id=thread.id)
+    def _get_thread_messages(self):
+        """Fetches all messages from a thread in order and returns them as a text block."""
+        messages = client.beta.threads.messages.list(thread_id=self.thread_id)
         sorted_messages = sorted(messages.data, key=lambda msg: msg.created_at)
-        conversation = "\n".join(sorted_messages)
+        conversation = [x.content[0].text.value.strip() for x in sorted_messages]
 
-        if join_messages == True:
-            conversation = "\n".join(conversation)
-
-        return conversation
+        return "\n\n".join(conversation)
 
     def _handle_text_request(self):
         """Processes text-based responses from OpenAIs chat models."""
@@ -521,6 +527,14 @@ Agent parameters:
         Output: {self.tokens['completion']}
 """
         self._log_and_print(tokenStr, True, self.logging)
+
+
+    def thread_report(self):
+        """Report active threads from current session"""
+        threadStr = f"""Current session threads:
+    {'\n\t'.join(client.thread_ids)}
+"""
+        self._log_and_print(threadStr, True, self.logging)
 
     def _calculate_cost(self, dec=5):
         """Calculates approximate cost (USD) of LLM tokens generated to a given decimal place"""
@@ -791,25 +805,25 @@ Agent parameters:
         # Adds user prompt to existing thread.
         try:
             new_message = client.beta.threads.messages.create(
-                thread_id=thread.id, role="user", content=self.prompt)
+                thread_id=self.thread_id, role="user", content=self.prompt)
         except Exception as e:
             raise RuntimeError(f"Failed to create message: {e}")
 
         # Run the assistant on the thread
         current_run = client.beta.threads.runs.create(
-            thread_id=thread.id,
+            thread_id=self.thread_id,
             assistant_id=self.agent)
 
         # Wait for completion and retrieve responses
         while True:
-            self.run_status = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=current_run.id)
+            self.run_status = client.beta.threads.runs.retrieve(thread_id=self.thread_id, run_id=current_run.id)
             if self.run_status.status in ["completed", "failed"]:
                 break
             else:
                 time.sleep(1)  # Wait before polling again
 
         if self.run_status.status == "completed":
-            messages = client.beta.threads.messages.list(thread_id=thread.id)
+            messages = client.beta.threads.messages.list(thread_id=self.thread_id)
             if messages.data:  # Check if messages list is not empty
                 return messages.data[0].content[0].text.value
             else:
