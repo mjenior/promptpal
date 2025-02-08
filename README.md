@@ -1,7 +1,7 @@
 # PromptPal
 Python based tool for improved LLM interactions using the OpenAI API package.
 
-#### VERSION = 1.3.9
+#### VERSION = 1.3.10
 
 ## Overview
 
@@ -71,7 +71,7 @@ export OPENAI_API_KEY="your_openai_api_key"
 
 
 ## Changelog
-- Latest: 1.3.9 = Improved status reports and bug fixes
+- Latest: 1.3.10 = Improved status reports and bug fixes
 - 1.3.7 = Improved status reports
 - 1.3.6 = Global thread tracking
 - 1.3.5 = Thread context summarizing and scope limit

@@ -378,6 +378,7 @@ Agent parameters:
     def start_new_thread(self, context=None):
         """Start a new thread with only the current agent and adds previous context if needed."""
         global thread
+        global client
         thread = client.beta.threads.create()
         thread.current_thread_calls = 0
         thread.message_limit = self.message_limit
@@ -387,12 +388,11 @@ Agent parameters:
             previous_context = client.beta.threads.messages.create(
                 thread_id=thread.id, role="user", content=context)
 
-        global client
         client.thread_ids |= set([thread.id])
         self.thread_id = thread.id
 
         # Report
-        self._log_and_print(f"New thread created and added to current agent: {self.thread_id}\n", 
+        self._log_and_print(f"New thread with previous context added to current agent: {self.thread_id}\n", 
             self.verbose, self.logging)
 
     def request(self, prompt=''):
@@ -419,7 +419,7 @@ Agent parameters:
 
         # Check current scope thread
         if thread.current_thread_calls >= thread.message_limit:
-            self._log_and_print(f"\nReached end of current thread limit.\n", self.verbose, False)
+            self._log_and_print(f"Reached end of current thread limit.\n", self.verbose, False)
             summary = self.summarize_current_thread()
             self.start_new_thread("The following is a summary of a ongoing conversation with a user and an AI assistant:\n" + summary)
 
@@ -437,7 +437,7 @@ Agent parameters:
 
     def summarize_current_thread(self):
         """Summarize current conversation history for future context parsing."""
-        self._log_and_print(f"\nAgent using gpt-4o-mini to summarize current thread...\n", self.verbose, False)
+        self._log_and_print(f"Agent using gpt-4o-mini to summarize current thread...\n", self.verbose, False)
 
         # Get all thread messages
         all_messages = self._get_thread_messages()
@@ -553,8 +553,10 @@ Agent parameters:
 
     def thread_report(self):
         """Report active threads from current session"""
+
+        ids = '\n\t'.join(client.thread_ids)
         threadStr = f"""Current session threads:
-    {'\n\t'.join(client.thread_ids)}
+    {ids}
 """
         self._log_and_print(threadStr, True, self.logging)
 
