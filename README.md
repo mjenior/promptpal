@@ -62,7 +62,7 @@ That's it! Now you are able to initialize a **core.CreateAgent** class instance 
 
 ### API Keys
 
-IMPORTANT: Before using the tool, another critical step is to also set up your OpenAI API key. The package natively attempts to pull it from system-wide environmental variables in order to submit queries to ChatGPT.
+IMPORTANT: Before using the tool, another critical step is to also set up your OpenAI API key. The package natively attempts to pull it from system-wide environmental variables (**OPENAI_API_KEY**) in order to submit queries to ChatGPT.
 
 Set the environment variable(s):
 ```bash
@@ -84,7 +84,7 @@ export OPENAI_API_KEY="your_openai_api_key"
 
 ## Usage
 
-Current [CreateAgent()] adjustable attributes:
+Current **CreateAgent()** adjustable attributes:
 - model (str): The model to use for the query (e.g., 'gpt-4o-mini', 'dall-e-3').
 - client (OpenAI): The OpenAI client instance for API requests.
 - refine (bool): If True, refines the prompt before submission.
@@ -102,8 +102,7 @@ Current [CreateAgent()] adjustable attributes:
 - top_p (float): Range from 0.0 to 2.0, lower values increase determinism, and higher values increase determinism.
 - verbose (bool): If True, prints detailed logs and status messages.
 - silent (bool): If True, silences all StdOut messages.
-- tokens (dict): Tracks token usage for prompt and completion.
-- summary (bool): If True, summarizes the current conversation context to reference later.
+
 
 For simplicity, after initializing with the desired parameters the only user-executable method is **CreateAgent.request()** to submit prompts to the API. After which the **CreateAgent.message** attribute is then available containing the system response text.
 
@@ -247,7 +246,7 @@ As an expert, you are equipped to provide insights, solve complex challenges, an
 
 ### Identify Code Snippets
 
-The tool can automatically detects code snippets within an LLM's responses and saves them to individual scripts with the --save_code flag.
+The tool can automatically detects code snippets within an LLM's responses and saves them to individual scripts with the **--save_code** flag.
 
 Example:
 ```python
@@ -260,11 +259,11 @@ def find_max(lst):
     return max(lst)
 ```
 
-It will then automatically save the generated code into find_max.[time_stamp].py in the current working directory. Set to [True] by default.
+It will then automatically save the generated code into find_max.timestamp.py in the current working directory. Set to **True** by default.
 
 ### Chain of Thought Enforcement
 
-This feature helps guide the model's response by breaking down the steps in complex reasoning tasks. The --chain_of_thought flag enables the tool to append "chain of thought" prompts to ensure more detailed responses. It is [False] by default but automatically added to the default assistant, analyst, and developer system role prompts. The chain of thought flag will require the model to provide a step-by-step explanation or breakdown of reasoning, which can be especially useful in educational or technical explanations. It also helps mitigate the occurence of hallucinations.
+This feature helps guide the model's response by breaking down the steps in complex reasoning tasks. The **--chain_of_thought** flag enables the tool to append "chain of thought" prompts to ensure more detailed responses. It is **False** by default but automatically added to the default assistant, analyst, and developer system role prompts. The chain of thought flag will require the model to provide a step-by-step explanation or breakdown of reasoning, which can be especially useful in educational or technical explanations. It also helps mitigate the occurence of hallucinations.
 
 Example:
 ```python
@@ -273,7 +272,7 @@ agent = CreateAgent(chain_of_thought=True)
 
 ### Query Prompt Refinement
 
-Attempts to improve the clarity, focus, and specificity of a prompt to align with the desired outcomes or objectives with the --refine flag. It involves adjusting language, structure, and scope to ensure the prompt effectively guides responses and generates accurate, relevant, and actionable results. Results are automatically submitted as a new query to the requested LLM.
+Attempts to improve the clarity, focus, and specificity of a prompt to align with the desired outcomes or objectives with the **--refine** flag. It involves adjusting language, structure, and scope to ensure the prompt effectively guides responses and generates accurate, relevant, and actionable results. Results are automatically submitted as a new query to the requested LLM.
 
 Example:
 ```python
@@ -318,7 +317,7 @@ agent.summarize_current_thread()
 
 ### Response Iterations
 
-This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The --iterations flag accepts an integer value representing the number of separate reponse iterations the model will create for the given prompt. Increasing this value past the 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point. Recommended to use in combination with changing temperatature OR top_p for more creativity across responses (NOTE: OpenAI recommendeds NOT to change both of these parameters at once, could increase hallucinations).
+This feature helps to increase the creative ability of a model thorugh multiple distinct reponse generation followed by critical evaluation for the most optimal response. The **--iterations** flag accepts an integer value representing the number of separate reponse iterations the model will create for the given prompt. Increasing this value past the 1 will prompt the model to also provide a summary of it's evaluation including why the returned response was selected over others. Tip: Best results might be seen increasing this number relative to the complexity of the input prompt, but diminishing returns do seem to occur at a certain point. Recommended to use in combination with changing temperatature OR top_p for more creativity across responses (**NOTE:** OpenAI recommendeds NOT to change both of these parameters at once, could increase hallucinations).
 
 Example:
 ```python
@@ -384,7 +383,7 @@ Resulting altered user prompt:
 
 ### Checking Agent and Session Status 
 
-The initial status of agents in the current session are reported any time a new agent is created. This report can be regenerated at any time to see the current status with [agent.status()].
+The initial status of agents in the current session are reported any time a new agent is created. This report can be regenerated at any time to see the current status with **agent.status()**.
 
 Example:
 ```python
@@ -427,9 +426,13 @@ Overall session cost: $0.0072
         Subtotal: $0.0072
         Input: $0.00505
         Output: $0.00215
+
+Current session threads:
+    thread_oJVezRqePMgdDZLyHlzpi652
+
 ```
 
-Separate token and cost reports can be generated individually any time as well using [agent.token_report()] and [agent.cost_report()] respectively. Tokens will be shown for all models called by agents into the current thread.
+Separate token and cost reports can be generated individually any time as well using **agent.token_report()**, **agent.cost_report()**, and **agent.thread_report()** respectively. Tokens will be shown for all models called by agents into the current thread.
 
 ```python
 agent.token_report()
@@ -459,10 +462,21 @@ Overall session cost: $0.0072
         Output: $0.00215
 ```
 
+```python
+agent.thread_report()
+```
+Output:
+```
+Current session threads:
+    thread_oJVezRqePMgdDZLyHlzpi652
+    thread_aSDFgrqepi652asdfEFF536y
+    thread_adfGTa4FTGwswfggwe287GRW
+```
+
 
 ### Image Generation Parameters
 
-You are able to set specific parameters of the output image created by Dall-e. Flags for dimenions (--dimenions) in pixels, as well as definition quality (--quality) have been implemented. The agent will try to recognize multiple iterations of quality reponses to differentiate preference in standard versus HD correctly. Optionally as list above, built-in roles are included for artist and photographer.
+You are able to set specific parameters of the output image created by Dall-e. Flags for **--dimenions** in pixels, as well as definition **--quality** have been implemented. The agent will try to recognize multiple iterations of quality reponses to differentiate preference in standard versus HD correctly. Optionally as list above, built-in roles are included for artist and photographer.
 
 Example:
 ```python
@@ -512,15 +526,11 @@ dev.request(query)
 Optimize and document any new code, add unit testing.
 
 ```python
-query = """
-Refactor and format the previous for optimal efficiency, useability, and generalization:
-"""
-recode.request(query)
+# Lint and optimize the new code
+recode.request("Refactor and format the previous for optimal efficiency, useability, and generalization.")
 
-query = """
-Create unit tests for the newly refactored code.
-"""
-tests.request(query)
+# Pass the refactored code to the unit tester
+tests.request("Create unit tests for the newly refactored code.")
 ```
 
 Then use the next agents to read through the new pipeline and generate a high-quality blog post describing it's utility.
@@ -536,10 +546,7 @@ Speak in a casual and conversational tone.
 write.request(query)
 
 # Pass the rough draft text to the editor agent to recieve a more finalize version
-query ="""
-Edit the previous post to be much more polished and ready for release.
-"""
-edit.request(query)
+edit.request("Edit the previous post to be much more polished and ready for release.")
 ```
 
 This is one just example of how multiple LLM agents may be leveraged in concert to accelerate the rate that user workloads may be accomplished.
