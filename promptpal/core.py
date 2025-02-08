@@ -1,3 +1,4 @@
+# promptpal/core.py
 
 import os
 import re
@@ -81,7 +82,7 @@ class CreateAgent:
     Methods:
         __init__: Initializes the handler with default or provided values.
         request: Submits a query to the OpenAI API and processes the response.
-        status: Reports current attributes and status of agent and session information 
+        status: Reports current attributes and status of agent and session information
         cost_report: Reports spending information
         token_report: Reports token generation information
         thread_report: Report active threads from current session
@@ -106,25 +107,26 @@ class CreateAgent:
 
     def __init__(
         self,
-        logging = True,
-        verbose = True,
-        silent = False,
-        refine = False,
-        glyph = False,
-        chain_of_thought = False,
-        save_code = False,
-        scan_dirs = False,
-        new_thread = False,
-        model = "gpt-4o-mini",
-        role = "assistant",
-        seed = "t634e``R75T86979UYIUHGVCXZ",
-        iterations = 1,
-        temperature = 0.7,
-        top_p = 1.0,
-        dimensions = "NA",
-        quality = "NA",
-        stage = 'normal',
-        message_limit = 20):
+        logging=True,
+        verbose=True,
+        silent=False,
+        refine=False,
+        glyph=False,
+        chain_of_thought=False,
+        save_code=False,
+        scan_dirs=False,
+        new_thread=False,
+        model="gpt-4o-mini",
+        role="assistant",
+        seed="t634e``R75T86979UYIUHGVCXZ",
+        iterations=1,
+        temperature=0.7,
+        top_p=1.0,
+        dimensions="NA",
+        quality="NA",
+        stage="normal",
+        message_limit=20,
+    ):
         """
         Initialize the handler with default or provided values.
         """
@@ -164,12 +166,18 @@ class CreateAgent:
         self.tokens = {"prompt": 0, "completion": 0}
         if self.model not in total_tokens.keys():
             total_tokens[self.model] = {"prompt": 0, "completion": 0}
-        
+
         # Validdate specific hyperparams
-        self.stage = self.stage if self.stage == 'refine_only' else 'normal'
-        self.seed = self.seed if isinstance(self.seed, int) else self._string_to_binary(self.seed)
-        self.temperature, self.top_p = self._validate_probability_params(self.temperature, self.top_p)
-        
+        self.stage = self.stage if self.stage == "refine_only" else "normal"
+        self.seed = (
+            self.seed
+            if isinstance(self.seed, int)
+            else self._string_to_binary(self.seed)
+        )
+        self.temperature, self.top_p = self._validate_probability_params(
+            self.temperature, self.top_p
+        )
+
         # Validate user inputs
         self._prepare_system_role(role)
         self._validate_model_selection(model)
@@ -179,8 +187,9 @@ class CreateAgent:
 
         # Initialize reporting and related vars
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"        
-        if self.logging: self._setup_logging()
+        self.prefix = f"{self.label}.{self.model.replace('-', '_')}.{self.timestamp}"
+        if self.logging:
+            self._setup_logging()
         self._log_and_print(self.status(), False, self.logging)
 
     def _validate_types(self):
@@ -192,25 +201,25 @@ class CreateAgent:
             ValueError: If any integer attribute is not positive.
         """
         expected_types = {
-            'logging': bool,
-            'verbose': bool,
-            'silent': bool,
-            'refine_prompt': bool,
-            'glyph_prompt': bool,
-            'chain_of_thought': bool,
-            'save_code': bool,
-            'scan_dirs': bool,
-            'new_thread': bool,
-            'model': str,
-            'role': str,
-            'seed': (int, str),  # seed can be either int or str
-            'iterations': int,
-            'temperature': float,
-            'top_p': float,
-            'dimensions': str,
-            'quality': str,
-            'stage': str,
-            'message_limit': int
+            "logging": bool,
+            "verbose": bool,
+            "silent": bool,
+            "refine_prompt": bool,
+            "glyph_prompt": bool,
+            "chain_of_thought": bool,
+            "save_code": bool,
+            "scan_dirs": bool,
+            "new_thread": bool,
+            "model": str,
+            "role": str,
+            "seed": (int, str),  # seed can be either int or str
+            "iterations": int,
+            "temperature": float,
+            "top_p": float,
+            "dimensions": str,
+            "quality": str,
+            "stage": str,
+            "message_limit": int,
         }
 
         for attr_name, expected_type in expected_types.items():
@@ -218,12 +227,16 @@ class CreateAgent:
             if isinstance(expected_type, tuple):
                 # Check if value matches any expected type in the tuple
                 if not isinstance(value, expected_type):
-                    raise TypeError(f"Expected type for {attr_name} is {expected_type}, got {type(value).__name__}")
+                    raise TypeError(
+                        f"Expected type for {attr_name} is {expected_type}, got {type(value).__name__}"
+                    )
             else:
                 # Check if value matches the expected type
                 if not isinstance(value, expected_type):
-                    raise TypeError(f"Expected type for {attr_name} is {expected_type}, got {type(value).__name__}")
-            
+                    raise TypeError(
+                        f"Expected type for {attr_name} is {expected_type}, got {type(value).__name__}"
+                    )
+
             # Check if integer-type values are positive
             if expected_type == int and value <= 0:
                 raise ValueError(f"{attr_name} must be a positive integer, got {value}")
@@ -270,13 +283,27 @@ class CreateAgent:
         # Refine prompt if required
         if self.refine_prompt or self.glyph_prompt:
             self._log_and_print(
-                "\nAgent using gpt-4o-mini to optimize initial user request...\n", True, self.logging)
+                "\nAgent using gpt-4o-mini to optimize initial user request...\n",
+                True,
+                self.logging,
+            )
             self.prompt = self._refine_user_prompt(self.prompt)
 
     def _validate_model_selection(self, input_model):
         """Validates and selects the model based on user input or defaults."""
-        openai_models = ["gpt-4o","o1","o1-mini","o1-preview","dall-e-3","dall-e-2"]
-        self.model = input_model.lower() if input_model.lower() in openai_models else "gpt-4o-mini"
+        openai_models = [
+            "gpt-4o",
+            "o1",
+            "o1-mini",
+            "o1-preview",
+            "dall-e-3",
+            "dall-e-2",
+        ]
+        self.model = (
+            input_model.lower()
+            if input_model.lower() in openai_models
+            else "gpt-4o-mini"
+        )
 
     def _prepare_system_role(self, input_role):
         """Prepares system role text."""
@@ -307,15 +334,23 @@ class CreateAgent:
     def _refine_custom_role(self, init_role):
         """Reformat input custom user roles for improved outcomes."""
 
-        self._log_and_print(f"Refining custom role text...\n", self.verbose, self.logging)
+        self._log_and_print(
+            f"Refining custom role text...\n", self.verbose, self.logging
+        )
 
         # Reformat role text
-        refine_prompt = "Format and improve the following system role propmt to maximize clarity and potential output quality:\n\n" + init_role
+        refine_prompt = (
+            "Format and improve the following system role propmt to maximize clarity and potential output quality:\n\n"
+            + init_role
+        )
         response = self._init_chat_completion(refine_prompt)
         custom_role = response.choices[0].message.content.strip()
-        
+
         # Name custom role
-        refine_prompt = "Generate a short and accurate name for the following system role prompt:\n\n" + custom_role
+        refine_prompt = (
+            "Generate a short and accurate name for the following system role prompt:\n\n"
+            + custom_role
+        )
         response = self._init_chat_completion(refine_prompt)
         role_name = response.choices[0].message.content.strip()
 
@@ -329,16 +364,27 @@ Description: {custom_role}
 
     def _validate_image_params(self, dimensions, quality):
         """Validates image dimensions and quality for the model."""
-        valid_dimensions = {"dall-e-3": ["1024x1024", "1792x1024", "1024x1792"],
-                            "dall-e-2": ["1024x1024", "512x512", "256x256"]}
-        if (self.model in valid_dimensions and dimensions.lower() not in valid_dimensions[self.model]):
+        valid_dimensions = {
+            "dall-e-3": ["1024x1024", "1792x1024", "1024x1792"],
+            "dall-e-2": ["1024x1024", "512x512", "256x256"],
+        }
+        if (
+            self.model in valid_dimensions
+            and dimensions.lower() not in valid_dimensions[self.model]
+        ):
             self.dimensions = "1024x1024"
         else:
             self.dimensions = dimensions
 
-        self.quality = "hd" if quality.lower() in {"h", "hd", "high", "higher", "highest"} else "standard"
-        self.quality = "hd" if self.label == "photographer" else self.quality # Check for photo role
-        
+        self.quality = (
+            "hd"
+            if quality.lower() in {"h", "hd", "high", "higher", "highest"}
+            else "standard"
+        )
+        self.quality = (
+            "hd" if self.label == "photographer" else self.quality
+        )  # Check for photo role
+
     def status(self):
         """Generate status message."""
         statusStr = f"""
@@ -368,7 +414,7 @@ Agent parameters:
 
         # Token usage report
         self.token_report()
-        
+
         # $$$ report
         self.cost_report()
 
@@ -386,29 +432,35 @@ Agent parameters:
         # Add previous context
         if context:
             previous_context = client.beta.threads.messages.create(
-                thread_id=thread.id, role="user", content=context)
+                thread_id=thread.id, role="user", content=context
+            )
 
         client.thread_ids |= set([thread.id])
         self.thread_id = thread.id
 
         # Report
-        self._log_and_print(f"New thread with previous context added to current agent: {self.thread_id}\n", 
-            self.verbose, self.logging)
+        self._log_and_print(
+            f"New thread with previous context added to current agent: {self.thread_id}\n",
+            self.verbose,
+            self.logging,
+        )
 
-    def request(self, prompt=''):
+    def request(self, prompt=""):
         """Submits the query to OpenAIs API and processes the response."""
         # Checks for last system response is not prompt provided
-        if prompt == '':
+        if prompt == "":
             try:
                 prompt = self.last_message
             except Exception as e:
                 raise ValueError(f"No existing messages found in thread: {e}")
 
-        # Update user prompt 
+        # Update user prompt
         self._prepare_query_text(prompt)
         self._log_and_print(
             f"\n{self.role_name} using {self.model} to process updated conversation thread...\n",
-                True, self.logging)
+            True,
+            self.logging,
+        )
 
         if self.stage != "refine_only":
             if "dall-e" not in self.model:
@@ -419,17 +471,39 @@ Agent parameters:
 
         # Check current scope thread
         if thread.current_thread_calls >= thread.message_limit:
-            self._log_and_print(f"Reached end of current thread limit.\n", self.verbose, False)
+            self._log_and_print(
+                f"Reached end of current thread limit.\n", self.verbose, False
+            )
             summary = self.summarize_current_thread()
-            self.start_new_thread("The following is a summary of a ongoing conversation with a user and an AI assistant:\n" + summary)
+            self.start_new_thread(
+                "The following is a summary of a ongoing conversation with a user and an AI assistant:\n"
+                + summary
+            )
 
-    def _init_chat_completion(self, prompt, model='gpt-4o-mini', role='user', iters=1, seed=42, temp=0.7, top_p=1.0):
+    def _init_chat_completion(
+        self,
+        prompt,
+        model="gpt-4o-mini",
+        role="user",
+        iters=1,
+        seed=42,
+        temp=0.7,
+        top_p=1.0,
+    ):
         """Initialize and submit a single chat completion request"""
-        message = [{"role": "user", "content": prompt}, {"role": "system", "content": role}]
+        message = [
+            {"role": "user", "content": prompt},
+            {"role": "system", "content": role},
+        ]
 
         completion = client.chat.completions.create(
-            model=model, messages=message, n=iters,
-            seed=seed, temperature=temp, top_p=top_p)
+            model=model,
+            messages=message,
+            n=iters,
+            seed=seed,
+            temperature=temp,
+            top_p=top_p,
+        )
         self._update_token_count(completion)
         self._calculate_cost()
 
@@ -437,14 +511,20 @@ Agent parameters:
 
     def summarize_current_thread(self):
         """Summarize current conversation history for future context parsing."""
-        self._log_and_print(f"Agent using gpt-4o-mini to summarize current thread...\n", self.verbose, False)
+        self._log_and_print(
+            "Agent using gpt-4o-mini to summarize current thread...\n",
+            self.verbose,
+            False,
+        )
 
         # Get all thread messages
         all_messages = self._get_thread_messages()
 
         # Generate concise summary
-        summary_prompt = modifierDict['summarize'] + "\n\n" + all_messages
-        summarized = self._init_chat_completion(prompt=summary_prompt, iters=self.iterations, seed=self.seed)
+        summary_prompt = modifierDict["summarize"] + "\n\n" + all_messages
+        summarized = self._init_chat_completion(
+            prompt=summary_prompt, iters=self.iterations, seed=self.seed
+        )
 
         return summarized.choices[0].message.content.strip()
 
@@ -471,15 +551,17 @@ Agent parameters:
             for lang in code_snippets.keys():
                 code = code_snippets[lang]
                 objects = self._extract_object_names(code, lang)
-                file_name = f"{self._find_max_lines(code, objects)}.{self.timestamp}{extDict.get(lang, f'.{lang}')}".lstrip("_.")
+                file_name = f"{self._find_max_lines(code, objects)}.{self.timestamp}{extDict.get(lang, f'.{lang}')}".lstrip(
+                    "_."
+                )
                 reportStr += f"\t{file_name}\n"
                 self._write_script(code, file_name)
 
             self._log_and_print(reportStr, True, self.logging)
 
         # Check URL annotations - inactive for now
-        #existing, not_existing = self._check_response_urls()
-        #if len(not_existing) >= 1 or len(existing) >= 1:
+        # existing, not_existing = self._check_response_urls()
+        # if len(not_existing) >= 1 or len(existing) >= 1:
         #    reportStr = "\nURL citations detecting in system message\n"
         #    if len(existing) >= 1:
         #        reportStr += 'Found:\n\t' '\n\t'.join(existing) + '\n'
@@ -545,16 +627,15 @@ Agent parameters:
         tokenStr = f"""Overall session tokens:
     {allTokensStr}
     Current agent tokens: 
-        Input: {self.tokens['prompt']}
-        Output: {self.tokens['completion']}
+        Input: {self.tokens["prompt"]}
+        Output: {self.tokens["completion"]}
 """
         self._log_and_print(tokenStr, True, self.logging)
-
 
     def thread_report(self):
         """Report active threads from current session"""
 
-        ids = '\n\t'.join(client.thread_ids)
+        ids = "\n\t".join(client.thread_ids)
         threadStr = f"""Current session threads:
     {ids}
 """
@@ -576,7 +657,9 @@ Agent parameters:
         if self.model in rates:
             prompt_rate, completion_rate = rates.get(self.model)
             prompt_cost = round((self.tokens["prompt"] * prompt_rate) / 1e6, dec)
-            completion_cost = round((self.tokens["completion"] * completion_rate) / 1e6, dec)
+            completion_cost = round(
+                (self.tokens["completion"] * completion_rate) / 1e6, dec
+            )
         else:
             prompt_cost = completion_cost = 0.0
 
@@ -586,34 +669,39 @@ Agent parameters:
 
     def cost_report(self, dec=5):
         """Generates session cost report."""
-        
+
         costStr = f"""Overall session cost: ${round(total_cost, dec)}
 
     Current agent using: {self.model}
-        Subtotal: ${round(self.cost['prompt'] + self.cost['completion'], dec)}
-        Input: ${self.cost['prompt']}
-        Output: ${self.cost['completion']}
-"""     
+        Subtotal: ${round(self.cost["prompt"] + self.cost["completion"], dec)}
+        Input: ${self.cost["prompt"]}
+        Output: ${self.cost["completion"]}
+"""
         self._log_and_print(costStr, True, self.logging)
 
     def _condense_iterations(self, api_response):
         """Condenses multiple API responses into a single coherent response."""
         api_responses = [r.message.content.strip() for r in api_response.choices]
-        api_responses =  "\n\n".join(
-            ["\n".join([f"Iteration: {i + 1}", api_responses[i]])
-            for i in range(len(api_responses))])
+        api_responses = "\n\n".join(
+            [
+                "\n".join([f"Iteration: {i + 1}", api_responses[i]])
+                for i in range(len(api_responses))
+            ]
+        )
 
         self._log_and_print(
-            f"\nAgent using gpt-4o-mini to condense system responses...", self.verbose, self.logging
+            f"\nAgent using gpt-4o-mini to condense system responses...",
+            self.verbose,
+            self.logging,
         )
-        condensed = self._init_chat_completion( 
-            prompt= modifierDict['condense'] + "\n\n" + api_responses, 
-            iters=self.iterations, seed=self.seed)
+        condensed = self._init_chat_completion(
+            prompt=modifierDict["condense"] + "\n\n" + api_responses,
+            iters=self.iterations,
+            seed=self.seed,
+        )
 
         message = condensed.choices[0].message.content.strip()
-        self._log_and_print(
-            f"\nCondensed text:\n{message}", self.verbose, self.logging
-        )
+        self._log_and_print(f"\nCondensed text:\n{message}", self.verbose, self.logging)
 
         return message
 
@@ -632,7 +720,7 @@ Agent parameters:
     def _refine_user_prompt(self, old_prompt):
         """Refines an LLM prompt using specified rewrite actions."""
         updated_prompt = old_prompt
-        if self.refine_prompt == True:
+        if self.refine_prompt:
             actions = set(["expand", "amplify"])
             actions |= set(
                 re.sub(r"[^\w\s]", "", word).lower()
@@ -642,16 +730,17 @@ Agent parameters:
             action_str = "\n".join(refineDict[a] for a in actions) + "\n\n"
             updated_prompt = modifierDict["refine"] + action_str + old_prompt
 
-        if self.glyph_prompt == True:
+        if self.glyph_prompt:
             updated_prompt += modifierDict["glyph"]
 
         refined = self._init_chat_completion(
-            prompt=updated_prompt, 
+            prompt=updated_prompt,
             role=self.role,
-            seed=self.seed, 
+            seed=self.seed,
             iters=self.iterations,
-            temp=self.temperature, 
-            top_p=self.top_p)
+            temp=self.temperature,
+            top_p=self.top_p,
+        )
 
         if self.iterations > 1:
             new_prompt = self._condense_iterations(refined)
@@ -659,7 +748,8 @@ Agent parameters:
             new_prompt = refined.choices[0].message.content.strip()
 
         self._log_and_print(
-            f"Refined query prompt:\n{new_prompt}", self.verbose, self.logging)
+            f"Refined query prompt:\n{new_prompt}", self.verbose, self.logging
+        )
 
         return new_prompt
 
@@ -676,7 +766,7 @@ Agent parameters:
     def _string_to_binary(input_string):
         """Create a binary-like variable from a string for use a random seed"""
         # Convert all characters in a str to ASCII values and then to 8-bit binary
-        binary = ''.join([format(ord(char), "08b") for char in input_string])
+        binary = "".join([format(ord(char), "08b") for char in input_string])
         # Constrain length
         return int(binary[0 : len(str(sys.maxsize))])
 
@@ -717,7 +807,6 @@ Agent parameters:
         return existing_paths
 
     def _find_existing_files(self):
-
         # Filter filenames by checking if they exist in the current directory or system's PATH
         existing_files = [
             x
@@ -776,7 +865,7 @@ Agent parameters:
         """
         rm_names = ["main", "functions", "classes", "variables"]
         line_counts = {name: 0 for name in object_names if name not in rm_names}
-        line_counts['code'] = 1
+        line_counts["code"] = 1
         current_object = None
 
         for line in code.split("\n"):
@@ -807,37 +896,41 @@ Agent parameters:
                 name=self.role_name,
                 instructions=self.role,
                 model=self.model,
-                tools=[{"type": "code_interpreter"}] if interpreter == True else [])
+                tools=[{"type": "code_interpreter"}] if interpreter == True else [],
+            )
             self.agent = agent.id
         except Exception as e:
             raise RuntimeError(f"Failed to create assistant: {e}")
 
     def _run_thread_request(self) -> str:
         """
-        Sends a user prompt to an existing thread, runs the assistant, 
+        Sends a user prompt to an existing thread, runs the assistant,
         and retrieves the response if successful.
-        
+
         Returns:
             str: The text response from the assistant.
-        
+
         Raises:
             ValueError: If the assistant fails to generate a response.
         """
         # Adds user prompt to existing thread.
         try:
             new_message = client.beta.threads.messages.create(
-                thread_id=self.thread_id, role="user", content=self.prompt)
+                thread_id=self.thread_id, role="user", content=self.prompt
+            )
         except Exception as e:
             raise RuntimeError(f"Failed to create message: {e}")
 
         # Run the assistant on the thread
         current_run = client.beta.threads.runs.create(
-            thread_id=self.thread_id,
-            assistant_id=self.agent)
+            thread_id=self.thread_id, assistant_id=self.agent
+        )
 
         # Wait for completion and retrieve responses
         while True:
-            self.run_status = client.beta.threads.runs.retrieve(thread_id=self.thread_id, run_id=current_run.id)
+            self.run_status = client.beta.threads.runs.retrieve(
+                thread_id=self.thread_id, run_id=current_run.id
+            )
             if self.run_status.status in ["completed", "failed"]:
                 break
             else:
@@ -854,38 +947,42 @@ Agent parameters:
 
     def _check_response_urls(self):
         """
-        Extracts all URLs from the given text using regex,checks the existence of 
+        Extracts all URLs from the given text using regex,checks the existence of
         each URL, and returns lists of existing and non-existing URLs.
-        
+
         Args:
             text (str): The input text containing potential URLs.
 
         Returns:
-            Tuple[List[str], List[str]]: A tuple containing two lists - 
+            Tuple[List[str], List[str]]: A tuple containing two lists -
                                            the first list for existing URLs,
                                            and the second for non-existing URLs.
         """
         # Define a regex pattern for URL extraction.
-        url_pattern = r'https?://[^\s]+|ftp://[^\s]+'
+        url_pattern = r"https?://[^\s]+|ftp://[^\s]+"
         urls = re.findall(url_pattern, self.last_message)
-        
+
         # Check if identified URLs are real
         existing_urls = non_existing_urls = []
         for url in urls:
             try:
                 # Execute a curl command to check URL existence
-                response = subprocess.run(['curl', '-Is', url], capture_output=True, text=True)
-                
+                response = subprocess.run(
+                    ["curl", "-Is", url], capture_output=True, text=True
+                )
+
                 if response.returncode == 0:
                     # Extract status code
                     status_line = response.stdout.splitlines()[0]
                     status_code = status_line.split()[1]
-                    if status_code.startswith('2'):  # Status codes 2xx indicate success
+                    if status_code.startswith("2"):  # Status codes 2xx indicate success
                         existing_urls.append(url)
                     else:
                         non_existing_urls.append(url)
                 else:
-                    non_existing_urls.append(url)  # If curl fails, consider the URL as non-existing
+                    non_existing_urls.append(
+                        url
+                    )  # If curl fails, consider the URL as non-existing
             except Exception as e:
                 non_existing_urls.append(url)  # Append URL in case of any exception
 

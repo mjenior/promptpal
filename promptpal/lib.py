@@ -1,29 +1,28 @@
-
 import re
 from .roles import *
 
 # Library of string variables used by assistant
 
-#-----------------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------------#
 
 ## System roles
 
 roleDict = {
-   'assistant': {'prompt':ASSISTANT, 'name':'Assistant'},
-   'developer': {'prompt':DEVELOPER, 'name':'Full Stack Developer'},
-   'prompt': {'prompt':PROMPT_ENGINEER, 'name':'Prompt Engineer'},
-   'refactor': {'prompt':REFACTOR, 'name':'Refactoring Expert'},
-   'tester': {'prompt':UNIT_TESTS, 'name':'Unit Tester'},
-   'artist': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
-   'photographer': {'prompt':PHOTOGRAPHER+IMAGE, 'name':'Photographer'},
-   'analyst': {'prompt':DATA_SCIENTIST, 'name':'Data Scientist'},
-   'visualize': {'prompt':DATA_VISUALIZATION, 'name':'Data Visualization Expert'},
-   'writer': {'prompt':WRITER, 'name':'Writer'},
-   'editor': {'prompt':EDITOR, 'name':'Editor'}
-   }
+    "assistant": {"prompt": ASSISTANT, "name": "Assistant"},
+    "developer": {"prompt": DEVELOPER, "name": "Full Stack Developer"},
+    "prompt": {"prompt": PROMPT_ENGINEER, "name": "Prompt Engineer"},
+    "refactor": {"prompt": REFACTOR, "name": "Refactoring Expert"},
+    "tester": {"prompt": UNIT_TESTS, "name": "Unit Tester"},
+    "artist": {"prompt": ARTIST + IMAGE, "name": "Artist"},
+    "photographer": {"prompt": PHOTOGRAPHER + IMAGE, "name": "Photographer"},
+    "analyst": {"prompt": DATA_SCIENTIST, "name": "Data Scientist"},
+    "visualize": {"prompt": DATA_VISUALIZATION, "name": "Data Visualization Expert"},
+    "writer": {"prompt": WRITER, "name": "Writer"},
+    "editor": {"prompt": EDITOR, "name": "Editor"},
+}
 
 
-#-----------------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------------#
 
 ## Prompt modifiers
 
@@ -101,99 +100,100 @@ The complete summary text must be no longer than 1000 characters total.
 
 # Collected default modifier text
 modifierDict = {
-   'cot': CHAIN_OF_THOUGHT, 
-   'tests': UNIT_TESTS, 
-   'refine': REFINE_PROMPT, 
-   'condense': CONDENSE_RESPONSE,
-   'summarize': SUMMARIZE_CONVERSATION,
-   'glyph': GLYPH_PROMPT
-   }
+    "cot": CHAIN_OF_THOUGHT,
+    "tests": UNIT_TESTS,
+    "refine": REFINE_PROMPT,
+    "condense": CONDENSE_RESPONSE,
+    "summarize": SUMMARIZE_CONVERSATION,
+    "glyph": GLYPH_PROMPT,
+}
 
 
 # Key word prompt refinement
 refineDict = {
-   "paraphrase": "Rewrite the text to express the same meaning in different words to avoid plagiarism or duplicate phrasing.",
-   "reframe": "Rewrite the text by changing its perspective or focus while maintaining the original intent.",
-   "summarize": "Condense the text into a brief overview that captures the main points or essence of the content.",
-   "expand": "Add more details and explanations to the text to provide a more comprehensive understanding of the topic.",
-   "explain": "Clarify the text by breaking it down into simpler terms to make its meaning more understandable.",
-   "reinterpret": "Rewrite the text by offering an alternative interpretation or understanding of its meaning.",
-   "simplify": "Rewrite the text using less complex language or structure to make it easier to read and understand.",
-   "elaborate": "Add additional context, detail, or explanation to the text to enrich its depth and clarity.",
-   "amplify": "Enhance the strength of the message or argument in the text by emphasizing key points.",
-   "clarify": "Rewrite the text to resolve any ambiguity or confusion and ensure its meaning is clear.",
-   "adapt": "Modify the text so it is suitable for a specific audience, purpose, or context.",
-   "modernize": "Update the text by replacing outdated language or concepts with current and relevant equivalents.",
-   "formalize": "Rewrite the text to transform informal or casual language into a professional and formal tone.",
-   "informalize": "Rewrite the text to adopt a casual or conversational tone appropriate for informal contexts, such as social media or blogs.",
-   "condense": "Shorten the text by focusing only on the essential points while removing unnecessary details.",
-   "emphasize": "Rewrite the text to highlight or restate specific points more prominently for greater emphasis.",
-   "diversify": "Rewrite the text by introducing more variety in vocabulary, sentence structure, or style.",
-   "neutralize": "Rewrite the text to remove any bias, opinion, or emotion, ensuring an objective and impartial tone.",
-   "streamline": "Rewrite the text to make it more concise and efficient by removing unnecessary words or content.",
-   "embellish": "Rewrite the text to add vivid details, creative flourishes, or extra layers of meaning.",
-   "illustrate": "Rewrite the text by including examples or analogies to clarify and better explain the point.",
-   "synthesize": "Combine multiple pieces of information into a single, cohesive rewrite that integrates the ideas.",
-   "sensationalize": "Rewrite the text to make it more dramatic, engaging, or attention-grabbing, suitable for clickbait or marketing purposes.",
-   "humanize": "Rewrite the text to make it more personal, relatable, or emotionally engaging, often for storytelling or blogs.",
-   "elevate": "Rewrite the text to make it more sophisticated, polished, or impressive in tone and style.",
-   "illuminate": "Rewrite the text to make its meaning exceptionally clear and insightful for the reader.",
-   "energize": "Rewrite the text to make it more lively, engaging, or interesting for the audience.",
-   "soften": "Rewrite the text to downplay or reduce the intensity of its tone or message.",
-   "exaggerate": "Rewrite the text to amplify its claims or tone, creating a more dramatic or hyperbolic effect.",
-   "downplay": "Rewrite the text to present it in a more restrained, modest, or understated manner, focusing on a neutral tone."
-   }
+    "paraphrase": "Rewrite the text to express the same meaning in different words to avoid plagiarism or duplicate phrasing.",
+    "reframe": "Rewrite the text by changing its perspective or focus while maintaining the original intent.",
+    "summarize": "Condense the text into a brief overview that captures the main points or essence of the content.",
+    "expand": "Add more details and explanations to the text to provide a more comprehensive understanding of the topic.",
+    "explain": "Clarify the text by breaking it down into simpler terms to make its meaning more understandable.",
+    "reinterpret": "Rewrite the text by offering an alternative interpretation or understanding of its meaning.",
+    "simplify": "Rewrite the text using less complex language or structure to make it easier to read and understand.",
+    "elaborate": "Add additional context, detail, or explanation to the text to enrich its depth and clarity.",
+    "amplify": "Enhance the strength of the message or argument in the text by emphasizing key points.",
+    "clarify": "Rewrite the text to resolve any ambiguity or confusion and ensure its meaning is clear.",
+    "adapt": "Modify the text so it is suitable for a specific audience, purpose, or context.",
+    "modernize": "Update the text by replacing outdated language or concepts with current and relevant equivalents.",
+    "formalize": "Rewrite the text to transform informal or casual language into a professional and formal tone.",
+    "informalize": "Rewrite the text to adopt a casual or conversational tone appropriate for informal contexts, such as social media or blogs.",
+    "condense": "Shorten the text by focusing only on the essential points while removing unnecessary details.",
+    "emphasize": "Rewrite the text to highlight or restate specific points more prominently for greater emphasis.",
+    "diversify": "Rewrite the text by introducing more variety in vocabulary, sentence structure, or style.",
+    "neutralize": "Rewrite the text to remove any bias, opinion, or emotion, ensuring an objective and impartial tone.",
+    "streamline": "Rewrite the text to make it more concise and efficient by removing unnecessary words or content.",
+    "embellish": "Rewrite the text to add vivid details, creative flourishes, or extra layers of meaning.",
+    "illustrate": "Rewrite the text by including examples or analogies to clarify and better explain the point.",
+    "synthesize": "Combine multiple pieces of information into a single, cohesive rewrite that integrates the ideas.",
+    "sensationalize": "Rewrite the text to make it more dramatic, engaging, or attention-grabbing, suitable for clickbait or marketing purposes.",
+    "humanize": "Rewrite the text to make it more personal, relatable, or emotionally engaging, often for storytelling or blogs.",
+    "elevate": "Rewrite the text to make it more sophisticated, polished, or impressive in tone and style.",
+    "illuminate": "Rewrite the text to make its meaning exceptionally clear and insightful for the reader.",
+    "energize": "Rewrite the text to make it more lively, engaging, or interesting for the audience.",
+    "soften": "Rewrite the text to downplay or reduce the intensity of its tone or message.",
+    "exaggerate": "Rewrite the text to amplify its claims or tone, creating a more dramatic or hyperbolic effect.",
+    "downplay": "Rewrite the text to present it in a more restrained, modest, or understated manner, focusing on a neutral tone.",
+}
 
 # Common file extension dictionary, which don't match directly with language name
 extDict = {
-   'bash': '.sh',
-   'cuda': '.cu',
-   'cython': '.pyx',
-   'c++': '.cpp',
-   'javascript':'.js',
-   'julia':'.jl',
-   'markdown': '.md',
-   'matlab': '.mat',
-   'nextflow': '.nf',
-   'perl': '.pl',
-   'python': '.py',
-   'ruby': '.rb',
-   'shell': '.sh',
-   'text':'.txt',
-   'plaintext': '.txt',
-   }
+    "bash": ".sh",
+    "cuda": ".cu",
+    "cython": ".pyx",
+    "c++": ".cpp",
+    "javascript": ".js",
+    "julia": ".jl",
+    "markdown": ".md",
+    "matlab": ".mat",
+    "nextflow": ".nf",
+    "perl": ".pl",
+    "python": ".py",
+    "ruby": ".rb",
+    "shell": ".sh",
+    "text": ".txt",
+    "plaintext": ".txt",
+}
 
 patternDict = {
-   "python": {
-      "function": re.compile(r'def\s+(\w+)\s*\('),
-      "class": re.compile(r'class\s+(\w+)\s*[:\(]'),
-      "variable": re.compile(r'(\w+)\s*=\s*[^=\n]+'),
-   },
-   "javascript": {
-      "function": re.compile(r'function\s+(\w+)\s*\('),
-      "class": re.compile(r'class\s+(\w+)\s*[{]'),
-      "variable": re.compile(r'(?:let|const|var)\s+(\w+)\s*='),
-   },
-   "java": {
-      "function": re.compile(r'(?:public|private|protected)?\s*\w+\s+(\w+)\s*\('),
-      "class": re.compile(r'class\s+(\w+)\s*[{]'),
-      "variable": re.compile(r'(?:public|private|protected)?\s*\w+\s+(\w+)\s*='),
-   },
-   "r": {
-      "function": re.compile(r'(\w+)\s*<-\s*function\s*\('),
-      "variable": re.compile(r'(\w+)\s*<-\s*[^=\n]+'),
-   },
-   "groovy": {
-      "function": re.compile(r'def\s+(\w+)\s*\('),
-      "class": re.compile(r'class\s+(\w+)\s*[{]'),
-      "variable": re.compile(r'def\s+(\w+)\s*='),
-   },
+    "python": {
+        "function": re.compile(r"def\s+(\w+)\s*\("),
+        "class": re.compile(r"class\s+(\w+)\s*[:\(]"),
+        "variable": re.compile(r"(\w+)\s*=\s*[^=\n]+"),
+    },
+    "javascript": {
+        "function": re.compile(r"function\s+(\w+)\s*\("),
+        "class": re.compile(r"class\s+(\w+)\s*[{]"),
+        "variable": re.compile(r"(?:let|const|var)\s+(\w+)\s*="),
+    },
+    "java": {
+        "function": re.compile(r"(?:public|private|protected)?\s*\w+\s+(\w+)\s*\("),
+        "class": re.compile(r"class\s+(\w+)\s*[{]"),
+        "variable": re.compile(r"(?:public|private|protected)?\s*\w+\s+(\w+)\s*="),
+    },
+    "r": {
+        "function": re.compile(r"(\w+)\s*<-\s*function\s*\("),
+        "variable": re.compile(r"(\w+)\s*<-\s*[^=\n]+"),
+    },
+    "groovy": {
+        "function": re.compile(r"def\s+(\w+)\s*\("),
+        "class": re.compile(r"class\s+(\w+)\s*[{]"),
+        "variable": re.compile(r"def\s+(\w+)\s*="),
+    },
 }
 
 # Text library for easy import
-text_library = {'roles':roleDict, 
-                'modifiers':modifierDict, 
-                'refinement':refineDict, 
-                'extensions':extDict, 
-                'patterns':patternDict}
-
+text_library = {
+    "roles": roleDict,
+    "modifiers": modifierDict,
+    "refinement": refineDict,
+    "extensions": extDict,
+    "patterns": patternDict,
+}

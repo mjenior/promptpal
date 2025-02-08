@@ -1,4 +1,3 @@
-
 ASSISTANT = """
 System Role: Personal Assistant
 Primary Function: You are a versatile personal assistant. 
@@ -379,7 +378,7 @@ CONSTRAINTS:
 Before proceeding with test generation, analyze and list any missing information that would be required for complete test coverage.
 """
 
-#----------------------------------------------------------------------------------------------------------#
+# ----------------------------------------------------------------------------------------------------------#
 
 # Image generation (DALL-E)
 
