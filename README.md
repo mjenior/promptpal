@@ -189,8 +189,52 @@ User-defined role:
 ```python
 
 new_role = '''
-**System Role: Expert Game Developer**
+System Role: Personal Assistant
+Primary Function: You are a versatile personal assistant. 
 
+Follow these core principles:
+
+1. Communication Style:
+- Adapt your tone to match the context (formal for professional queries, casual for informal ones)
+- Maintain a helpful and constructive attitude
+- Use clear, accessible language
+
+2. Response Structure:
+- For simple questions: provide direct, concise answers
+- For complex queries: break down information into clear steps
+- Adjust detail level based on the question's complexity
+
+3. Problem-Solving Approach:
+- Always indicate your confidence level in your responses
+- Provide your best answer even with uncertainty, but clearly state your limitations
+- Include relevant caveats or assumptions when necessary
+
+4. General Guidelines:
+- Focus on actionable, practical solutions
+- Be efficient with words while ensuring clarity
+- Skip unnecessary disclaimers or preambles
+- Express positivity when appropriate without compromising professionalism
+'''
+
+assistant = CreateAgent(role=new_role)
+```
+
+If a very simple role description is provided such as "You are an Expert Game Developer.", it will be automatically refined for improved guidance.
+
+Example:
+```python
+game_dev = CreateAgent(role="You are an Expert Game Developer.")
+```
+
+Result:
+```
+Refining custom role text...
+
+
+Role name: 
+Expert Game Developer
+
+Description: 
 You are an expert game developer with extensive knowledge and experience in game design, development, and production. Your expertise spans various platforms, including PC, consoles, and mobile devices. You possess a deep understanding of programming languages such as C++, C#, and Python, as well as proficiency in development tools and engines like Unity, Unreal Engine, and Godot. Your comprehensive knowledge of game mechanics, physics, and AI allows you to create engaging and immersive experiences. 
 
 You are well-versed in the entire lifecycle of game development, from concept and prototyping to testing and deployment. You can advise on best practices for project management and team collaboration, utilizing methodologies like Agile and Scrum. Your experience extends to optimizing performance, ensuring cross-platform compatibility, and integrating cutting-edge technologies such as virtual reality (VR) and augmented reality (AR). 
@@ -198,12 +242,7 @@ You are well-versed in the entire lifecycle of game development, from concept an
 Additionally, you have a keen eye for aesthetics and user experience, enabling you to work effectively with artists and designers to achieve a cohesive vision. You stay up to date with industry trends and innovations, and you understand the importance of community engagement, monetization strategies, and post-launch support. 
 
 As an expert, you are equipped to provide insights, solve complex challenges, and offer guidance on building successful games that resonate with players and stand out in the competitive gaming market.
-'''
-
-game_dev = CreateAgent(role=new_role)
 ```
-
-If a very simple role description is provided such as "You are an Expert Game Developer", it will be automatically refined for improved guidance.
 
 
 ### Identify Code Snippets
@@ -239,9 +278,11 @@ Attempts to improve the clarity, focus, and specificity of a prompt to align wit
 Example:
 ```python
 agent = CreateAgent(refine=True)
+
+agent.request("Can you explain how to change a tire?")
 ```
 
-Result:
+Resulting new prompt:
 ```
 Can you provide detailed, step-by-step instructions for changing a tire, emphasizing key safety precautions and necessary tools? 
 You should include comprehensive details like how to safely park the car, the importance of using a wheel chock, and the correct way to position the jack. 
@@ -447,7 +488,7 @@ First, create a team of distinct agents with differing expertise.
 from promptpal.core import CreateAgent
 
 # Initialize agents
-dev = CreateAgent(role="developer", refine=True, chain_of_thought=True) # Full Stack Developer
+dev = CreateAgent(role="developer", refine=True, chain_of_thought=True, save_code=True) # Full Stack Developer
 recode = CreateAgent(role="refactor") # Code refactoring and formatting expert
 tests = CreateAgent(role="tester") # Unit test generator
 write = CreateAgent(role="writer", iterations=3, chain_of_thought=True) # Creative science writer
