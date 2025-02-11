@@ -1,7 +1,9 @@
 
-# 
+# promptpal/clients/client
 
-class Client:
+from abc import ABC
+
+class Client(ABC):
 
     def __init__(self):
         pass
