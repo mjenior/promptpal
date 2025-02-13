@@ -253,6 +253,9 @@ class CreateAgent:
             self.role = "user"
             self.label = "default"
             self.role_name = "Default User"
+        elif len(self.role.split()) >= 200:
+            self.role_name = "User-defined role"
+            self.label = "custom"
         else:
             self.role_name, self.role = self._refine_custom_role(input_role)
             self.label = "custom"
