@@ -8,3 +8,7 @@ build:
 
 deploy: build
 	python3 -m twine upload --repository pypi dist/*
+
+setup:
+	source .env
+
