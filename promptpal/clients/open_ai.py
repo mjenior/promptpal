@@ -27,7 +27,7 @@ class OpenAIClient(Client):
 
     @property
     def thread(self):
-        if not self.thread:
-            self.thread = self.client.beta.threads.create()
+        if not self.chat:
+            self.chat = self.client.beta.threads.create()
         else:
-            return self.thread
+            return self.chat
