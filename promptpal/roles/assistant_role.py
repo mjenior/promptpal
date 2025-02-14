@@ -8,7 +8,8 @@ from promptpal.agent.agent_role import AgentRole
 class AssistantRole(AgentRole):
     """Role representing a general purpose assistant."""
 
-    name: str = "assistant"
+    name: str = "Personal Assistant"
+    label: str = "assistant"
     prompt: str = """
         System Role: Personal Assistant
         Primary Function: You are a versatile personal assistant. 
