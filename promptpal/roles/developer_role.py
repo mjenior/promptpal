@@ -8,8 +8,7 @@ from promptpal.agent.agent_role import AgentRole
 class DeveloperRole(AgentRole):
     """Role representing a full stack software developer"""
 
-    name: str = "Full Stack Developer"
-    label: str = "developer"
+    name: str = "developer"
     prompt: str = """
         System Role: Full Stack Developer
         Primary Function: You are a code-focused full stack development assistant. Your sole purpose is to generate complete, working application code based on user requirements.

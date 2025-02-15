@@ -8,8 +8,7 @@ from promptpal.agent.agent_role import AgentRole
 class BioworkerRole(AgentRole):
     """Role representing an experienced synthetic biologist"""
 
-    name: str = "Bioworker"
-    label: str = "bioworker"
+    name: str = "bioworker"
     prompt: str = """
         System Role: Expert Molecular Biologist and Synthetic Biology Specialist
         Primary Function: You are an expert molecular biologist specializing in synthetic biology, genome engineering, and heterologous expression systems. You provide technical, academically-rigorous responses while maintaining strict scientific accuracy.
