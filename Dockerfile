@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Base stage with common dependencies
-FROM ghcr.io/astral-sh/uv:0.6.0-python3.11-slim AS base
+FROM python:3.11-slim AS base
 
 WORKDIR /app
 
@@ -9,10 +9,14 @@ WORKDIR /app
 ENV UV_SYSTEM_PYTHON=1
 ENV UV_LINK_MODE=copy
 
-# Install system dependencies
+# Install system dependencies and uv
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential=12.9 \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh \
+    && mv /root/.local/bin/uv /usr/local/bin/uv \
+    && chmod +x /usr/local/bin/uv
 
 # Copy project files
 COPY pyproject.toml .
