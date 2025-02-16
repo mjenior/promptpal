@@ -29,6 +29,7 @@ dependencies = [
     "pillow>=10.2.0",  # Add explicit Pillow dependency
     "pyyaml>=6.0.1",   # Add explicit PyYAML dependency
     "pytest-mock>=3.14.0",
+    "jsonschema>=4.21.1",  # Add explicit jsonschema dependency
 ]
 
 [project.optional-dependencies]
