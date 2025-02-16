@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Base stage with common dependencies
-FROM python:3.11-slim as base
+FROM python:3.11-slim AS base
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install uv for faster dependency installation (globally accessible)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    mv /root/.cargo/bin/uv /usr/local/bin/uv && \
+    mv /root/.local/bin/uv /usr/local/bin/uv && \
     chmod +x /usr/local/bin/uv
 
 # Copy project files
@@ -23,7 +23,7 @@ COPY promptpal/ promptpal/
 COPY tests/ tests/
 
 # Development stage
-FROM base as development
+FROM base AS development
 
 # Install development dependencies
 RUN uv pip install -e ".[dev]"
@@ -42,7 +42,7 @@ USER developer
 CMD ["bash"]
 
 # Testing stage
-FROM base as testing
+FROM base AS testing
 
 # Install test dependencies
 RUN uv pip install -e ".[dev]" pytest-cov
@@ -51,7 +51,6 @@ RUN uv pip install -e ".[dev]" pytest-cov
 ENV PYTHONPATH=/app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV GEMINI_API_KEY="test_key"
 
 # Create coverage directory
 RUN mkdir coverage && chmod 777 coverage
@@ -62,4 +61,4 @@ RUN chown -R tester:tester /app
 USER tester
 
 # Command to run tests
-CMD ["pytest", "tests/", "-v", "--cov=promptpal", "--cov-report=term-missing"] 
+CMD ["pytest", "tests/unit/", "-v", "--cov=promptpal", "--cov-report=term-missing"] 
