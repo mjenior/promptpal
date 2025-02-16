@@ -172,3 +172,33 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Project specific
+generated_files/
+example_output/
+.DS_Store
+.cursorrules
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local development
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# Coverage
+coverage/
+.coverage
+coverage.xml
+
+# Dependency locks
+# Uncomment if you want to ignore lock files
+# poetry.lock
+# Pipfile.lock
+# uv.lock

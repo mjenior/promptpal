@@ -1,2 +1,3 @@
-from .core import OpenAIQueryHandler
-from .lib import roleDict, refineDict, extDict
+from .promptpal import Promptpal
+
+__ALL__ = [Promptpal]

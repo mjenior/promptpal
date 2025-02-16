@@ -1,0 +1,56 @@
+type: object
+properties:
+  agentname:
+    type: object
+    required:
+      - description
+      - system_instruction
+    properties:
+      description:
+        type: string
+        description: A helpful description for users of this role
+      system_instruction:
+        type: string
+        description: Prompt and instructions that will be used for the role
+      model:
+        type: string
+        description: The Gemini model to use for this role
+        enum:
+          - gemini-2.0-flash
+          - gemini-2.0-flash-lite-preview-02-05
+          - gemini-1.5-flash
+          - gemini-1.5-flash-8b
+          - gemini-1.5-pro
+          - text-embedding-004
+      temperature:
+        type: number
+        format: float
+        minimum: 0.0
+        maximum: 2.0
+        description: Optional floating point value for temperature
+      top_p:
+        type: number
+        format: float
+        minimum: 0.0
+        maximum: 1.0
+        description: Optional floating point value for top_p
+      top_k:
+        type: integer
+        minimum: 0
+        description: Optional floating point value for top_k
+      max_output_tokens:
+        type: integer
+        minimum: 1
+        description: Integer max number of tokens to allow
+      seed:
+        type: integer
+        description: Random seed integer value
+      output_type:
+        type: string
+        description: Specifies the type of output the role generates, either 'text' or 'image'.
+        enum:
+          - text
+          - image
+      search_web:
+        type: boolean
+        description: Indicates whether the role can search the web.
