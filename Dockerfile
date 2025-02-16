@@ -46,7 +46,7 @@ CMD ["bash"]
 FROM base AS testing
 
 # Install dependencies and set up environment
-RUN uv pip install -e ".[dev]" pytest-cov && \
+RUN uv pip install -e ".[dev]" pytest && \
     useradd -m -s /bin/bash tester && \
     chown -R tester:tester /app
 
@@ -58,4 +58,4 @@ ENV PYTHONPATH=/app \
 USER tester
 
 # Command to run tests
-CMD ["pytest", "tests/unit/", "-v", "--cov=promptpal", "--cov-report=term-missing", "--cov-report=xml:/tmp/coverage.xml", "-m", "not integration"] 
+CMD ["pytest", "tests/unit/", "-v", "-m", "not integration"] 

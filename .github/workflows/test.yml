@@ -41,9 +41,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Create coverage directory
-        run: mkdir -p coverage
-
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
@@ -62,15 +59,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Run tests with coverage
+      - name: Run tests
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}/coverage:/tmp \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/coverage.xml
-          fail_ci_if_error: true
+          docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test
