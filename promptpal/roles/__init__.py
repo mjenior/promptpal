@@ -10,6 +10,8 @@ from promptpal.roles.prompt_engineer_role import PromptEngineerRole
 from promptpal.roles.refactor_role import RefactorRole
 from promptpal.roles.unit_tests_role import UnitTestsRole
 from promptpal.roles.writer_role import WriterRole
+from promptpal.roles.educator_role import EducatorRole
+from promptpal.roles.bioworker_role import BioworkerRole
 
 
 __ALL__ = [
@@ -25,4 +27,6 @@ __ALL__ = [
     RefactorRole,
     UnitTestsRole,
     WriterRole,
+    EducatorRole,
+    BioworkerRole,
 ]
