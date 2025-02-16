@@ -129,17 +129,7 @@ select = [
 ignore = []
 
 # Add per-file-ignores for Jupyter notebooks
-per-file-ignores = { 
-    "*.ipynb" = [
-        "E501",  # Line too long
-        "E402",  # Module level import not at top of file
-        "W291",  # Trailing whitespace
-        "F401",  # Imported but unused
-        "F403",  # 'from module import *' used
-        "F405",  # Name may be undefined from star imports
-        "B018"   # Found useless expression
-    ]
-}
+per-file-ignores = { "*.ipynb" = ["E501", "E402", "W291", "F401", "F403", "F405", "B018"] }  # Common notebook issues
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
