@@ -11,7 +11,7 @@ ENV UV_LINK_MODE=copy
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+    build-essential=12.9 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy project files
@@ -23,17 +23,16 @@ COPY tests/ tests/
 # Development stage
 FROM base AS development
 
-# Install development dependencies
-RUN uv pip install -e ".[dev]"
+# Install dependencies and set up environment
+RUN uv pip install -e ".[dev]" && \
+    useradd -m -s /bin/bash developer && \
+    chown -R developer:developer /app
 
 # Set environment variables
-ENV PYTHONPATH=/app
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Create a non-root user
-RUN useradd -m -s /bin/bash developer
-RUN chown -R developer:developer /app
 USER developer
 
 # Command to run development server or shell
@@ -42,20 +41,18 @@ CMD ["bash"]
 # Testing stage
 FROM base AS testing
 
-# Install test dependencies
-RUN uv pip install -e ".[dev]" pytest-cov
+# Install dependencies and set up environment
+RUN uv pip install -e ".[dev]" pytest-cov && \
+    mkdir coverage && \
+    chmod 777 coverage && \
+    useradd -m -s /bin/bash tester && \
+    chown -R tester:tester /app
 
 # Set environment variables
-ENV PYTHONPATH=/app
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Create coverage directory
-RUN mkdir coverage && chmod 777 coverage
-
-# Create a non-root user
-RUN useradd -m -s /bin/bash tester
-RUN chown -R tester:tester /app
 USER tester
 
 # Command to run tests
