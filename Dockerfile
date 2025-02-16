@@ -11,8 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv for faster dependency installation
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+# Install uv for faster dependency installation (globally accessible)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.cargo/bin/uv /usr/local/bin/uv && \
+    chmod +x /usr/local/bin/uv
 
 # Copy project files
 COPY pyproject.toml .
