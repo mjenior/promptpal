@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -31,37 +30,11 @@ class Role:
     name: str
     description: str
     system_instruction: str
-    model: Optional[str] = None
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
-    top_k: Optional[int] = None
-    max_output_tokens: Optional[int] = None
-    seed: Optional[int] = None
-    output_type: Optional[str] = None
+    model: str | None = None
+    temperature: float | None = None
+    top_p: float | None = None
+    top_k: int | None = None
+    max_output_tokens: int | None = None
+    seed: int | None = None
+    output_type: str | None = None
     search_web: bool = False
-
-    def __init__(
-        self,
-        name: str,
-        description: str,
-        system_instruction: str,
-        model: str = None,
-        temperature: float = None,
-        top_p: float = None,
-        top_k: int = None,
-        max_output_tokens: int = None,
-        seed: int = None,
-        output_type: str = None,
-        search_web: bool = False,
-    ):
-        self.name = name
-        self.description = description
-        self.system_instruction = system_instruction
-        self.model = model
-        self.temperature = temperature
-        self.top_p = top_p
-        self.top_k = top_k
-        self.max_output_tokens = max_output_tokens
-        self.seed = seed
-        self.output_type = output_type
-        self.search_web = search_web
