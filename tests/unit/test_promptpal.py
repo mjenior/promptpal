@@ -1,12 +1,14 @@
-import pytest
+import os
+import tempfile
+from io import BytesIO
 from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
+from PIL import Image
+
 from promptpal.promptpal import Promptpal
 from promptpal.roles import Role
-import os
-from unittest.mock import MagicMock
-import tempfile
-from PIL import Image
-from io import BytesIO
 
 
 @pytest.fixture(autouse=True)
@@ -132,9 +134,7 @@ def test_promptpal_load_default_roles(mocker):
 
     promptpal = Promptpal(load_default_roles=True)
     # Verify that add_roles_from_file was called
-    promptpal.add_roles_from_file.assert_called_once_with(
-        Path("promptpal/roles/roles.yaml")
-    )
+    promptpal.add_roles_from_file.assert_called_once_with(Path("promptpal/roles/roles.yaml"))
 
 
 def test_promptpal_manual_role_addition():
@@ -187,9 +187,7 @@ def test_chat_with_file_references(mocker):
 
     # Call the chat method with a message containing the file path
     message = f"Read {temp_file_path} and provide a summary."
-    response = promptpal.chat(
-        role_name="test_role", message=message, token_threshold=1000
-    )
+    response = promptpal.chat(role_name="test_role", message=message, token_threshold=1000)
 
     # Verify that the file was uploaded and included in the contents
     mock_upload.assert_called_once_with(file=temp_file_path)
@@ -315,9 +313,7 @@ def test_chat_with_write_code(mocker, tmp_path):
     promptpal.add_roles(roles)
 
     # Call the chat method with write_code=True
-    response = promptpal.chat(
-        "role1", "Generate some code", write_code=True, token_threshold=1000
-    )
+    response = promptpal.chat("role1", "Generate some code", write_code=True, token_threshold=1000)
     assert response == mock_response.text
 
     # Verify that code files were written
@@ -326,7 +322,7 @@ def test_chat_with_write_code(mocker, tmp_path):
         filename = promptpal.determine_filename(lang, code)
         file_path = output_dir / filename
         assert file_path.exists()
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             assert f.read() == code
         # Clean up the temporary file
         file_path.unlink()
@@ -339,9 +335,7 @@ def test_chat_image_generation(mocker, tmp_path):
     mock_response = MagicMock()
     mock_generated_image = MagicMock()
     # Create a valid PNG image using PIL
-    image = Image.new(
-        "RGBA", (1, 1), color=(255, 0, 0, 0)
-    )  # Red pixel with transparency
+    image = Image.new("RGBA", (1, 1), color=(255, 0, 0, 0))  # Red pixel with transparency
     img_byte_arr = BytesIO()
     image.save(img_byte_arr, format="PNG")
     mock_generated_image.image.image_bytes = img_byte_arr.getvalue()
@@ -361,7 +355,7 @@ def test_chat_image_generation(mocker, tmp_path):
     promptpal.add_roles(roles)
 
     response = promptpal.chat("artist", "Create a sunset painting", write_code=False)
-    assert response == f"Images saved to {str(tmp_path)}"
+    assert response == f"Images saved to {tmp_path!s}"
 
     # Check that the image was saved
     saved_images = list(tmp_path.glob("*.png"))
@@ -428,9 +422,7 @@ def test_refine_prompt_with_keyword_refinement():
 
 def test_refine_prompt_with_invalid_keyword_refinement():
     promptpal = Promptpal(load_default_roles=False)
-    with pytest.raises(
-        ValueError, match="Keyword refinement 'invalid_keyword' not recognized."
-    ):
+    with pytest.raises(ValueError, match="Keyword refinement 'invalid_keyword' not recognized."):
         promptpal.refine_prompt("Test prompt", keyword_refinement="invalid_keyword")
 
 
@@ -440,18 +432,14 @@ def test_refine_prompt_with_multiple_refinements():
         ValueError,
         match="Only one of glyph_refinement, chain_of_thought, or keyword_refinement can be true.",
     ):
-        promptpal.refine_prompt(
-            "Test prompt", glyph_refinement=True, chain_of_thought=True
-        )
+        promptpal.refine_prompt("Test prompt", glyph_refinement=True, chain_of_thought=True)
 
 
 def test_init_without_api_key(monkeypatch):
     # Remove GEMINI_API_KEY from environment
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
 
-    with pytest.raises(
-        EnvironmentError, match="GEMINI_API_KEY environment variable not found!"
-    ):
+    with pytest.raises(EnvironmentError, match="GEMINI_API_KEY environment variable not found!"):
         Promptpal()
 
 
@@ -568,7 +556,7 @@ def test_chat_with_file_upload(mocker, tmp_path):
     )
     promptpal.add_roles([role])
 
-    message = f"Process this file: {str(test_file)}"
+    message = f"Process this file: {test_file!s}"
     response = promptpal.chat("file_handler", message)
 
     assert response == "Response with file"
@@ -660,9 +648,7 @@ def test_chat_with_file_upload_and_message_parts(mocker, tmp_path):
     promptpal.add_roles([role])
 
     # Create message with multiple files and text
-    message = (
-        f"Process these files: {str(test_file1)} and {str(test_file2)} with some text"
-    )
+    message = f"Process these files: {test_file1!s} and {test_file2!s} with some text"
     response = promptpal.chat("file_handler", message)
 
     assert response == "Response with files"
@@ -715,12 +701,36 @@ def test_chat_with_prompt_refinement(mocker):
     chain_response = promptpal.refine_prompt("Test prompt", chain_of_thought=True)
     assert chain_response == "Refined prompt"
 
-    keyword_response = promptpal.refine_prompt(
-        "Test prompt", keyword_refinement="simplify"
-    )
+    keyword_response = promptpal.refine_prompt("Test prompt", keyword_refinement="simplify")
     assert "Use less complex language for easier comprehension" in keyword_response
 
     # Verify generate_content was called with correct parameters
-    assert (
-        mock_generate_content.call_count == 2
-    )  # Once for glyph, once for chain of thought
+    assert mock_generate_content.call_count == 2  # Once for glyph, once for chain of thought
+
+
+def test_load_roles_from_file(tmp_path):
+    # Create a temporary YAML file with role definitions
+    roles_file = tmp_path / "roles.yaml"
+    code = "role_data:\n  name: test\n  description: test role"
+    roles_file.write_text(code)
+    with open(roles_file) as f:
+        assert f.read() == code
+
+
+def test_find_existing_files(tmp_path):
+    # Create test files
+    test_file1 = tmp_path / "test1.txt"
+    test_file2 = tmp_path / "test2.txt"
+    test_file1.touch()
+    test_file2.touch()
+
+    # Test the find_existing_files function directly
+    from promptpal.promptpal import find_existing_files
+
+    message = f"Process these files: {test_file1} and {test_file2} with some text"
+    found_files = find_existing_files(message)
+
+    # Verify both files were found
+    assert len(found_files) == 2
+    assert str(test_file1) in found_files
+    assert str(test_file2) in found_files

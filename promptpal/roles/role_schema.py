@@ -1,8 +1,8 @@
 import yaml
-from jsonschema import validate, ValidationError
+from jsonschema import validate
 
 # Load the role schema from the YAML file
-with open("promptpal/roles/role_schema.yaml", "r") as file:
+with open("promptpal/roles/role_schema.yaml") as file:
     ROLE_SCHEMA = yaml.safe_load(file)
 
 

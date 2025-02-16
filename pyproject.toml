@@ -106,8 +106,8 @@ exclude = [
     "venv",
 ]
 
-# Same as Black.
-line-length = 88
+# Update line length to 100
+line-length = 100
 indent-width = 4
 
 # Assume Python 3.11
@@ -126,6 +126,9 @@ select = [
     "RUF", # ruff-specific rules
 ]
 ignore = []
+
+# Add per-file-ignores for Jupyter notebooks
+per-file-ignores = { "*.ipynb" = ["E501", "W291"] }
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
@@ -151,5 +154,5 @@ line-ending = "auto"
 docstring-code-format = true
 
 # Set the line length limit used when formatting code snippets in docstrings.
-docstring-code-line-length = 88
+docstring-code-line-length = 100
 

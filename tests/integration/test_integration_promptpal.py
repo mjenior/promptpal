@@ -1,7 +1,7 @@
 import pytest
+
 from promptpal.promptpal import Promptpal
 from promptpal.roles import Role
-import os
 
 
 def test_add_and_list_roles_integration():
@@ -69,7 +69,7 @@ def test_image_generation_integration(tmp_path):
 
     # Generate an image and verify
     response = promptpal.chat("artist", "Create a sunset painting")
-    assert response == f"Images saved to {str(tmp_path)}"
+    assert response == f"Images saved to {tmp_path!s}"
 
     # Check that the image was saved
     saved_images = list(tmp_path.glob("*.png"))

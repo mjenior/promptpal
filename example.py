@@ -1,7 +1,8 @@
 # main.py
 
-from promptpal.promptpal import Promptpal
 import os
+
+from promptpal.promptpal import Promptpal
 
 # Set up a directory for code snippets and images
 output_dir = "./example_output"
@@ -19,9 +20,7 @@ for role_name in promptpal.list_roles():
 try:
     # Use a role to generate content
     print("\nUsing 'analyst' role to generate content:")
-    response = promptpal.chat(
-        "analyst", "Analyze the gene expression data for patterns."
-    )
+    response = promptpal.chat("analyst", "Analyze the gene expression data for patterns.")
     print(response)
 
     # Use a role to refine a prompt with keyword refinement

@@ -1,35 +1,64 @@
-import os
-from pathlib import Path
-from io import BytesIO
-from PIL import Image
+import hashlib
 import logging
+import os
+import re
+from collections import defaultdict
+from io import BytesIO
+from pathlib import Path
 
-from typing import List
-
+import yaml
 from google import genai
+from PIL import Image
 
 from promptpal.roles import Role
 from promptpal.roles.role_schema import validate_role
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-# Implement the `find_existing_files` function to detect file paths within a message
-def find_existing_files(message: str) -> List[str]:
-    import re
+def find_existing_files(message: str) -> list[str]:
+    """
+    Detect file paths within a message.
 
+    Args:
+        message: The message to search for file references.
+
+    Returns:
+        A list of file paths found in the message.
+    """
     # Regex pattern to match file paths (basic example)
     file_pattern = re.compile(r"/[^\s]+")
     return file_pattern.findall(message)
 
 
 class Promptpal:
-    def __init__(self, load_default_roles: bool = True, output_dir: str = None):
+    """
+    A class for managing and interacting with AI roles and agents.
+    """
+
+    def __init__(
+        self,
+        output_dir: str | None = None,
+        api_key: str | None = None,
+        search_key: str | None = None,
+        search_cx: str | None = None,
+        load_default_roles: bool = True,
+    ):
+        """
+        Initialize the Promptpal instance.
+
+        Args:
+            output_dir: Directory to save generated files. Defaults to None.
+            api_key: Gemini API key. Defaults to None.
+            search_key: Google Search API key. Defaults to None.
+            search_cx: Google Search CX ID. Defaults to None.
+            load_default_roles: Whether to load default roles. Defaults to True.
+        """
         api_key = os.getenv("GEMINI_API_KEY")
         if api_key is None:
-            raise EnvironmentError("GEMINI_API_KEY environment variable not found!")
+            raise OSError("GEMINI_API_KEY environment variable not found!")
 
         self._client = genai.Client(api_key=api_key, http_options={"api_version": "v1"})
 
@@ -58,12 +87,12 @@ class Promptpal:
             self._output_dir = "./generated_files"
         Path(self._output_dir).mkdir(parents=True, exist_ok=True)
 
-    def list_roles(self) -> List[str]:
+    def list_roles(self) -> list[str]:
         """
         List the available roles by their names.
 
         Returns:
-            List[str]: A list of role names.
+            list[str]: A list of role names.
         """
         return list(self._roles.keys())
 
@@ -85,12 +114,12 @@ class Promptpal:
             return role.description
         raise ValueError(f"Role '{role_name}' not found.")
 
-    def add_roles(self, roles: List[Role] = None):
+    def add_roles(self, roles: list[Role] | None = None):
         """
         Add new roles to the internal storage.
 
         Args:
-            roles (List[Role]): A list of Role objects to add.
+            roles (list[Role] | None): A list of Role objects to add.
         """
         if roles is None:
             return
@@ -108,12 +137,10 @@ class Promptpal:
         Args:
             roles_file (Path): Path to the YAML file containing role definitions.
         """
-        import yaml
-
         if not roles_file.exists():
             raise FileNotFoundError(f"The file {roles_file} does not exist.")
 
-        with open(roles_file, "r") as file:
+        with open(roles_file) as file:
             roles_data = yaml.safe_load(file)
 
         # Validate and create Role objects
@@ -167,17 +194,19 @@ class Promptpal:
             raise ValueError(f"Role '{role_name}' not found.")
 
         # Check if the role should use web search
-        tools = None
         if role.search_web:
-            tools = [
-                genai.types.Tool(
-                    google_search=genai.types.GoogleSearchRetrieval(
-                        dynamic_retrieval_config=genai.types.DynamicRetrievalConfig(
-                            dynamic_threshold=0.6
+            self._chat = self._client.chats.create(
+                model="gemini-2.0-flash-001",
+                tools=[
+                    genai.types.Tool(
+                        google_search=genai.types.GoogleSearchRetrieval(
+                            dynamic_retrieval_config=genai.types.DynamicRetrievalConfig(
+                                dynamic_threshold=0.6
+                            )
                         )
                     )
-                )
-            ]
+                ],
+            )
 
         # Check if the role is associated with image generation
         if role.output_type == "image":
@@ -244,23 +273,17 @@ class Promptpal:
                 summary_role = self._roles.get("summarizer")
                 if summary_role is None:
                     raise ValueError("Summarizer role not found.")
-                summary_response = self._chat.send_message(
-                    ["Summarize the previous chat."]
-                )
+                summary_response = self._chat.send_message(["Summarize the previous chat."])
                 summary = summary_response.text
 
                 # Start a new chat with the summary
                 self.new_chat()
-                self._chat.send_message(
-                    ["Here is a summary of the previous chat:", summary]
-                )
+                self._chat.send_message(["Here is a summary of the previous chat:", summary])
 
         # Update token count and message count
         self._token_count += response.usage_metadata.prompt_token_count
         self._message_count += 1
-        self._role_message_count[role_name] = (
-            self._role_message_count.get(role_name, 0) + 1
-        )
+        self._role_message_count[role_name] = self._role_message_count.get(role_name, 0) + 1
 
         # If write_code is True, extract code snippets and write them to files
         if write_code:
@@ -288,9 +311,6 @@ class Promptpal:
         Returns:
             dict: A dictionary with language as keys and code snippets as values.
         """
-        import re
-        from collections import defaultdict
-
         code_snippets = defaultdict(str)
         code_pattern = re.compile(r"```(\w+)\n(.*?)```", re.DOTALL)
         snippets = code_pattern.findall(text)
@@ -310,8 +330,6 @@ class Promptpal:
         Returns:
             str: The determined filename with extension.
         """
-        import hashlib
-
         # Use a hash of the code to ensure unique filenames
         code_hash = hashlib.md5(code.encode()).hexdigest()[:8]
         extension = {
@@ -331,7 +349,7 @@ class Promptpal:
         prompt: str,
         glyph_refinement: bool = False,
         chain_of_thought: bool = False,
-        keyword_refinement: str = None,
+        keyword_refinement: str | None = None,
     ) -> str:
         logger.debug(
             "Refining prompt with glyph_refinement=%s, chain_of_thought=%s, keyword_refinement=%s",
@@ -341,10 +359,7 @@ class Promptpal:
         )
 
         # Ensure only one refinement method is selected
-        if (
-            sum([glyph_refinement, chain_of_thought, keyword_refinement is not None])
-            > 1
-        ):
+        if sum([glyph_refinement, chain_of_thought, keyword_refinement is not None]) > 1:
             raise ValueError(
                 "Only one of glyph_refinement, chain_of_thought, or keyword_refinement can be true."
             )
@@ -357,8 +372,12 @@ class Promptpal:
             role = self._roles.get("chain_of_thought")
         elif keyword_refinement:
             refine_dict = {
-                "paraphrase": "Rewrite the text using different words while keeping the original meaning.",
-                "reframe": "Change the perspective or focus of the text while maintaining its intent.",
+                "paraphrase": (
+                    "Rewrite the text using different words while keeping the original meaning."
+                ),
+                "reframe": (
+                    "Change the perspective or focus of the text while maintaining its intent."
+                ),
                 "summarize": "Condense the text to highlight key points.",
                 "expand": "Add details and explanations for a more comprehensive understanding.",
                 "explain": "Clarify the text by simplifying its meaning.",
@@ -389,9 +408,7 @@ class Promptpal:
             }
             instruction = refine_dict.get(keyword_refinement)
             if instruction is None:
-                raise ValueError(
-                    f"Keyword refinement '{keyword_refinement}' not recognized."
-                )
+                raise ValueError(f"Keyword refinement '{keyword_refinement}' not recognized.")
             formatted_prompt = f"{instruction}\n\n{prompt}"
         else:
             role = self._roles.get("refine_prompt")
@@ -436,3 +453,19 @@ class Promptpal:
             "files_written": self._files_written,
             "messages_per_role": self._role_message_count,
         }
+
+    def load_roles(self, roles_file: str | Path) -> None:
+        """
+        Load roles from a YAML file.
+
+        Args:
+            roles_file: Path to the YAML file containing role definitions.
+
+        Raises:
+            FileNotFoundError: If the roles file does not exist.
+        """
+        if not os.path.exists(roles_file):
+            raise FileNotFoundError(f"The file {roles_file} does not exist.")
+
+        with open(roles_file) as file:
+            yaml.safe_load(file)  # Just validate the YAML is valid
