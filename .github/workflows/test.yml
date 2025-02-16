@@ -64,7 +64,7 @@ jobs:
           docker run --rm \
             -v ${{ github.workspace }}/coverage:/app/coverage \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test \
-            pytest tests/ -v --cov=promptpal --cov-report=xml:/app/coverage/coverage.xml
+            pytest tests/ -v --cov=promptpal --cov-report=xml:/app/coverage/coverage.xml -m "not integration"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

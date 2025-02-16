@@ -60,4 +60,4 @@ ENV PYTHONPATH=/app \
 USER tester
 
 # Command to run tests
-CMD ["pytest", "tests/unit/", "-v", "--cov=promptpal", "--cov-report=term-missing"] 
+CMD ["pytest", "tests/unit/", "-v", "--cov=promptpal", "--cov-report=term-missing", "-m", "not integration"] 

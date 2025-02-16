@@ -4,6 +4,7 @@ from promptpal.promptpal import Promptpal
 from promptpal.roles import Role
 
 
+@pytest.mark.integration
 def test_add_and_list_roles_integration():
     # Initialize Promptpal with actual API
     promptpal = Promptpal(load_default_roles=False)
@@ -31,6 +32,7 @@ def test_add_and_list_roles_integration():
     assert "integration_role2" in role_names
 
 
+@pytest.mark.integration
 def test_chat_integration():
     # Initialize Promptpal with actual API
     promptpal = Promptpal(load_default_roles=False)
@@ -50,6 +52,7 @@ def test_chat_integration():
     assert isinstance(response, str)
 
 
+@pytest.mark.integration
 @pytest.mark.skip(
     reason="Image generation model not available. TODO: Fix image generation handling."
 )

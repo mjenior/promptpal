@@ -57,6 +57,9 @@ addopts = "-ra -q --cov=promptpal --cov-report=term-missing"
 testpaths = [
     "tests",
 ]
+markers = [
+    "integration: marks tests as integration tests that require external services",
+]
 
 [tool.coverage.run]
 source = ["promptpal"]
