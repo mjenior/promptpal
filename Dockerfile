@@ -48,9 +48,10 @@ FROM base AS testing
 # Install dependencies and set up environment
 RUN uv pip install -e ".[dev]" pytest-cov && \
     mkdir coverage && \
-    chmod 777 coverage && \
     useradd -m -s /bin/bash tester && \
-    chown -R tester:tester /app
+    chown -R tester:tester /app && \
+    chown -R tester:tester /app/coverage && \
+    chmod 777 coverage
 
 # Set environment variables
 ENV PYTHONPATH=/app \
