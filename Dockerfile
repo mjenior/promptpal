@@ -47,11 +47,8 @@ FROM base AS testing
 
 # Install dependencies and set up environment
 RUN uv pip install -e ".[dev]" pytest-cov && \
-    mkdir coverage && \
     useradd -m -s /bin/bash tester && \
-    chown -R tester:tester /app && \
-    chown -R tester:tester /app/coverage && \
-    chmod 777 coverage
+    chown -R tester:tester /app
 
 # Set environment variables
 ENV PYTHONPATH=/app \
@@ -61,4 +58,4 @@ ENV PYTHONPATH=/app \
 USER tester
 
 # Command to run tests
-CMD ["pytest", "tests/unit/", "-v", "--cov=promptpal", "--cov-report=term-missing", "-m", "not integration"] 
+CMD ["pytest", "tests/unit/", "-v", "--cov=promptpal", "--cov-report=term-missing", "--cov-report=xml:/tmp/coverage.xml", "-m", "not integration"] 
