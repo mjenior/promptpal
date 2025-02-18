@@ -2,31 +2,9 @@
 import re
 from .roles import *
 
-# Library of string variables used by assistant
-
-#-----------------------------------------------------------------------------------------------------------------------------#
-
-## System roles
-
-roleDict = {
-   'assistant': {'prompt':ASSISTANT, 'name':'Assistant'},
-   'developer': {'prompt':DEVELOPER, 'name':'Full Stack Developer'},
-   'prompt': {'prompt':PROMPT_ENGINEER, 'name':'Prompt Engineer'},
-   'refactor': {'prompt':REFACTOR, 'name':'Refactoring Expert'},
-   'tester': {'prompt':UNIT_TESTS, 'name':'Unit Tester'},
-   'artist': {'prompt':ARTIST+IMAGE, 'name':'Artist'},
-   'photographer': {'prompt':PHOTOGRAPHER+IMAGE, 'name':'Photographer'},
-   'analyst': {'prompt':DATA_SCIENTIST, 'name':'Data Scientist'},
-   'visualize': {'prompt':DATA_VISUALIZATION, 'name':'Data Visualization Expert'},
-   'writer': {'prompt':WRITER, 'name':'Writer'},
-   'editor': {'prompt':EDITOR, 'name':'Editor'}
-   }
-
-#-----------------------------------------------------------------------------------------------------------------------------#
-
 ## Prompt modifiers
 
-CHAIN_OF_THOUGHT = """
+CoT = """
 1. Begin with a <thinking> section which includes: 
  a. Briefly analyze the question and outline your approach. 
  b. Present a clear plan of steps to solve the problem. 
@@ -46,7 +24,7 @@ Remember: Both <thinking> and <reflection> MUST be tags and must be closed at th
 Remember: Make sure all <tags> are on separate lines with no other text. 
 """
 
-REFINE_PROMPT = """
+REFINE = """
 ### Task
 Your primary objective is to refine or improve the user prompt provided below.
 Your refinement should enhance clarity, specificity, and completeness to maximize the likelihood of a high-quality response.
@@ -61,7 +39,7 @@ Your refinement should enhance clarity, specificity, and completeness to maximiz
 Your response should consist **only of the refined prompt**, without any additional explanation or formatting beyond what is necessary for clarity.
 """
 
-CONDENSE_RESPONSE = """
+CONDENSE = """
 ### Task
 Your objective is to **synthesize and refine** the provided text into a **single, cohesive response** that retains the original subject and theme.
 
@@ -75,16 +53,16 @@ Your objective is to **synthesize and refine** the provided text into a **single
 Your response should consist **only of the synthesized text**, without additional commentary or formatting beyond what enhances readability.
 """
 
-GLYPH_PROMPT = """
+GLYPH = """
 Reformat and expand the user prompt into the following format.
 Maintain the modified prompt structure below explicitily and do not make any substantive deviations.
 Keep the <human_instructions> unchanged and at the beginning of the new prompt text.
 
 <human_instructions>
 - Treat each glyph as a direct instruction to be followed sequentially, driving the process to completion.
-- Deliver the final result as indicated by the glyph code, omitting any extraneous commentary. 
-- Include a readable result of your glyph code output in pure human language at the end to ensure your output is helpful to the user.
-- Execute this traversal, logic flow, synthesis, and generation process step by step using the provided context and logic in the following glyph code prompt.
+- Deliver the final result as indicated by the glyph sequence, omitting any extraneous commentary. 
+- Include a readable result of your glyph-based output in pure human language at the end to ensure your output is helpful to the user.
+- Execute this traversal, logic flow, synthesis, and generation process step by step using the provided context and logic in the following glyph coded prompt.
 </human_instructions>
 
 {
@@ -105,7 +83,7 @@ Keep the <human_instructions> unchanged and at the beginning of the new prompt t
 }
 """
 
-SUMMARIZE_CONVERSATION = """
+SUMMARIZE = """
 ### Task  
 Summarize the following conversation between a **user** and an **AI assistant**, preserving all key points from both user requests and assistant responses.
 
@@ -118,17 +96,6 @@ Summarize the following conversation between a **user** and an **AI assistant**,
 ### Output Format  
 Your response should consist **only of the summarized conversation**, structured in a clear and logical manner without additional commentary.
 """
-
-# Collected default modifier text
-modifierDict = {
-   'cot': CHAIN_OF_THOUGHT, 
-   'tests': UNIT_TESTS, 
-   'refine': REFINE_PROMPT, 
-   'condense': CONDENSE_RESPONSE,
-   'summarize': SUMMARIZE_CONVERSATION,
-   'glyph': GLYPH_PROMPT
-   }
-
 
 # Key word prompt refinement, expand, amplify
 refineDict = {
@@ -213,10 +180,3 @@ patternDict = {
       "variable": re.compile(r'def\s+(\w+)\s*\('),
    },
 }
-
-# Text library for easy import
-text_library = {'roles':roleDict, 
-                'modifiers':modifierDict, 
-                'refinement':refineDict, 
-                'extensions':extDict, 
-                'patterns':patternDict}

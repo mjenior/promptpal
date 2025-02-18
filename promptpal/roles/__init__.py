@@ -12,6 +12,7 @@ from promptpal.roles.unit_tests_role import UnitTestsRole
 from promptpal.roles.writer_role import WriterRole
 from promptpal.roles.educator_role import EducatorRole
 from promptpal.roles.bioworker_role import BioworkerRole
+from promptpal.roles.compbio_role import CompBioRole
 
 
 __ALL__ = [
@@ -29,4 +30,5 @@ __ALL__ = [
     WriterRole,
     EducatorRole,
     BioworkerRole,
+    CompBioRole,
 ]
