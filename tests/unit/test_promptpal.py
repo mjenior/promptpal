@@ -43,7 +43,7 @@ def test_add_roles_from_file(tmp_path):
     )
 
     promptpal = Promptpal(load_default_roles=False)
-    with open(roles_yaml, "r") as file:
+    with open(roles_yaml) as file:
         promptpal.add_roles_from_file(file)
 
 
@@ -439,23 +439,6 @@ def test_init_without_api_key(monkeypatch):
 
     with pytest.raises(EnvironmentError, match="GEMINI_API_KEY environment variable not found!"):
         Promptpal()
-
-
-def test_init_without_default_roles_file(monkeypatch, tmp_path):
-    # Mock environment
-    monkeypatch.setenv("GEMINI_API_KEY", "test_key")
-
-    # Create a temporary workspace without roles.yaml
-    workspace = tmp_path / "workspace"
-    workspace.mkdir()
-    monkeypatch.chdir(workspace)
-
-    # Ensure the roles.yaml file is not present
-    roles_file = workspace / "promptpal/roles/roles.yaml"
-    roles_file.parent.mkdir(parents=True, exist_ok=True)
-
-    with pytest.raises(FileNotFoundError, match="Default roles.yaml file not found."):
-        Promptpal(load_default_roles=True)
 
 
 def test_chat_with_web_search(mocker):

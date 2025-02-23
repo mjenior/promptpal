@@ -1,6 +1,7 @@
+from importlib import resources
+
 import yaml
 from jsonschema import validate
-from importlib import resources
 
 # Load the role schema from the YAML file
 with resources.open_text("promptpal.roles", "role_schema.yaml") as file:

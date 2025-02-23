@@ -3,13 +3,13 @@ import logging
 import os
 import re
 from collections import defaultdict
+from importlib import resources
 from io import BytesIO
 from pathlib import Path
 
 import yaml
 from google import genai
 from PIL import Image
-from importlib import resources
 
 from promptpal.roles import Role
 from promptpal.roles.role_schema import validate_role
@@ -79,7 +79,7 @@ class Promptpal:
                     # Load roles from the file
                     self.add_roles_from_file(file)
             except FileNotFoundError:
-                raise FileNotFoundError("Default roles.yaml file not found.")
+                raise FileNotFoundError("Default roles.yaml file not found.") from None
 
         if not self._output_dir:
             self._output_dir = "./generated_files"

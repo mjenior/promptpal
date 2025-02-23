@@ -1,10 +1,16 @@
+import os
+
 import pytest
 
 from promptpal.promptpal import Promptpal
 from promptpal.roles import Role
 
+# Check if running in CI environment
+is_ci = os.getenv("CI") is not None
+
 
 @pytest.mark.integration
+@pytest.mark.skipif(is_ci, reason="Skipping integration tests in CI environment.")
 def test_add_and_list_roles_integration():
     # Initialize Promptpal with actual API
     promptpal = Promptpal(load_default_roles=False)
@@ -33,6 +39,7 @@ def test_add_and_list_roles_integration():
 
 
 @pytest.mark.integration
+@pytest.mark.skipif(is_ci, reason="Skipping integration tests in CI environment.")
 def test_chat_integration():
     # Initialize Promptpal with actual API
     promptpal = Promptpal(load_default_roles=False)
