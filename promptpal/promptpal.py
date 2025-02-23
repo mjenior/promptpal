@@ -298,8 +298,12 @@ class Promptpal:
                     code_file.write(code)
             self._files_written["code"] += len(code_snippets)
 
-        # Return the response text
-        return response.text
+        # Check for quiet mode
+        if self.quiet == True:
+            return self._quiet_response(response.text)
+        else
+            # Return the response text
+            return response.text
 
     def extract_code_snippets(self, text: str) -> dict:
         """
@@ -343,6 +347,19 @@ class Promptpal:
         }.get(lang, ".txt")  # Default to .txt if language is unknown
 
         return f"code_snippet_{code_hash}{extension}"
+
+    def _quiet_response(self, text):
+        """Create condensed responses to avoid walls of text"""
+        role = self._roles.get("summarizer")
+        prompt = role.system_instruction.replace("<user_prompt>", text)
+
+        # Use the LLM to summarize the previous response
+        response = self._client.models.generate_content(
+            model='gpt-4o-mini',
+            prompt=prompt,
+            )
+        # Return the summarized text
+        return response.text.strip()
 
     def refine_prompt(
         self,

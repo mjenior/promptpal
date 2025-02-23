@@ -54,3 +54,6 @@ properties:
       search_web:
         type: boolean
         description: Indicates whether the role can search the web.
+      quiet:
+        type: boolean
+        description: Quiets stdout to be minimal and concise.
