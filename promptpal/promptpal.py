@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from collections import defaultdict
+from importlib import resources
 from io import BytesIO
 from pathlib import Path
 
@@ -42,8 +43,6 @@ class Promptpal:
         self,
         output_dir: str | None = None,
         api_key: str | None = None,
-        search_key: str | None = None,
-        search_cx: str | None = None,
         load_default_roles: bool = True,
     ):
         """
@@ -52,8 +51,6 @@ class Promptpal:
         Args:
             output_dir: Directory to save generated files. Defaults to None.
             api_key: Gemini API key. Defaults to None.
-            search_key: Google Search API key. Defaults to None.
-            search_cx: Google Search CX ID. Defaults to None.
             load_default_roles: Whether to load default roles. Defaults to True.
         """
         api_key = os.getenv("GEMINI_API_KEY")
@@ -77,11 +74,12 @@ class Promptpal:
 
         # Load default roles if specified
         if load_default_roles:
-            default_roles_file = Path("promptpal/roles/roles.yaml")
-            if default_roles_file.exists():
-                self.add_roles_from_file(default_roles_file)
-            else:
-                raise FileNotFoundError("Default roles.yaml file not found.")
+            try:
+                with resources.open_text("promptpal.roles", "roles.yaml") as file:
+                    # Load roles from the file
+                    self.add_roles_from_file(file)
+            except FileNotFoundError:
+                raise FileNotFoundError("Default roles.yaml file not found.") from None
 
         if not self._output_dir:
             self._output_dir = "./generated_files"
@@ -130,18 +128,14 @@ class Promptpal:
             else:
                 raise TypeError("All items in the roles list must be of type Role.")
 
-    def add_roles_from_file(self, roles_file: Path):
+    def add_roles_from_file(self, file):
         """
         Add roles from a YAML file.
 
         Args:
-            roles_file (Path): Path to the YAML file containing role definitions.
+            file: A file-like object containing role definitions.
         """
-        if not roles_file.exists():
-            raise FileNotFoundError(f"The file {roles_file} does not exist.")
-
-        with open(roles_file) as file:
-            roles_data = yaml.safe_load(file)
+        roles_data = yaml.safe_load(file)
 
         # Validate and create Role objects
         roles = []
@@ -453,19 +447,3 @@ class Promptpal:
             "files_written": self._files_written,
             "messages_per_role": self._role_message_count,
         }
-
-    def load_roles(self, roles_file: str | Path) -> None:
-        """
-        Load roles from a YAML file.
-
-        Args:
-            roles_file: Path to the YAML file containing role definitions.
-
-        Raises:
-            FileNotFoundError: If the roles file does not exist.
-        """
-        if not os.path.exists(roles_file):
-            raise FileNotFoundError(f"The file {roles_file} does not exist.")
-
-        with open(roles_file) as file:
-            yaml.safe_load(file)  # Just validate the YAML is valid
