@@ -1,0 +1,2 @@
+include promptpal/roles/role_schema.yaml
+include promptpal/roles/roles.yaml
