@@ -85,3 +85,35 @@ def test_image_generation_integration(tmp_path):
     saved_images = list(tmp_path.glob("*.png"))
     assert len(saved_images) == 1
     assert saved_images[0].name == "artist_image_0.png"
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(is_ci, reason="Skipping integration tests in CI environment.")
+def test_refine_prompt_integration():
+    # Initialize Promptpal with actual API
+    promptpal = Promptpal(load_default_roles=False)
+
+    # Add a role for glyph refinement
+    role = Role(
+        name="glyph_prompt",
+        description="Glyph Prompt",
+        system_instruction="<user_prompt>",
+        model="gemini-1.5-pro",
+    )
+    promptpal.add_roles([role])
+
+    # Define a prompt to refine
+    prompt = """
+    **System Role: Virology Lab Logistics & Procurement Agent**
+
+    *   **Human Oversight:**  While the agent can automate many aspects of the procurement process,
+        human oversight is still essential to review purchase orders, address unexpected issues,
+        and ensure compliance with all relevant policies and regulations.
+    """
+
+    # Attempt to refine the prompt
+    try:
+        updated_prompt = promptpal.refine_prompt(prompt, glyph_refinement=True)
+        print(updated_prompt)
+    except Exception as e:
+        pytest.fail(f"Refine prompt failed with exception: {e}")
