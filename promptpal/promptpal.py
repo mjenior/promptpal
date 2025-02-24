@@ -4,12 +4,10 @@ import os
 import re
 from collections import defaultdict
 from importlib import resources
-from io import BytesIO
 from pathlib import Path
 
 import yaml
 from google import genai
-from PIL import Image
 
 from promptpal.roles import Role
 from promptpal.roles.role_schema import validate_role
