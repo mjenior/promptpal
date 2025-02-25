@@ -25,6 +25,7 @@ class Role:
         output_type: Indicates whether the role deals with text or image generation.
             Defaults to None.
         search_web: Indicates whether the role can search the web. Defaults to False.
+        quiet: Quiets stdout to be minimal and concise
     """
 
     name: str
@@ -38,3 +39,4 @@ class Role:
     seed: int | None = None
     output_type: str | None = None
     search_web: bool = False
+    quiet: bool = False
