@@ -3,12 +3,11 @@ import logging
 import os
 import re
 from collections import defaultdict
-from io import BytesIO
+from importlib import resources
 from pathlib import Path
 
 import yaml
 from google import genai
-from PIL import Image
 
 from promptpal.roles import Role
 from promptpal.roles.role_schema import validate_role
@@ -42,8 +41,6 @@ class Promptpal:
         self,
         output_dir: str | None = None,
         api_key: str | None = None,
-        search_key: str | None = None,
-        search_cx: str | None = None,
         load_default_roles: bool = True,
     ):
         """
@@ -52,8 +49,6 @@ class Promptpal:
         Args:
             output_dir: Directory to save generated files. Defaults to None.
             api_key: Gemini API key. Defaults to None.
-            search_key: Google Search API key. Defaults to None.
-            search_cx: Google Search CX ID. Defaults to None.
             load_default_roles: Whether to load default roles. Defaults to True.
         """
         api_key = os.getenv("GEMINI_API_KEY")
@@ -77,11 +72,12 @@ class Promptpal:
 
         # Load default roles if specified
         if load_default_roles:
-            default_roles_file = Path("promptpal/roles/roles.yaml")
-            if default_roles_file.exists():
-                self.add_roles_from_file(default_roles_file)
-            else:
-                raise FileNotFoundError("Default roles.yaml file not found.")
+            try:
+                with resources.open_text("promptpal.roles", "roles.yaml") as file:
+                    # Load roles from the file
+                    self.add_roles_from_file(file)
+            except FileNotFoundError:
+                raise FileNotFoundError("Default roles.yaml file not found.") from None
 
         if not self._output_dir:
             self._output_dir = "./generated_files"
@@ -130,18 +126,14 @@ class Promptpal:
             else:
                 raise TypeError("All items in the roles list must be of type Role.")
 
-    def add_roles_from_file(self, roles_file: Path):
+    def add_roles_from_file(self, file):
         """
         Add roles from a YAML file.
 
         Args:
-            roles_file (Path): Path to the YAML file containing role definitions.
+            file: A file-like object containing role definitions.
         """
-        if not roles_file.exists():
-            raise FileNotFoundError(f"The file {roles_file} does not exist.")
-
-        with open(roles_file) as file:
-            roles_data = yaml.safe_load(file)
+        roles_data = yaml.safe_load(file)
 
         # Validate and create Role objects
         roles = []
@@ -170,7 +162,8 @@ class Promptpal:
         self,
         role_name: str,
         message: str,
-        write_code: bool = False,
+        write_output: bool = True,
+        write_code: bool = True,
         token_threshold: int = 1000,
     ) -> str:
         """
@@ -210,32 +203,33 @@ class Promptpal:
 
         # Check if the role is associated with image generation
         if role.output_type == "image":
+            raise NotImplementedError("Image generation is not implemented yet.")
             # Generate images using the genai client
-            try:
-                response = self._client.models.generate_images(
-                    model=role.model,
-                    prompt=message,
-                    config=genai.types.GenerateImagesConfig(
-                        number_of_images=1,
-                    ),
-                )
-                logger.debug("Image generation response: %s", response)
+            # try:
+            #     response = self._client.models.generate_images(
+            #         model=role.model,
+            #         prompt=message,
+            #         config=genai.types.GenerateImagesConfig(
+            #             number_of_images=1,
+            #         ),
+            #     )
+            #     logger.debug("Image generation response: %s", response)
 
-                # Ensure the output directory exists
-                if not self._output_dir:
-                    self._output_dir = "./generated_files"
-                Path(self._output_dir).mkdir(parents=True, exist_ok=True)
+            #     # Ensure the output directory exists
+            #     if not self._output_dir:
+            #         self._output_dir = "./generated_files"
+            #     Path(self._output_dir).mkdir(parents=True, exist_ok=True)
 
-                # Save images to the output directory
-                for i, generated_image in enumerate(response.generated_images):
-                    image = Image.open(BytesIO(generated_image.image.image_bytes))
-                    image_path = Path(self._output_dir) / f"{role_name}_image_{i}.png"
-                    image.save(image_path)
+            #     # Save images to the output directory
+            #     for i, generated_image in enumerate(response.generated_images):
+            #         image = Image.open(BytesIO(generated_image.image.image_bytes))
+            #         image_path = Path(self._output_dir) / f"{role_name}_image_{i}.png"
+            #         image.save(image_path)
 
-                return f"Images saved to {self._output_dir}"
-            except Exception as e:
-                logger.error("Error during image generation: %s", e)
-                raise
+            #     return f"Images saved to {self._output_dir}"
+            # except Exception as e:
+            #     logger.error("Error during image generation: %s", e)
+            #     raise
 
         # Parse the message and look for references to files. If found, upload them to the client.
         file_references = find_existing_files(message)
@@ -300,7 +294,7 @@ class Promptpal:
 
         # Check for quiet mode
         #if self.quiet == True:
-        #    return response = self._quiet_response(response.text)
+        #    response = self._quiet_response(response.text)
 
         return response.text
 
@@ -437,7 +431,7 @@ class Promptpal:
             # Use the LLM to refine the prompt
             response = self._client.models.generate_content(
                 model=role.model,
-                prompt=formatted_prompt,
+                contents=formatted_prompt,
                 config=genai.types.GenerateContentConfig(
                     temperature=0.7,
                 ),
@@ -469,19 +463,3 @@ class Promptpal:
             "files_written": self._files_written,
             "messages_per_role": self._role_message_count,
         }
-
-    def load_roles(self, roles_file: str | Path) -> None:
-        """
-        Load roles from a YAML file.
-
-        Args:
-            roles_file: Path to the YAML file containing role definitions.
-
-        Raises:
-            FileNotFoundError: If the roles file does not exist.
-        """
-        if not os.path.exists(roles_file):
-            raise FileNotFoundError(f"The file {roles_file} does not exist.")
-
-        with open(roles_file) as file:
-            yaml.safe_load(file)  # Just validate the YAML is valid
