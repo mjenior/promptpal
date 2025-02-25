@@ -4,12 +4,10 @@ import os
 import re
 from collections import defaultdict
 from importlib import resources
-from io import BytesIO
 from pathlib import Path
 
 import yaml
 from google import genai
-from PIL import Image
 
 from promptpal.roles import Role
 from promptpal.roles.role_schema import validate_role
@@ -164,7 +162,8 @@ class Promptpal:
         self,
         role_name: str,
         message: str,
-        write_code: bool = False,
+        write_output: bool = True,
+        write_code: bool = True,
         token_threshold: int = 1000,
     ) -> str:
         """
@@ -204,32 +203,33 @@ class Promptpal:
 
         # Check if the role is associated with image generation
         if role.output_type == "image":
+            raise NotImplementedError("Image generation is not implemented yet.")
             # Generate images using the genai client
-            try:
-                response = self._client.models.generate_images(
-                    model=role.model,
-                    prompt=message,
-                    config=genai.types.GenerateImagesConfig(
-                        number_of_images=1,
-                    ),
-                )
-                logger.debug("Image generation response: %s", response)
+            # try:
+            #     response = self._client.models.generate_images(
+            #         model=role.model,
+            #         prompt=message,
+            #         config=genai.types.GenerateImagesConfig(
+            #             number_of_images=1,
+            #         ),
+            #     )
+            #     logger.debug("Image generation response: %s", response)
 
-                # Ensure the output directory exists
-                if not self._output_dir:
-                    self._output_dir = "./generated_files"
-                Path(self._output_dir).mkdir(parents=True, exist_ok=True)
+            #     # Ensure the output directory exists
+            #     if not self._output_dir:
+            #         self._output_dir = "./generated_files"
+            #     Path(self._output_dir).mkdir(parents=True, exist_ok=True)
 
-                # Save images to the output directory
-                for i, generated_image in enumerate(response.generated_images):
-                    image = Image.open(BytesIO(generated_image.image.image_bytes))
-                    image_path = Path(self._output_dir) / f"{role_name}_image_{i}.png"
-                    image.save(image_path)
+            #     # Save images to the output directory
+            #     for i, generated_image in enumerate(response.generated_images):
+            #         image = Image.open(BytesIO(generated_image.image.image_bytes))
+            #         image_path = Path(self._output_dir) / f"{role_name}_image_{i}.png"
+            #         image.save(image_path)
 
-                return f"Images saved to {self._output_dir}"
-            except Exception as e:
-                logger.error("Error during image generation: %s", e)
-                raise
+            #     return f"Images saved to {self._output_dir}"
+            # except Exception as e:
+            #     logger.error("Error during image generation: %s", e)
+            #     raise
 
         # Parse the message and look for references to files. If found, upload them to the client.
         file_references = find_existing_files(message)
@@ -292,8 +292,16 @@ class Promptpal:
                     code_file.write(code)
             self._files_written["code"] += len(code_snippets)
 
-        # Return the response text
-        return response.text
+        # Format the response text for better readability
+        formatted_response = response.text.split("\n")
+        if write_output:
+            for line in formatted_response:
+                print(line)
+
+            return "\n".join(formatted_response)
+
+        # Return the formatted response text
+        return
 
     def extract_code_snippets(self, text: str) -> dict:
         """
@@ -415,7 +423,7 @@ class Promptpal:
             # Use the LLM to refine the prompt
             response = self._client.models.generate_content(
                 model=role.model,
-                prompt=formatted_prompt,
+                contents=formatted_prompt,
                 config=genai.types.GenerateContentConfig(
                     temperature=0.7,
                 ),
