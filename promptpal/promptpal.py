@@ -299,11 +299,10 @@ class Promptpal:
             self._files_written["code"] += len(code_snippets)
 
         # Check for quiet mode
-        if self.quiet == True:
-            return self._quiet_response(response.text)
-        else
-            # Return the response text
-            return response.text
+        #if self.quiet == True:
+        #    return response = self._quiet_response(response.text)
+
+        return response.text
 
     def extract_code_snippets(self, text: str) -> dict:
         """
@@ -359,7 +358,7 @@ class Promptpal:
             prompt=prompt,
             )
         # Return the summarized text
-        return response.text.strip()
+        return response
 
     def refine_prompt(
         self,
