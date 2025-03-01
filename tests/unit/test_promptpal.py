@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from promptpal.promptpal import Promptpal
+from promptpal.promptpal import Promptpal, PromptRefinementType
 from promptpal.roles import Role
 
 
@@ -44,29 +44,26 @@ def test_add_roles_from_file(tmp_path):
         promptpal.add_roles_from_file(file)
 
 
-def test_list_roles():
+def test_list_roles(capsys):
     promptpal = Promptpal(load_default_roles=False)
     roles = [
         Role(name="role1", description="Role 1", system_instruction="Instruction 1"),
         Role(name="role2", description="Role 2", system_instruction="Instruction 2"),
     ]
     promptpal.add_roles(roles)
-    role_names = promptpal.list_roles()
-    assert role_names == ["role1", "role2"]
 
+    # Call the method which now prints instead of returning
+    promptpal.list_roles()
 
-def test_get_role_description():
-    promptpal = Promptpal()
-    roles = [
-        Role(name="role1", description="Role 1", system_instruction="Instruction 1"),
-        Role(name="role2", description="Role 2", system_instruction="Instruction 2"),
-    ]
-    promptpal.add_roles(roles)
-    description = promptpal.get_role_description("role1")
-    assert description == "Role 1"
+    # Capture the printed output
+    captured = capsys.readouterr()
 
-    with pytest.raises(ValueError):
-        promptpal.get_role_description("nonexistent_role")
+    # Check that the output contains the role names and descriptions
+    assert "role1" in captured.out
+    assert "Role 1" in captured.out
+    assert "role2" in captured.out
+    assert "Role 2" in captured.out
+    assert "Total: 2 roles" in captured.out
 
 
 def test_chat_valid_role(mocker):
@@ -342,7 +339,7 @@ def test_refine_prompt_with_glyph_refinement(mocker):
     ]
     promptpal.add_roles(roles)
 
-    response = promptpal.refine_prompt("Test prompt", glyph_refinement=True)
+    response = promptpal.refine_prompt("Test prompt", refinement_type=PromptRefinementType.GLYPH)
     assert response == "Refined prompt using glyph refinement"
 
 
@@ -365,7 +362,9 @@ def test_refine_prompt_with_chain_of_thought(mocker):
     ]
     promptpal.add_roles(roles)
 
-    response = promptpal.refine_prompt("Test prompt", chain_of_thought=True)
+    response = promptpal.refine_prompt(
+        "Test prompt", refinement_type=PromptRefinementType.CHAIN_OF_THOUGHT
+    )
     assert response == "Refined prompt using chain of thought"
 
 
@@ -376,23 +375,83 @@ def test_refine_prompt_with_keyword_refinement():
     expected_instruction = "Use less complex language for easier comprehension."
     expected_output = f"{expected_instruction}\n\n{prompt}"
 
-    response = promptpal.refine_prompt(prompt, keyword_refinement=keyword)
+    response = promptpal.refine_prompt(
+        prompt, refinement_type=PromptRefinementType.KEYWORD, keyword=keyword
+    )
     assert response == expected_output
 
 
 def test_refine_prompt_with_invalid_keyword_refinement():
     promptpal = Promptpal(load_default_roles=False)
     with pytest.raises(ValueError, match="Keyword refinement 'invalid_keyword' not recognized."):
-        promptpal.refine_prompt("Test prompt", keyword_refinement="invalid_keyword")
+        promptpal.refine_prompt(
+            "Test prompt", refinement_type=PromptRefinementType.KEYWORD, keyword="invalid_keyword"
+        )
 
 
-def test_refine_prompt_with_multiple_refinements():
+def test_refine_prompt_with_missing_keyword():
     promptpal = Promptpal(load_default_roles=False)
     with pytest.raises(
-        ValueError,
-        match="Only one of glyph_refinement, chain_of_thought, or keyword_refinement can be true.",
+        ValueError, match="Keyword must be provided when refinement_type is KEYWORD."
     ):
-        promptpal.refine_prompt("Test prompt", glyph_refinement=True, chain_of_thought=True)
+        promptpal.refine_prompt("Test prompt", refinement_type=PromptRefinementType.KEYWORD)
+
+
+def test_refine_prompt_with_prompt_engineer(mocker):
+    # Mock the chat method
+    mock_chat = mocker.patch.object(Promptpal, "chat")
+    mock_chat.return_value = "Refined prompt by prompt engineer"
+
+    promptpal = Promptpal(load_default_roles=False)
+    roles = [
+        Role(
+            name="prompt_engineer",
+            description="Prompt Engineer",
+            system_instruction="Refine prompts",
+        ),
+    ]
+    promptpal.add_roles(roles)
+
+    response = promptpal.refine_prompt(
+        "Test prompt", refinement_type=PromptRefinementType.PROMPT_ENGINEER
+    )
+    mock_chat.assert_called_once_with("prompt_engineer", "Refine this prompt: Test prompt")
+    assert response == "Refined prompt by prompt engineer"
+
+
+def test_refine_prompt_with_refine_prompt_role(mocker):
+    # Mock the chat method
+    mock_chat = mocker.patch.object(Promptpal, "chat")
+    mock_chat.return_value = "Refined prompt by refine_prompt role"
+
+    promptpal = Promptpal(load_default_roles=False)
+    roles = [
+        Role(
+            name="refine_prompt",
+            description="Refine Prompt",
+            system_instruction="Refine prompts",
+        ),
+    ]
+    promptpal.add_roles(roles)
+
+    response = promptpal.refine_prompt(
+        "Test prompt", refinement_type=PromptRefinementType.REFINE_PROMPT
+    )
+    mock_chat.assert_called_once_with("refine_prompt", "Refine this prompt: Test prompt")
+    assert response == "Refined prompt by refine_prompt role"
+
+
+def test_refine_prompt_with_missing_role():
+    promptpal = Promptpal(load_default_roles=False)
+    with pytest.raises(ValueError, match="The 'prompt_engineer' role is not available."):
+        promptpal.refine_prompt("Test prompt", refinement_type=PromptRefinementType.PROMPT_ENGINEER)
+
+
+def test_refine_prompt_with_unknown_refinement_type():
+    promptpal = Promptpal(load_default_roles=False)
+    with pytest.raises(ValueError, match="Unknown refinement type:"):
+        # Create a fake enum value that doesn't exist
+        promptpal.refine_prompt("Test prompt", refinement_type="unknown_type")
 
 
 def test_init_without_api_key(monkeypatch):
@@ -592,13 +651,19 @@ def test_chat_with_prompt_refinement(mocker):
     promptpal.add_roles(roles)
 
     # Test different refinement methods
-    glyph_response = promptpal.refine_prompt("Test prompt", glyph_refinement=True)
+    glyph_response = promptpal.refine_prompt(
+        "Test prompt", refinement_type=PromptRefinementType.GLYPH
+    )
     assert glyph_response == "Refined prompt"
 
-    chain_response = promptpal.refine_prompt("Test prompt", chain_of_thought=True)
+    chain_response = promptpal.refine_prompt(
+        "Test prompt", refinement_type=PromptRefinementType.CHAIN_OF_THOUGHT
+    )
     assert chain_response == "Refined prompt"
 
-    keyword_response = promptpal.refine_prompt("Test prompt", keyword_refinement="simplify")
+    keyword_response = promptpal.refine_prompt(
+        "Test prompt", refinement_type=PromptRefinementType.KEYWORD, keyword="simplify"
+    )
     assert "Use less complex language for easier comprehension" in keyword_response
 
     # Verify generate_content was called with correct parameters

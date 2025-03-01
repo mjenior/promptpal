@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from promptpal.promptpal import Promptpal
+from promptpal.promptpal import Promptpal, PromptRefinementType
 from promptpal.roles import Role
 
 # Check if running in CI environment
@@ -32,10 +32,12 @@ def test_add_and_list_roles_integration():
     # Add roles
     promptpal.add_roles(roles)
 
-    # List roles and verify
-    role_names = promptpal.list_roles()
-    assert "integration_role1" in role_names
-    assert "integration_role2" in role_names
+    # List roles and verify (list_roles now prints instead of returning)
+    # Use capsys to capture the output
+    promptpal.list_roles()
+    # Just verify that the roles were added successfully
+    assert "integration_role1" in promptpal._roles
+    assert "integration_role2" in promptpal._roles
 
 
 @pytest.mark.integration
@@ -111,9 +113,9 @@ def test_refine_prompt_integration():
         and ensure compliance with all relevant policies and regulations.
     """
 
-    # Attempt to refine the prompt
+    # Attempt to refine the prompt using the new enum-based approach
     try:
-        updated_prompt = promptpal.refine_prompt(prompt, glyph_refinement=True)
+        updated_prompt = promptpal.refine_prompt(prompt, refinement_type=PromptRefinementType.GLYPH)
         print(updated_prompt)
     except Exception as e:
         pytest.fail(f"Refine prompt failed with exception: {e}")
