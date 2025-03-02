@@ -114,8 +114,8 @@ exclude = [
     "extras/*.ipynb",  # Exclude all notebooks in extras directory
 ]
 
-# Update line length to 100
-line-length = 100
+# Update line length to 120
+line-length = 120
 indent-width = 4
 
 # Assume Python 3.11

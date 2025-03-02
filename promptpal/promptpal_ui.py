@@ -143,7 +143,7 @@ class PromptpalUI:
             self.tool_output.value = f"Prompt refined using {refine_method}."
 
         except Exception as e:
-            self.tool_output.value = f"Error refining prompt: {str(e)}"
+            self.tool_output.value = f"Error refining prompt: {e!s}"
 
     def update_prompt(self, button):
         """Update the current prompt with the refined prompt."""
@@ -179,7 +179,7 @@ class PromptpalUI:
             self.tool_output.value = advice
 
         except Exception as e:
-            self.tool_output.value = f"Error getting advice: {str(e)}"
+            self.tool_output.value = f"Error getting advice: {e!s}"
 
     def clear(self, button):
         """Clear all inputs and outputs."""

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from promptpal.promptpal import Promptpal, PromptRefinementType
+from promptpal.promptpal import Promptpal
 from promptpal.roles import Role
 
 
@@ -14,7 +14,7 @@ def mock_env_gemini_api_key(monkeypatch):
 
 
 def test_add_roles():
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     roles = [
         Role(name="role1", description="Role 1", system_instruction="Instruction 1"),
         Role(name="role2", description="Role 2", system_instruction="Instruction 2"),
@@ -39,13 +39,13 @@ def test_add_roles_from_file(tmp_path):
         """
     )
 
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     with open(roles_yaml) as file:
         promptpal.add_roles_from_file(file)
 
 
 def test_list_roles(capsys):
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     roles = [
         Role(name="role1", description="Role 1", system_instruction="Instruction 1"),
         Role(name="role2", description="Role 2", system_instruction="Instruction 2"),
@@ -76,7 +76,7 @@ def test_chat_valid_role(mocker):
     mock_response.usage_metadata.prompt_token_count = 500  # Set to a valid integer
     mock_chat_instance.send_message.return_value = mock_response
 
-    promptpal = Promptpal()
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     roles = [
         Role(
             name="role1",
@@ -94,13 +94,13 @@ def test_chat_valid_role(mocker):
 
 
 def test_chat_invalid_role():
-    promptpal = Promptpal()
+    promptpal = Promptpal(vertexai=False)
     with pytest.raises(ValueError, match="Role 'nonexistent_role' not found."):
         promptpal.chat("nonexistent_role", "Explain how AI works")
 
 
 def test_chat_api_error(mocker):
-    promptpal = Promptpal()
+    promptpal = Promptpal(vertexai=False)
     roles = [
         Role(
             name="role1",
@@ -124,13 +124,13 @@ def test_promptpal_load_default_roles(mocker):
     # Mock the add_roles_from_file method to simulate loading roles
     mocker.patch("promptpal.promptpal.Promptpal.add_roles_from_file")
 
-    promptpal = Promptpal(load_default_roles=True)
+    promptpal = Promptpal(load_default_roles=True, vertexai=False)
     # Verify that add_roles_from_file was called
     promptpal.add_roles_from_file.assert_called_once()
 
 
 def test_promptpal_manual_role_addition():
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     # Verify that no roles are loaded initially
     assert len(promptpal._roles) == 0
 
@@ -168,7 +168,7 @@ def test_chat_with_file_references(mocker):
         temp_file_path = temp_file.name
 
     # Initialize Promptpal and add roles
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     role = Role(
         name="test_role",
         description="Test Role",
@@ -205,7 +205,7 @@ def test_new_chat(mocker):
     mock_chat_instance = mock_chat.return_value
 
     # Initialize Promptpal
-    promptpal = Promptpal()
+    promptpal = Promptpal(vertexai=False)
 
     # Call new_chat to reset the chat
     promptpal.new_chat()
@@ -237,7 +237,7 @@ def test_chat_summarization(mocker):
         mock_summary_response,  # Response to the new chat with the summary
     ]
 
-    promptpal = Promptpal(load_default_roles=False)  # Avoid loading default roles
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)  # Avoid loading default roles
     roles = [
         Role(
             name="role1",
@@ -325,7 +325,7 @@ def test_init_without_api_key(monkeypatch):
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
 
     with pytest.raises(EnvironmentError, match="GEMINI_API_KEY environment variable not found!"):
-        Promptpal()
+        Promptpal(vertexai=False)
 
 
 def test_chat_with_web_search(mocker):
@@ -338,7 +338,7 @@ def test_chat_with_web_search(mocker):
     mock_response.usage_metadata.prompt_token_count = 500
     mock_chat_instance.send_message.return_value = mock_response
 
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     role = Role(
         name="searcher",
         description="Web Searcher",
@@ -370,7 +370,7 @@ def test_chat_with_file_upload(mocker, tmp_path):
     mock_upload = mock_client.return_value.files.upload
     mock_upload.return_value = "uploaded_file_reference"
 
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     role = Role(
         name="file_handler",
         description="File Handler",

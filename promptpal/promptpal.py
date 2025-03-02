@@ -9,7 +9,6 @@ from pathlib import Path
 
 import yaml
 from google import genai
-from google.genai import types
 
 from promptpal.roles import Role
 from promptpal.roles.role_schema import validate_role
@@ -53,8 +52,10 @@ class Promptpal:
     def __init__(
         self,
         output_dir: str | None = None,
-        api_key: str | None = None,
         load_default_roles: bool = True,
+        vertexai: bool = True,
+        project: str = "",
+        location: str = "",
     ):
         """
         Initialize the Promptpal instance.
@@ -63,12 +64,27 @@ class Promptpal:
             output_dir: Directory to save generated files. Defaults to None.
             api_key: Gemini API key. Defaults to None.
             load_default_roles: Whether to load default roles. Defaults to True.
+            vertexai: Whether to use Vertex AI. Defaults to True. If set to false, expects an environment variable
+                GEMINI_API_KEY to be set. If set to true, expects a project and location to be set.
+            project: The project to use for Vertex AI. Defaults to "".
+            location: The location to use for Vertex AI. Defaults to "".
         """
-        api_key = os.getenv("GEMINI_API_KEY")
-        if api_key is None:
-            raise OSError("GEMINI_API_KEY environment variable not found!")
 
-        self._client = genai.Client(api_key=api_key, http_options={"api_version": "v1beta"})
+        if not vertexai:
+            # Check if the GEMINI_API_KEY environment variable is set
+            api_key = os.getenv("GEMINI_API_KEY")
+            if api_key is None:
+                raise OSError("GEMINI_API_KEY environment variable not found!")
+
+            self._client = genai.Client(api_key=api_key, http_options={"api_version": "v1beta"})
+
+        else:
+            self._client = genai.Client(
+                vertexai=True,
+                project=project,
+                location=location,
+                http_options={"api_version": "v1beta"},
+            )
 
         # Create a chat instance
         self._chat = self._client.chats.create(model="gemini-2.0-flash-001")
@@ -201,9 +217,7 @@ class Promptpal:
             tools = [
                 genai.types.Tool(
                     google_search=genai.types.GoogleSearchRetrieval(
-                        dynamic_retrieval_config=genai.types.DynamicRetrievalConfig(
-                            dynamic_threshold=0.6
-                        )
+                        dynamic_retrieval_config=genai.types.DynamicRetrievalConfig(dynamic_threshold=0.6)
                     )
                 )
             ]
@@ -266,7 +280,7 @@ class Promptpal:
                 "system_instruction": role.system_instruction,
                 "max_output_tokens": role.max_output_tokens,
             },
-            #tools=tools,
+            # tools=tools,
         )
 
         # Store the response
@@ -275,10 +289,7 @@ class Promptpal:
         # Check the usage metadata of the last response
         if self._last_response:
             usage_metadata = self._last_response.usage_metadata
-            if (
-                usage_metadata.prompt_token_count
-                and usage_metadata.prompt_token_count > token_threshold
-            ):
+            if usage_metadata.prompt_token_count and usage_metadata.prompt_token_count > token_threshold:
                 # Summarize the chat
                 summary_role = self._roles.get("summarizer")
                 if summary_role:
@@ -289,9 +300,7 @@ class Promptpal:
                     self.new_chat()
                     self._chat.send_message(["Here is a summary of the previous chat:", summary])
                 else:
-                    logger.error(
-                        "Summarizer role not found. Use the default roles or add a summarizer role."
-                    )
+                    logger.error("Summarizer role not found. Use the default roles or add a summarizer role.")
 
         # Update token count and message count
         self._token_count += response.usage_metadata.prompt_token_count
@@ -319,8 +328,9 @@ class Promptpal:
 
     def message(self, role_name: str, message: str):
         """
-        Write a message and get a response from the role. Messages are independent and do not get saved to a chat history like chat does.
-        Message also does not have the fancy features of chat like web search or generating code files, only text in and out.
+        Write a message and get a response from the role. Messages are independent and do not
+        get saved to a chat history like chat does. Message also does not have the fancy features
+        of chat like web search or generating code files, only text in and out.
 
         This method operates completely independently from the _chat instance used by the chat method.
         Each call to this method is a standalone request with no conversation history.
@@ -343,9 +353,9 @@ class Promptpal:
 
             return response.text
         except Exception as e:
-            logger.error(f"Error in message method: {str(e)}")
+            logger.error(f"Error in message method: {e!s}")
             # Log more detailed error information
-            logger.error(f"Error details: {type(e).__name__}, {str(e)}")
+            logger.error(f"Error details: {type(e).__name__}, {e!s}")
             raise
 
     def extract_code_snippets(self, text: str) -> dict:
@@ -456,15 +466,11 @@ class Promptpal:
             text,
             flags=re.IGNORECASE,
         )
-        text = re.sub(
-            r"\n\n(?:This prompt|The prompt|This version).*$", "", text, flags=re.IGNORECASE
-        )
+        text = re.sub(r"\n\n(?:This prompt|The prompt|This version).*$", "", text, flags=re.IGNORECASE)
 
         return text.strip()
 
-    def refine_prompt(
-        self, prompt: str, refinement_type: PromptRefinementType = None, keyword: str = None
-    ) -> str:
+    def refine_prompt(self, prompt: str, refinement_type: PromptRefinementType = None) -> str:
         """
         Refine a prompt using different methods.
 
@@ -487,9 +493,7 @@ class Promptpal:
             # Use the prompt_engineer role to refine the prompt
             role = self._roles.get("prompt_engineer")
             if role is None:
-                logger.warning(
-                    "The 'prompt_engineer' role is not available. Returning original prompt."
-                )
+                logger.warning("The 'prompt_engineer' role is not available. Returning original prompt.")
                 return prompt
 
             # Generate the refined prompt using the prompt_engineer role
@@ -500,9 +504,7 @@ class Promptpal:
             # Use the refine_prompt role to refine the prompt
             role = self._roles.get("refine_prompt")
             if role is None:
-                logger.warning(
-                    "The 'refine_prompt' role is not available. Returning original prompt."
-                )
+                logger.warning("The 'refine_prompt' role is not available. Returning original prompt.")
                 return prompt
 
             # Generate the refined prompt using the refine_prompt role
