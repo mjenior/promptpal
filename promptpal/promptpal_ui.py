@@ -1,7 +1,7 @@
 import ipywidgets as widgets
 from IPython.display import display
 
-from .promptpal import Promptpal
+from .promptpal import Promptpal, PromptRefinementType
 
 
 class PromptpalUI:
@@ -102,23 +102,88 @@ class PromptpalUI:
 
         display(self.layout)
 
+    def _get_refinement_type(self, method_name):
+        """Convert UI method name to PromptRefinementType enum value."""
+        method_mapping = {
+            "Prompt Engineer": PromptRefinementType.PROMPT_ENGINEER,
+            "Prompt Refiner Agent": PromptRefinementType.REFINE_PROMPT,
+            "Chain of Thought": PromptRefinementType.CHAIN_OF_THOUGHT,
+            "Keyword Refinement": PromptRefinementType.KEYWORD,
+            "Glyph Refinement": PromptRefinementType.GLYPH,
+        }
+        return method_mapping.get(method_name)
+
     def refine_prompt(self, button):
+        """Refine the current prompt using the selected refinement method."""
         self.tool_output.value = "Refining prompt..."
 
+        # Get the selected refinement method and current prompt
         refine_method = self.refine_method_select.value
-        current_prompt = self.prompt.value
+        current_prompt = self.prompt_input.value
 
-        self.refined_prompt_output.value = "Prompt that has been refined. "
+        if not current_prompt:
+            self.tool_output.value = "Error: Please enter a prompt to refine."
+            return
 
-        self.tool_output.value = "Prompt refined using " + refine_method
+        try:
+            # Convert UI method name to PromptRefinementType enum
+            refinement_type = self._get_refinement_type(refine_method)
+
+            if refinement_type is None:
+                self.tool_output.value = f"Error: Unknown refinement method '{refine_method}'."
+                return
+
+            # Call the Promptpal refine_prompt method
+            refined_prompt = self.promptpal.refine_prompt(current_prompt, refinement_type)
+
+            # Update the refined prompt output
+            self.refined_prompt_output.value = refined_prompt
+
+            # Update the tool output
+            self.tool_output.value = f"Prompt refined using {refine_method}."
+
+        except Exception as e:
+            self.tool_output.value = f"Error refining prompt: {str(e)}"
 
     def update_prompt(self, button):
-        self.tool_output.value = "Updated prompt"
+        """Update the current prompt with the refined prompt."""
+        refined_prompt = self.refined_prompt_output.value
+
+        if not refined_prompt:
+            self.tool_output.value = "Error: No refined prompt to update with."
+            return
+
+        # Update the current prompt with the refined prompt
+        self.prompt_input.value = refined_prompt
+
+        # Clear the refined prompt output
+        self.refined_prompt_output.value = ""
+
+        # Update the tool output
+        self.tool_output.value = "Current prompt updated with refined prompt."
 
     def get_advice(self, button):
-        self.tool_output.value = "Advice on prompt"
+        """Get advice on the current prompt from the prompt_advisor role."""
+        current_prompt = self.prompt_input.value
+
+        if not current_prompt:
+            self.tool_output.value = "Error: Please enter a prompt to get advice on."
+            return
+
+        try:
+            # Call the prompt_advisor role
+            self.tool_output.value = "Getting advice on prompt..."
+            advice = self.promptpal.chat("prompt_advisor", f"Analyze this prompt: {current_prompt}")
+
+            # Update the tool output with the advice
+            self.tool_output.value = advice
+
+        except Exception as e:
+            self.tool_output.value = f"Error getting advice: {str(e)}"
 
     def clear(self, button):
+        """Clear all inputs and outputs."""
         self.tool_output.value = ""
-        self.prompt.value = ""
+        self.prompt_input.value = ""
         self.refined_prompt_output.value = ""
+        self.tool_output.value = "All fields cleared."

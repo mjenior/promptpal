@@ -9,6 +9,7 @@ from pathlib import Path
 
 import yaml
 from google import genai
+from google.genai import types
 
 from promptpal.roles import Role
 from promptpal.roles.role_schema import validate_role
@@ -67,7 +68,7 @@ class Promptpal:
         if api_key is None:
             raise OSError("GEMINI_API_KEY environment variable not found!")
 
-        self._client = genai.Client(api_key=api_key, http_options={"api_version": "v1"})
+        self._client = genai.Client(api_key=api_key, http_options={"api_version": "v1beta"})
 
         # Create a chat instance
         self._chat = self._client.chats.create(model="gemini-2.0-flash-001")
@@ -195,19 +196,17 @@ class Promptpal:
             raise ValueError(f"Role '{role_name}' not found.")
 
         # Check if the role should use web search
+        tools = None
         if role.search_web:
-            self._chat = self._client.chats.create(
-                model="gemini-2.0-flash-001",
-                tools=[
-                    genai.types.Tool(
-                        google_search=genai.types.GoogleSearchRetrieval(
-                            dynamic_retrieval_config=genai.types.DynamicRetrievalConfig(
-                                dynamic_threshold=0.6
-                            )
+            tools = [
+                genai.types.Tool(
+                    google_search=genai.types.GoogleSearchRetrieval(
+                        dynamic_retrieval_config=genai.types.DynamicRetrievalConfig(
+                            dynamic_threshold=0.6
                         )
                     )
-                ],
-            )
+                )
+            ]
 
         # Check if the role is associated with image generation
         if role.output_type == "image":
@@ -260,7 +259,15 @@ class Promptpal:
                 contents.append(part)
 
         # Send the message using the chat instance
-        response = self._chat.send_message(contents)
+        response = self._chat.send_message(
+            contents,
+            config={
+                "temperature": role.temperature,
+                "system_instruction": role.system_instruction,
+                "max_output_tokens": role.max_output_tokens,
+            },
+            #tools=tools,
+        )
 
         # Store the response
         self._last_response = response
@@ -309,6 +316,37 @@ class Promptpal:
         #    response = self._quiet_response(response.text)
 
         return response.text
+
+    def message(self, role_name: str, message: str):
+        """
+        Write a message and get a response from the role. Messages are independent and do not get saved to a chat history like chat does.
+        Message also does not have the fancy features of chat like web search or generating code files, only text in and out.
+
+        This method operates completely independently from the _chat instance used by the chat method.
+        Each call to this method is a standalone request with no conversation history.
+        """
+        role = self._roles.get(role_name)
+        if role is None:
+            raise ValueError(f"Role '{role_name}' not found.")
+
+        try:
+            # Generate content with the model directly (not using _chat)
+            response = self._client.models.generate_content(
+                model=role.model,
+                contents=message,
+                config={
+                    "temperature": role.temperature,
+                    "system_instruction": role.system_instruction,
+                    "max_output_tokens": role.max_output_tokens,
+                },
+            )
+
+            return response.text
+        except Exception as e:
+            logger.error(f"Error in message method: {str(e)}")
+            # Log more detailed error information
+            logger.error(f"Error details: {type(e).__name__}, {str(e)}")
+            raise
 
     def extract_code_snippets(self, text: str) -> dict:
         """
@@ -432,8 +470,8 @@ class Promptpal:
 
         Args:
             prompt (str): The prompt to refine.
-            refinement_type (PromptRefinementType): The type of refinement to apply.
-            keyword (str): A keyword to apply for refinement (only used when refinement_type is KEYWORD).
+            refinement_type (PromptRefinementType, optional): The type of refinement to apply. Defaults to None.
+            keyword (str, optional): The keyword to use for keyword-based refinement. Defaults to None.
 
         Returns:
             str: The refined prompt.
@@ -442,94 +480,58 @@ class Promptpal:
             ValueError: If an invalid keyword is provided or if keyword is None when refinement_type is KEYWORD.
         """
         if refinement_type is None:
+            logger.warning("No refinement type provided. Returning original prompt.")
             return prompt
 
         if refinement_type == PromptRefinementType.PROMPT_ENGINEER:
             # Use the prompt_engineer role to refine the prompt
             role = self._roles.get("prompt_engineer")
             if role is None:
-                raise ValueError(
-                    "The 'prompt_engineer' role is not available. Please load default roles."
+                logger.warning(
+                    "The 'prompt_engineer' role is not available. Returning original prompt."
                 )
+                return prompt
 
             # Generate the refined prompt using the prompt_engineer role
-            response = self.chat("prompt_engineer", f"Refine this prompt: {prompt}")
+            response = self.message("prompt_engineer", f"Refine this prompt: {prompt}")
             return self._extract_refined_prompt(response)
 
         elif refinement_type == PromptRefinementType.REFINE_PROMPT:
             # Use the refine_prompt role to refine the prompt
             role = self._roles.get("refine_prompt")
             if role is None:
-                raise ValueError(
-                    "The 'refine_prompt' role is not available. Please load default roles."
+                logger.warning(
+                    "The 'refine_prompt' role is not available. Returning original prompt."
                 )
+                return prompt
 
             # Generate the refined prompt using the refine_prompt role
-            response = self.chat("refine_prompt", f"Refine this prompt: {prompt}")
+            response = self.message("refine_prompt", f"Refine this prompt: {prompt}")
             return self._extract_refined_prompt(response)
 
         elif refinement_type == PromptRefinementType.GLYPH:
             # Use the glyph_prompt role to refine the prompt
             role = self._roles.get("glyph_prompt")
             if role is None:
-                role = Role(
-                    name="glyph_prompt",
-                    description="Refines prompts using glyph techniques",
-                    system_instruction=(
-                        "You are a prompt engineering expert specializing in glyph techniques. "
-                        "Refine the following prompt to make it more effective by adding "
-                        "appropriate glyphs, symbols, and formatting:\n\n<user_prompt>"
-                    ),
-                    model="gemini-2.0-flash-001",
-                    temperature=0.2,
-                )
-                self._roles["glyph_prompt"] = role
+                logger.warning("Glyph prompt role not found. Returning original prompt.")
+                return prompt
 
-            # Replace the placeholder with the actual prompt
-            prompt_with_instruction = role.system_instruction.replace("<user_prompt>", prompt)
-
-            # Generate the refined prompt
-            response = self._client.models.generate_content(
-                model=role.model or "gemini-2.0-flash-001",
-                contents=prompt_with_instruction,
-            )
-
-            return self._extract_refined_prompt(response.text)
+            response = self.message("glyph_prompt", prompt)
+            return self._extract_refined_prompt(response)
 
         elif refinement_type == PromptRefinementType.CHAIN_OF_THOUGHT:
             # Use the chain_of_thought role to refine the prompt
             role = self._roles.get("chain_of_thought")
             if role is None:
-                role = Role(
-                    name="chain_of_thought",
-                    description="Refines prompts using chain of thought techniques",
-                    system_instruction=(
-                        "You are a prompt engineering expert specializing in chain of thought techniques. "
-                        "Refine the following prompt to encourage step-by-step reasoning and "
-                        "explicit thought processes:\n\n<user_prompt>"
-                    ),
-                    model="gemini-2.0-flash-001",
-                    temperature=0.2,
-                )
-                self._roles["chain_of_thought"] = role
+                logger.warning("Chain of thought role not found. Returning original prompt.")
+                return prompt
 
-            # Replace the placeholder with the actual prompt
-            prompt_with_instruction = role.system_instruction.replace("<user_prompt>", prompt)
-
-            # Generate the refined prompt
-            response = self._client.models.generate_content(
-                model=role.model or "gemini-2.0-flash-001",
-                contents=prompt_with_instruction,
-            )
-
-            return self._extract_refined_prompt(response.text)
+            response = self.message("chain_of_thought", f"Refine this prompt: {prompt}")
+            return self._extract_refined_prompt(response)
 
         elif refinement_type == PromptRefinementType.KEYWORD:
             # Apply keyword-based refinement
-            if keyword is None:
-                raise ValueError("Keyword must be provided when refinement_type is KEYWORD.")
-
-            keyword_instructions = {
+            keyword_mapping = {
                 "paraphrase": "Restate the prompt in different words while preserving meaning.",
                 "reframe": "Present the prompt from a different perspective or angle.",
                 "summarize": "Condense the prompt to its essential elements.",
@@ -561,12 +563,12 @@ class Promptpal:
                 "downplay": "Reduce emphasis on certain aspects of the prompt.",
             }
 
-            if keyword not in keyword_instructions:
-                raise ValueError(f"Keyword refinement '{keyword}' not recognized.")
+            refined_prompt = prompt
+            for keyword, replacement in keyword_mapping.items():
+                if keyword in prompt.lower():
+                    refined_prompt = refined_prompt.replace(keyword, replacement)
 
-            instruction = keyword_instructions[keyword]
-            refined_prompt = f"{instruction}\n\n{prompt}"
-            return self._extract_refined_prompt(refined_prompt)
+            return refined_prompt
 
         else:
             raise ValueError(f"Unknown refinement type: {refinement_type}")

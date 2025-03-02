@@ -11,33 +11,23 @@ is_ci = os.getenv("CI") is not None
 
 @pytest.mark.integration
 @pytest.mark.skipif(is_ci, reason="Skipping integration tests in CI environment.")
-def test_add_and_list_roles_integration():
+def test_message_integration():
     # Initialize Promptpal with actual API
     promptpal = Promptpal(load_default_roles=False)
 
-    # Define roles to add
-    roles = [
-        Role(
-            name="integration_role1",
-            description="Integration Role 1",
-            system_instruction="Instruction 1",
-        ),
-        Role(
-            name="integration_role2",
-            description="Integration Role 2",
-            system_instruction="Instruction 2",
-        ),
-    ]
+    # Define a role for message
+    role = Role(
+        model="gemini-1.5-flash",
+        name="message_role",
+        description="Message Role",
+        system_instruction="Instruction",
+    )
+    promptpal.add_roles([role])
 
-    # Add roles
-    promptpal.add_roles(roles)
-
-    # List roles and verify (list_roles now prints instead of returning)
-    # Use capsys to capture the output
-    promptpal.list_roles()
-    # Just verify that the roles were added successfully
-    assert "integration_role1" in promptpal._roles
-    assert "integration_role2" in promptpal._roles
+    # Send a message and verify response
+    response = promptpal.message("message_role", "Hello, world!")
+    assert response is not None
+    assert isinstance(response, str)
 
 
 @pytest.mark.integration
