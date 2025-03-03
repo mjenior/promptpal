@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from collections import defaultdict
+from enum import Enum
 from importlib import resources
 from pathlib import Path
 
@@ -11,6 +12,17 @@ from google import genai
 
 from promptpal.roles import Role
 from promptpal.roles.role_schema import validate_role
+
+
+class PromptRefinementType(Enum):
+    """Enum for different types of prompt refinement."""
+
+    PROMPT_ENGINEER = "prompt_engineer"
+    REFINE_PROMPT = "refine_prompt"
+    CHAIN_OF_THOUGHT = "chain_of_thought"
+    GLYPH = "glyph"
+    KEYWORD = "keyword"
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,9 +39,25 @@ def find_existing_files(message: str) -> list[str]:
     Returns:
         A list of file paths found in the message.
     """
-    # Regex pattern to match file paths (basic example)
-    file_pattern = re.compile(r"/[^\s]+")
-    return file_pattern.findall(message)
+    # Split the message into words
+    words = message.split()
+    file_paths = []
+
+    for word in words:
+        # Remove any punctuation at the end of the word
+        word = word.rstrip(".,;:!?")
+
+        # Check if the word is a valid file path
+        path = Path(word)
+        try:
+            # Check if the path exists and is a file
+            if path.exists() and path.is_file():
+                file_paths.append(word)
+        except (OSError, ValueError):
+            # Skip invalid paths (e.g., paths with invalid characters)
+            continue
+
+    return file_paths
 
 
 class Promptpal:
@@ -40,8 +68,10 @@ class Promptpal:
     def __init__(
         self,
         output_dir: str | None = None,
-        api_key: str | None = None,
         load_default_roles: bool = True,
+        vertexai: bool = True,
+        project: str = "",
+        location: str = "",
     ):
         """
         Initialize the Promptpal instance.
@@ -50,12 +80,27 @@ class Promptpal:
             output_dir: Directory to save generated files. Defaults to None.
             api_key: Gemini API key. Defaults to None.
             load_default_roles: Whether to load default roles. Defaults to True.
+            vertexai: Whether to use Vertex AI. Defaults to True. If set to false, expects an environment variable
+                GEMINI_API_KEY to be set. If set to true, expects a project and location to be set.
+            project: The project to use for Vertex AI. Defaults to "".
+            location: The location to use for Vertex AI. Defaults to "".
         """
-        api_key = os.getenv("GEMINI_API_KEY")
-        if api_key is None:
-            raise OSError("GEMINI_API_KEY environment variable not found!")
 
-        self._client = genai.Client(api_key=api_key, http_options={"api_version": "v1"})
+        if not vertexai:
+            # Check if the GEMINI_API_KEY environment variable is set
+            api_key = os.getenv("GEMINI_API_KEY")
+            if api_key is None:
+                raise OSError("GEMINI_API_KEY environment variable not found!")
+
+            self._client = genai.Client(api_key=api_key, http_options={"api_version": "v1beta"})
+
+        else:
+            self._client = genai.Client(
+                vertexai=True,
+                project=project,
+                location=location,
+                http_options={"api_version": "v1beta"},
+            )
 
         # Create a chat instance
         self._chat = self._client.chats.create(model="gemini-2.0-flash-001")
@@ -83,32 +128,28 @@ class Promptpal:
             self._output_dir = "./generated_files"
         Path(self._output_dir).mkdir(parents=True, exist_ok=True)
 
-    def list_roles(self) -> list[str]:
+    def list_roles(self) -> None:
         """
-        List the available roles by their names.
+        List the available roles with their descriptions in a formatted output.
 
-        Returns:
-            list[str]: A list of role names.
+        Prints a formatted list of all available roles and their descriptions.
         """
-        return list(self._roles.keys())
+        if not self._roles:
+            print("No roles available.")
+            return
 
-    def get_role_description(self, role_name: str) -> str:
-        """
-        Get the description for the given role name.
+        # Find the longest role name for formatting
+        max_name_length = max(len(name) for name in self._roles.keys())
 
-        Args:
-            role_name (str): The name of the role to search for.
+        print("\nAvailable Roles:")
+        print("=" * (max_name_length + 24))  # Header line
 
-        Returns:
-            str: The description of the role.
+        # Sort roles alphabetically for better readability
+        for name, role in sorted(self._roles.items()):
+            print(f"{name.ljust(max_name_length)} | {role.description}")
 
-        Raises:
-            ValueError: If the role is not found.
-        """
-        role = self._roles.get(role_name)
-        if role:
-            return role.description
-        raise ValueError(f"Role '{role_name}' not found.")
+        print("=" * (max_name_length + 24))  # Footer line
+        print(f"Total: {len(self._roles)} roles\n")
 
     def add_roles(self, roles: list[Role] | None = None):
         """
@@ -164,7 +205,6 @@ class Promptpal:
         message: str,
         write_output: bool = True,
         write_code: bool = True,
-        import_python: bool = False,
         token_threshold: int = 1000,
     ) -> str:
         """
@@ -174,7 +214,6 @@ class Promptpal:
             role_name (str): The name of the role to use for the chat.
             message (str): The user's message to send.
             write_code (bool): If True, write any code from the response to a file.
-            import_python (bool): If True, imports newly written python modules into current environment
             token_threshold (int): The threshold for prompt_token_count.
 
         Returns:
@@ -189,19 +228,15 @@ class Promptpal:
             raise ValueError(f"Role '{role_name}' not found.")
 
         # Check if the role should use web search
+        tools = None
         if role.search_web:
-            self._chat = self._client.chats.create(
-                model="gemini-2.0-flash-001",
-                tools=[
-                    genai.types.Tool(
-                        google_search=genai.types.GoogleSearchRetrieval(
-                            dynamic_retrieval_config=genai.types.DynamicRetrievalConfig(
-                                dynamic_threshold=0.6
-                            )
-                        )
+            tools = [
+                genai.types.Tool(
+                    google_search=genai.types.GoogleSearchRetrieval(
+                        dynamic_retrieval_config=genai.types.DynamicRetrievalConfig(dynamic_threshold=0.6)
                     )
-                ],
-            )
+                )
+            ]
 
         # Check if the role is associated with image generation
         if role.output_type == "image":
@@ -241,6 +276,7 @@ class Promptpal:
                 uploaded_file = self._client.files.upload(file=file_path)
                 uploaded_files[file_path] = uploaded_file
             except FileNotFoundError:
+                logger.warning(f"File path detected in prompt but not found: {file_path}")
                 continue
 
         # Split the message around file references
@@ -253,7 +289,15 @@ class Promptpal:
                 contents.append(part)
 
         # Send the message using the chat instance
-        response = self._chat.send_message(contents)
+        response = self._chat.send_message(
+            contents,
+            config={
+                "temperature": role.temperature,
+                "system_instruction": role.system_instruction,
+                "max_output_tokens": role.max_output_tokens,
+                "tools": tools,
+            },
+        )
 
         # Store the response
         self._last_response = response
@@ -261,20 +305,18 @@ class Promptpal:
         # Check the usage metadata of the last response
         if self._last_response:
             usage_metadata = self._last_response.usage_metadata
-            if (
-                usage_metadata.prompt_token_count
-                and usage_metadata.prompt_token_count > token_threshold
-            ):
+            if usage_metadata.prompt_token_count and usage_metadata.prompt_token_count > token_threshold:
                 # Summarize the chat
                 summary_role = self._roles.get("summarizer")
-                if summary_role is None:
-                    raise ValueError("Summarizer role not found.")
-                summary_response = self._chat.send_message(["Summarize the previous chat."])
-                summary = summary_response.text
+                if summary_role:
+                    summary_response = self._chat.send_message(["Summarize the previous chat."])
+                    summary = summary_response.text
 
-                # Start a new chat with the summary
-                self.new_chat()
-                self._chat.send_message(["Here is a summary of the previous chat:", summary])
+                    # Start a new chat with the summary
+                    self.new_chat()
+                    self._chat.send_message(["Here is a summary of the previous chat:", summary])
+                else:
+                    logger.error("Summarizer role not found. Use the default roles or add a summarizer role.")
 
         # Update token count and message count
         self._token_count += response.usage_metadata.prompt_token_count
@@ -293,27 +335,40 @@ class Promptpal:
                 with open(file_path, "w") as code_file:
                     code_file.write(code)
 
-                if import_python == True and file_path[-3:] == ".py":
-                    import_python_modules(file_path)
+        for line in response.text.split("\n"):
+            print(line)
 
-            self._files_written["code"] += len(code_snippets)
-
-
-        return response.text
-
-    def import_python_modules(self, script_path: str):
+    def message(self, role_name: str, message: str):
         """
-        Import python modules from AI generated code
+        Write a message and get a response from the role. Messages are independent and do not
+        get saved to a chat history like chat does. Message also does not have the fancy features
+        of chat like web search or generating code files, only text in and out.
+
+        This method operates completely independently from the _chat instance used by the chat method.
+        Each call to this method is a standalone request with no conversation history.
         """
-        module_name = script_path.replace('/','.')[0:-3]
+        role = self._roles.get(role_name)
+        if role is None:
+            raise ValueError(f"Role '{role_name}' not found.")
+
         try:
-            module = importlib.import_module(module_name)
-            for import_name in dir(module):
-                if not import_name.startswith('_'):  # Avoid importing private attributes
-                    globals()[import_name] = getattr(module, import_name)
-                    print(f"\tImported {import_name} to current environment.")
-        except ModuleNotFoundError:
-            print(f"Module {module_name} not found.")
+            # Generate content with the model directly (not using _chat)
+            response = self._client.models.generate_content(
+                model=role.model,
+                contents=message,
+                config={
+                    "temperature": role.temperature,
+                    "system_instruction": role.system_instruction,
+                    "max_output_tokens": role.max_output_tokens,
+                },
+            )
+
+            return response.text
+        except Exception as e:
+            logger.error(f"Error in message method: {e!s}")
+            # Log more detailed error information
+            logger.error(f"Error details: {type(e).__name__}, {e!s}")
+            raise
 
     def extract_code_snippets(self, text: str) -> dict:
         """
@@ -358,6 +413,12 @@ class Promptpal:
 
         return f"code_snippet_{code_hash}{extension}"
 
+    def get_last_response(self) -> str:
+        """
+        Get the last response from the chat.
+        """
+        return self._last_response.text
+
     def _quiet_response(self, text):
         """Create condensed responses to avoid walls of text"""
         role = self._roles.get("summarizer")
@@ -365,100 +426,11 @@ class Promptpal:
 
         # Use the LLM to summarize the previous response
         response = self._client.models.generate_content(
-            model='gpt-4o-mini',
+            model="gpt-4o-mini",
             prompt=prompt,
-            )
+        )
         # Return the summarized text
         return response
-
-    def refine_prompt(
-        self,
-        prompt: str,
-        glyph_refinement: bool = False,
-        chain_of_thought: bool = False,
-        keyword_refinement: str | None = None,
-    ) -> str:
-        logger.debug(
-            "Refining prompt with glyph_refinement=%s, chain_of_thought=%s, keyword_refinement=%s",
-            glyph_refinement,
-            chain_of_thought,
-            keyword_refinement,
-        )
-
-        # Ensure only one refinement method is selected
-        if sum([glyph_refinement, chain_of_thought, keyword_refinement is not None]) > 1:
-            raise ValueError(
-                "Only one of glyph_refinement, chain_of_thought, or keyword_refinement can be true."
-            )
-
-        # Select the appropriate role or keyword refinement
-        role = None
-        if glyph_refinement:
-            role = self._roles.get("glyph_prompt")
-        elif chain_of_thought:
-            role = self._roles.get("chain_of_thought")
-        elif keyword_refinement:
-            refine_dict = {
-                "paraphrase": (
-                    "Rewrite the text using different words while keeping the original meaning."
-                ),
-                "reframe": (
-                    "Change the perspective or focus of the text while maintaining its intent."
-                ),
-                "summarize": "Condense the text to highlight key points.",
-                "expand": "Add details and explanations for a more comprehensive understanding.",
-                "explain": "Clarify the text by simplifying its meaning.",
-                "reinterpret": "Offer an alternative understanding of the text.",
-                "simplify": "Use less complex language for easier comprehension.",
-                "elaborate": "Provide additional context and details to enrich clarity.",
-                "amplify": "Emphasize key points to strengthen the message.",
-                "clarify": "Remove ambiguity to ensure clear meaning.",
-                "adapt": "Modify the text for a specific audience, purpose, or context.",
-                "modernize": "Update outdated language or concepts with current equivalents.",
-                "formalize": "Transform casual language into a professional tone.",
-                "informalize": "Adjust the text to a conversational style.",
-                "condense": "Shorten the text while preserving essential points.",
-                "emphasize": "Highlight specific points more prominently.",
-                "diversify": "Vary vocabulary, sentence structure, or style.",
-                "neutralize": "Remove bias or emotion for an objective tone.",
-                "streamline": "Make the text more concise and efficient.",
-                "embellish": "Add vivid details or creative flourishes.",
-                "illustrate": "Include examples or analogies for clarity.",
-                "synthesize": "Combine multiple ideas into a cohesive rewrite.",
-                "sensationalize": "Make the text more dramatic and engaging.",
-                "humanize": "Make the text more personal and relatable.",
-                "elevate": "Refine the text to be more polished and sophisticated.",
-                "energize": "Make the text more lively and engaging.",
-                "soften": "Reduce intensity for a gentler tone.",
-                "exaggerate": "Amplify claims or tone for dramatic effect.",
-                "downplay": "Present in a more restrained and understated manner.",
-            }
-            instruction = refine_dict.get(keyword_refinement)
-            if instruction is None:
-                raise ValueError(f"Keyword refinement '{keyword_refinement}' not recognized.")
-            formatted_prompt = f"{instruction}\n\n{prompt}"
-        else:
-            role = self._roles.get("refine_prompt")
-
-        # Ensure role is assigned a value before use
-        if role is not None:
-            # Format the prompt with the selected role's system instruction
-            formatted_prompt = role.system_instruction.replace("<user_prompt>", prompt)
-
-            # Use the LLM to refine the prompt
-            response = self._client.models.generate_content(
-                model=role.model,
-                contents=formatted_prompt,
-                config=genai.types.GenerateContentConfig(
-                    temperature=0.7,
-                ),
-            )
-
-            # Return the refined prompt
-            return response.text.strip()
-
-        # If using keyword refinement, return the formatted prompt
-        return formatted_prompt.strip()
 
     def new_chat(self):
         """
@@ -480,3 +452,143 @@ class Promptpal:
             "files_written": self._files_written,
             "messages_per_role": self._role_message_count,
         }
+
+    def _extract_refined_prompt(self, text: str) -> str:
+        """
+        Extract just the refined prompt from the LLM response, removing any additional text.
+
+        Args:
+            text (str): The response text from the LLM containing the refined prompt.
+
+        Returns:
+            str: The cleaned refined prompt.
+        """
+        # Try to identify common patterns that wrap the actual prompt
+        patterns = [
+            r"Here is your (?:new|refined) prompt(?:[:\n]+)([\s\S]+?)(?:\n\n|$)",
+            r"(?:Refined|New) prompt(?:[:\n]+)([\s\S]+?)(?:\n\n|$)",
+            r"(?:Refined|New) version(?:[:\n]+)([\s\S]+?)(?:\n\n|$)",
+            r"```(?:prompt)?\n([\s\S]+?)\n```",
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                return match.group(1).strip()
+
+        # If no pattern matched, return the original text with some cleaning
+        # Remove common phrases that might appear at the beginning or end
+        text = re.sub(
+            r"^(?:Here is|I've created|This is) .*?(?:prompt|version)[:\n]+",
+            "",
+            text,
+            flags=re.IGNORECASE,
+        )
+        text = re.sub(r"\n\n(?:This prompt|The prompt|This version).*$", "", text, flags=re.IGNORECASE)
+
+        return text.strip()
+
+    def refine_prompt(self, prompt: str, refinement_type: PromptRefinementType = None) -> str:
+        """
+        Refine a prompt using different methods.
+
+        Args:
+            prompt (str): The prompt to refine.
+            refinement_type (PromptRefinementType, optional): The type of refinement to apply. Defaults to None.
+            keyword (str, optional): The keyword to use for keyword-based refinement. Defaults to None.
+
+        Returns:
+            str: The refined prompt.
+
+        Raises:
+            ValueError: If an invalid keyword is provided or if keyword is None when refinement_type is KEYWORD.
+        """
+        if refinement_type is None:
+            logger.warning("No refinement type provided. Returning original prompt.")
+            return prompt
+
+        if refinement_type == PromptRefinementType.PROMPT_ENGINEER:
+            # Use the prompt_engineer role to refine the prompt
+            role = self._roles.get("prompt_engineer")
+            if role is None:
+                logger.warning("The 'prompt_engineer' role is not available. Returning original prompt.")
+                return prompt
+
+            # Generate the refined prompt using the prompt_engineer role
+            response = self.message("prompt_engineer", f"Refine this prompt: {prompt}")
+            return self._extract_refined_prompt(response)
+
+        elif refinement_type == PromptRefinementType.REFINE_PROMPT:
+            # Use the refine_prompt role to refine the prompt
+            role = self._roles.get("refine_prompt")
+            if role is None:
+                logger.warning("The 'refine_prompt' role is not available. Returning original prompt.")
+                return prompt
+
+            # Generate the refined prompt using the refine_prompt role
+            response = self.message("refine_prompt", f"Refine this prompt: {prompt}")
+            return self._extract_refined_prompt(response)
+
+        elif refinement_type == PromptRefinementType.GLYPH:
+            # Use the glyph_prompt role to refine the prompt
+            role = self._roles.get("glyph_prompt")
+            if role is None:
+                logger.warning("Glyph prompt role not found. Returning original prompt.")
+                return prompt
+
+            response = self.message("glyph_prompt", prompt)
+            return self._extract_refined_prompt(response)
+
+        elif refinement_type == PromptRefinementType.CHAIN_OF_THOUGHT:
+            # Use the chain_of_thought role to refine the prompt
+            role = self._roles.get("chain_of_thought")
+            if role is None:
+                logger.warning("Chain of thought role not found. Returning original prompt.")
+                return prompt
+
+            response = self.message("chain_of_thought", f"Refine this prompt: {prompt}")
+            return self._extract_refined_prompt(response)
+
+        elif refinement_type == PromptRefinementType.KEYWORD:
+            # Apply keyword-based refinement
+            keyword_mapping = {
+                "paraphrase": "Restate the prompt in different words while preserving meaning.",
+                "reframe": "Present the prompt from a different perspective or angle.",
+                "summarize": "Condense the prompt to its essential elements.",
+                "expand": "Add more detail and context to the prompt.",
+                "explain": "Make the prompt more explanatory and educational.",
+                "reinterpret": "Offer a fresh interpretation of the prompt's intent.",
+                "simplify": "Use less complex language for easier comprehension.",
+                "elaborate": "Add more specific details and examples.",
+                "amplify": "Strengthen the prompt's impact and emphasis.",
+                "clarify": "Remove ambiguity and make the prompt more precise.",
+                "adapt": "Modify the prompt to better suit a specific context.",
+                "modernize": "Update the prompt with contemporary language and references.",
+                "formalize": "Make the prompt more professional and structured.",
+                "informalize": "Make the prompt more conversational and approachable.",
+                "condense": "Make the prompt more concise without losing meaning.",
+                "emphasize": "Highlight key aspects of the prompt.",
+                "diversify": "Broaden the prompt to be more inclusive.",
+                "neutralize": "Remove bias or charged language from the prompt.",
+                "streamline": "Remove unnecessary elements for a more direct prompt.",
+                "embellish": "Add stylistic flourishes to the prompt.",
+                "illustrate": "Add metaphors or analogies to the prompt.",
+                "synthesize": "Combine different aspects into a cohesive prompt.",
+                "sensationalize": "Make the prompt more dramatic or attention-grabbing.",
+                "humanize": "Make the prompt more relatable and empathetic.",
+                "elevate": "Raise the intellectual or conceptual level of the prompt.",
+                "energize": "Make the prompt more dynamic and motivating.",
+                "soften": "Make the prompt less direct or confrontational.",
+                "exaggerate": "Amplify certain aspects for effect.",
+                "downplay": "Reduce emphasis on certain aspects of the prompt.",
+            }
+
+            refined_prompt = prompt
+            for keyword, replacement in keyword_mapping.items():
+                if keyword in prompt.lower():
+                    refined_prompt = refined_prompt.replace(keyword, replacement)
+
+            return refined_prompt
+
+        else:
+            raise ValueError(f"Unknown refinement type: {refinement_type}")

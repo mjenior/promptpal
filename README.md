@@ -208,6 +208,100 @@ promptpal.chat(
 )
 ```
 
+## Interactive Prompt Refinement
+
+PromptPal includes an interactive prompt refinement feature that allows you to iteratively improve your prompts:
+
+```python
+from promptpal import Promptpal
+
+# Initialize PromptPal
+pal = Promptpal()
+
+# Start with an initial prompt
+initial_prompt = "Create a data visualization of climate change trends."
+
+# Refine the prompt interactively
+refined_prompt = pal.interactive_prompt_refinement(initial_prompt)
+
+# Use the refined prompt
+response = pal.chat("assistant", refined_prompt)
+```
+
+The interactive refinement process offers:
+
+- Different refinement techniques (glyph, chain of thought, keyword)
+- LLM feedback on your prompts
+- Version history tracking
+- The ability to revert to previous versions
+
+For more details, see the [Interactive Prompt Refinement Documentation](docs/interactive_prompt_refinement.md).
+
+## Adding Custom Roles
+
+```python
+from promptpal import Promptpal
+from promptpal.roles import Role
+
+# Initialize PromptPal
+pal = Promptpal()
+
+# Create a custom role
+data_scientist = Role(
+    name="data_scientist",
+    description="Expertise in data analysis and visualization",
+    system_instruction="You are a data scientist with expertise in analyzing and visualizing data.",
+    temperature=0.2,
+)
+
+# Add the role
+pal.add_roles([data_scientist])
+
+# Use the custom role
+response = pal.chat("data_scientist", "How would you analyze this dataset?")
+```
+
+## Advanced Features
+
+### Prompt Refinement
+
+```python
+from promptpal import Promptpal
+
+pal = Promptpal()
+
+# Original prompt
+original_prompt = "Write a poem about the ocean."
+
+# Refine using glyph refinement
+glyph_refined = pal.refine_prompt(original_prompt, glyph_refinement=True)
+
+# Refine using chain of thought
+cot_refined = pal.refine_prompt(original_prompt, chain_of_thought=True)
+
+# Refine using keyword refinement
+keyword_refined = pal.refine_prompt(original_prompt, keyword_refinement="elaborate")
+```
+
+### Chat Statistics
+
+```python
+from promptpal import Promptpal
+
+pal = Promptpal()
+
+# Have some conversations
+pal.chat("assistant", "Hello, how are you?")
+pal.chat("creativity", "Give me ideas for a novel.")
+
+# Get statistics
+stats = pal.get_chat_stats()
+print(f"Tokens used: {stats['tokens_used']}")
+print(f"Messages sent: {stats['messages_sent']}")
+print(f"Files written: {stats['files_written']}")
+print(f"Messages per role: {stats['messages_per_role']}")
+```
+
 ## Continuous Integration and Deployment
 
 ### CI Pipeline

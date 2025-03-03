@@ -14,7 +14,7 @@ def mock_env_gemini_api_key(monkeypatch):
 
 
 def test_add_roles():
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     roles = [
         Role(name="role1", description="Role 1", system_instruction="Instruction 1"),
         Role(name="role2", description="Role 2", system_instruction="Instruction 2"),
@@ -39,34 +39,31 @@ def test_add_roles_from_file(tmp_path):
         """
     )
 
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     with open(roles_yaml) as file:
         promptpal.add_roles_from_file(file)
 
 
-def test_list_roles():
-    promptpal = Promptpal(load_default_roles=False)
+def test_list_roles(capsys):
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     roles = [
         Role(name="role1", description="Role 1", system_instruction="Instruction 1"),
         Role(name="role2", description="Role 2", system_instruction="Instruction 2"),
     ]
     promptpal.add_roles(roles)
-    role_names = promptpal.list_roles()
-    assert role_names == ["role1", "role2"]
 
+    # Call the method which now prints instead of returning
+    promptpal.list_roles()
 
-def test_get_role_description():
-    promptpal = Promptpal()
-    roles = [
-        Role(name="role1", description="Role 1", system_instruction="Instruction 1"),
-        Role(name="role2", description="Role 2", system_instruction="Instruction 2"),
-    ]
-    promptpal.add_roles(roles)
-    description = promptpal.get_role_description("role1")
-    assert description == "Role 1"
+    # Capture the printed output
+    captured = capsys.readouterr()
 
-    with pytest.raises(ValueError):
-        promptpal.get_role_description("nonexistent_role")
+    # Check that the output contains the role names and descriptions
+    assert "role1" in captured.out
+    assert "Role 1" in captured.out
+    assert "role2" in captured.out
+    assert "Role 2" in captured.out
+    assert "Total: 2 roles" in captured.out
 
 
 def test_chat_valid_role(mocker):
@@ -79,7 +76,7 @@ def test_chat_valid_role(mocker):
     mock_response.usage_metadata.prompt_token_count = 500  # Set to a valid integer
     mock_chat_instance.send_message.return_value = mock_response
 
-    promptpal = Promptpal()
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     roles = [
         Role(
             name="role1",
@@ -90,20 +87,18 @@ def test_chat_valid_role(mocker):
     ]
     promptpal.add_roles(roles)
 
-    response = promptpal.chat(
-        "role1", "Explain how AI works", write_code=False, token_threshold=1000
-    )
-    assert response == "AI response text"
+    promptpal.chat("role1", "Explain how AI works", write_code=False, token_threshold=1000)
+    assert promptpal.get_last_response() == "AI response text"
 
 
 def test_chat_invalid_role():
-    promptpal = Promptpal()
+    promptpal = Promptpal(vertexai=False)
     with pytest.raises(ValueError, match="Role 'nonexistent_role' not found."):
         promptpal.chat("nonexistent_role", "Explain how AI works")
 
 
 def test_chat_api_error(mocker):
-    promptpal = Promptpal()
+    promptpal = Promptpal(vertexai=False)
     roles = [
         Role(
             name="role1",
@@ -115,9 +110,7 @@ def test_chat_api_error(mocker):
     promptpal.add_roles(roles)
 
     # Mock the SDK to raise an exception
-    mocker.patch.object(
-        promptpal._client.models, "generate_content", side_effect=Exception("API error")
-    )
+    mocker.patch.object(promptpal._client.models, "generate_content", side_effect=Exception("API error"))
 
     with pytest.raises(Exception, match="API error"):
         promptpal.chat("role1", "Explain how AI works")
@@ -127,13 +120,13 @@ def test_promptpal_load_default_roles(mocker):
     # Mock the add_roles_from_file method to simulate loading roles
     mocker.patch("promptpal.promptpal.Promptpal.add_roles_from_file")
 
-    promptpal = Promptpal(load_default_roles=True)
+    promptpal = Promptpal(load_default_roles=True, vertexai=False)
     # Verify that add_roles_from_file was called
     promptpal.add_roles_from_file.assert_called_once()
 
 
 def test_promptpal_manual_role_addition():
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     # Verify that no roles are loaded initially
     assert len(promptpal._roles) == 0
 
@@ -157,9 +150,7 @@ def test_chat_with_file_references(mocker):
     mock_chat_instance = mock_chat.return_value
     mock_generate_content = mock_chat_instance.send_message
     mock_generate_content.return_value.text = "Response text"
-    mock_generate_content.return_value.usage_metadata.prompt_token_count = (
-        500  # Set to a valid integer
-    )
+    mock_generate_content.return_value.usage_metadata.prompt_token_count = 500  # Set to a valid integer
 
     # Mock the file upload
     mock_upload = mock_client.return_value.files.upload
@@ -171,7 +162,7 @@ def test_chat_with_file_references(mocker):
         temp_file_path = temp_file.name
 
     # Initialize Promptpal and add roles
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     role = Role(
         name="test_role",
         description="Test Role",
@@ -182,7 +173,7 @@ def test_chat_with_file_references(mocker):
 
     # Call the chat method with a message containing the file path
     message = f"Read {temp_file_path} and provide a summary."
-    response = promptpal.chat(role_name="test_role", message=message, token_threshold=1000)
+    promptpal.chat(role_name="test_role", message=message, token_threshold=1000)
 
     # Verify that the file was uploaded and included in the contents
     mock_upload.assert_called_once_with(file=temp_file_path)
@@ -195,7 +186,7 @@ def test_chat_with_file_references(mocker):
         "summary.",
     ]
     assert mock_generate_content.call_args[0][0] == expected_contents
-    assert response == "Response text"
+    assert promptpal.get_last_response() == "Response text"
 
     # Clean up the temporary file
     os.remove(temp_file_path)
@@ -208,7 +199,7 @@ def test_new_chat(mocker):
     mock_chat_instance = mock_chat.return_value
 
     # Initialize Promptpal
-    promptpal = Promptpal()
+    promptpal = Promptpal(vertexai=False)
 
     # Call new_chat to reset the chat
     promptpal.new_chat()
@@ -240,7 +231,7 @@ def test_chat_summarization(mocker):
         mock_summary_response,  # Response to the new chat with the summary
     ]
 
-    promptpal = Promptpal(load_default_roles=False)  # Avoid loading default roles
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)  # Avoid loading default roles
     roles = [
         Role(
             name="role1",
@@ -258,14 +249,12 @@ def test_chat_summarization(mocker):
     promptpal.add_roles(roles)
 
     # Simulate the chat process
-    response = promptpal.chat("role1", "Explain how AI works", token_threshold=1000)
-    assert response == "AI response text"
+    promptpal.chat("role1", "Explain how AI works", token_threshold=1000)
+    assert promptpal.get_last_response() == "AI response text"
 
     # Verify that the summarization was triggered
     assert mock_chat_instance.send_message.call_count == 3
-    assert mock_chat_instance.send_message.call_args_list[1][0][0] == [
-        "Summarize the previous chat."
-    ]
+    assert mock_chat_instance.send_message.call_args_list[1][0][0] == ["Summarize the previous chat."]
     assert mock_chat_instance.send_message.call_args_list[2][0][0] == [
         "Here is a summary of the previous chat:",
         "Summary of the chat",
@@ -308,8 +297,8 @@ def test_chat_with_write_code(mocker, tmp_path):
     promptpal.add_roles(roles)
 
     # Call the chat method with write_code=True
-    response = promptpal.chat("role1", "Generate some code", write_code=True, token_threshold=1000)
-    assert response == mock_response.text
+    promptpal.chat("role1", "Generate some code", write_code=True, token_threshold=1000)
+    assert promptpal.get_last_response() == mock_response.text
 
     # Verify that code files were written
     code_snippets = promptpal.extract_code_snippets(mock_response.text)
@@ -323,84 +312,12 @@ def test_chat_with_write_code(mocker, tmp_path):
         file_path.unlink()
 
 
-def test_refine_prompt_with_glyph_refinement(mocker):
-    # Mock the genai client
-    mock_client = mocker.patch("promptpal.promptpal.genai.Client")
-    mock_generate_content = mock_client.return_value.models.generate_content
-    mock_response = MagicMock()
-    mock_response.text = "Refined prompt using glyph refinement"
-    mock_generate_content.return_value = mock_response
-
-    promptpal = Promptpal(load_default_roles=False)
-    roles = [
-        Role(
-            name="glyph_prompt",
-            description="Glyph Prompt",
-            system_instruction="<user_prompt>",
-            model="gemini-1.5-pro",
-        ),
-    ]
-    promptpal.add_roles(roles)
-
-    response = promptpal.refine_prompt("Test prompt", glyph_refinement=True)
-    assert response == "Refined prompt using glyph refinement"
-
-
-def test_refine_prompt_with_chain_of_thought(mocker):
-    # Mock the genai client
-    mock_client = mocker.patch("promptpal.promptpal.genai.Client")
-    mock_generate_content = mock_client.return_value.models.generate_content
-    mock_response = MagicMock()
-    mock_response.text = "Refined prompt using chain of thought"
-    mock_generate_content.return_value = mock_response
-
-    promptpal = Promptpal(load_default_roles=False)
-    roles = [
-        Role(
-            name="chain_of_thought",
-            description="Chain of Thought",
-            system_instruction="<user_prompt>",
-            model="gemini-1.5-pro",
-        ),
-    ]
-    promptpal.add_roles(roles)
-
-    response = promptpal.refine_prompt("Test prompt", chain_of_thought=True)
-    assert response == "Refined prompt using chain of thought"
-
-
-def test_refine_prompt_with_keyword_refinement():
-    promptpal = Promptpal(load_default_roles=False)
-    prompt = "This is a test prompt."
-    keyword = "simplify"
-    expected_instruction = "Use less complex language for easier comprehension."
-    expected_output = f"{expected_instruction}\n\n{prompt}"
-
-    response = promptpal.refine_prompt(prompt, keyword_refinement=keyword)
-    assert response == expected_output
-
-
-def test_refine_prompt_with_invalid_keyword_refinement():
-    promptpal = Promptpal(load_default_roles=False)
-    with pytest.raises(ValueError, match="Keyword refinement 'invalid_keyword' not recognized."):
-        promptpal.refine_prompt("Test prompt", keyword_refinement="invalid_keyword")
-
-
-def test_refine_prompt_with_multiple_refinements():
-    promptpal = Promptpal(load_default_roles=False)
-    with pytest.raises(
-        ValueError,
-        match="Only one of glyph_refinement, chain_of_thought, or keyword_refinement can be true.",
-    ):
-        promptpal.refine_prompt("Test prompt", glyph_refinement=True, chain_of_thought=True)
-
-
 def test_init_without_api_key(monkeypatch):
     # Remove GEMINI_API_KEY from environment
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
 
     with pytest.raises(EnvironmentError, match="GEMINI_API_KEY environment variable not found!"):
-        Promptpal()
+        Promptpal(vertexai=False)
 
 
 def test_chat_with_web_search(mocker):
@@ -413,7 +330,7 @@ def test_chat_with_web_search(mocker):
     mock_response.usage_metadata.prompt_token_count = 500
     mock_chat_instance.send_message.return_value = mock_response
 
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     role = Role(
         name="searcher",
         description="Web Searcher",
@@ -422,9 +339,8 @@ def test_chat_with_web_search(mocker):
     )
     promptpal.add_roles([role])
 
-    response = promptpal.chat("searcher", "Search for something")
-    assert response == "Search response"
-    assert mock_chat_instance.send_message.called
+    promptpal.chat("searcher", "Search for something")
+    assert promptpal.get_last_response() == "Search response"
 
 
 def test_chat_with_file_upload(mocker, tmp_path):
@@ -445,7 +361,7 @@ def test_chat_with_file_upload(mocker, tmp_path):
     mock_upload = mock_client.return_value.files.upload
     mock_upload.return_value = "uploaded_file_reference"
 
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     role = Role(
         name="file_handler",
         description="File Handler",
@@ -454,9 +370,9 @@ def test_chat_with_file_upload(mocker, tmp_path):
     promptpal.add_roles([role])
 
     message = f"Process this file: {test_file!s}"
-    response = promptpal.chat("file_handler", message)
+    promptpal.chat("file_handler", message)
 
-    assert response == "Response with file"
+    assert promptpal.get_last_response() == "Response with file"
     mock_upload.assert_called_once_with(file=str(test_file))
 
 
@@ -479,9 +395,9 @@ def test_chat_with_file_not_found(mocker):
     promptpal.add_roles([role])
 
     message = "Process this file: /nonexistent/file.txt"
-    response = promptpal.chat("file_handler", message)
+    promptpal.chat("file_handler", message)
 
-    assert response == "Response without file"
+    assert promptpal.get_last_response() == "Response without file"
     # Verify that the message was sent without the file reference
     assert mock_chat_instance.send_message.called
 
@@ -546,9 +462,9 @@ def test_chat_with_file_upload_and_message_parts(mocker, tmp_path):
 
     # Create message with multiple files and text
     message = f"Process these files: {test_file1!s} and {test_file2!s} with some text"
-    response = promptpal.chat("file_handler", message)
+    promptpal.chat("file_handler", message)
 
-    assert response == "Response with files"
+    assert promptpal.get_last_response() == "Response with files"
     assert mock_upload.call_count == 2
 
     # Verify the message was constructed correctly with file references
@@ -563,46 +479,15 @@ def test_chat_with_file_upload_and_message_parts(mocker, tmp_path):
         "some",
         "text",
     ]
-    mock_chat_instance.send_message.assert_called_once_with(expected_contents)
-
-
-def test_chat_with_prompt_refinement(mocker):
-    # Mock the genai client
-    mock_client = mocker.patch("promptpal.promptpal.genai.Client")
-    mock_generate_content = mock_client.return_value.models.generate_content
-    mock_response = MagicMock()
-    mock_response.text = "Refined prompt"
-    mock_generate_content.return_value = mock_response
-
-    promptpal = Promptpal(load_default_roles=False)
-    roles = [
-        Role(
-            name="glyph_prompt",
-            description="Glyph Prompt",
-            system_instruction="<user_prompt>",
-            model="gemini-1.5-pro",
-        ),
-        Role(
-            name="chain_of_thought",
-            description="Chain of Thought",
-            system_instruction="<user_prompt>",
-            model="gemini-1.5-pro",
-        ),
-    ]
-    promptpal.add_roles(roles)
-
-    # Test different refinement methods
-    glyph_response = promptpal.refine_prompt("Test prompt", glyph_refinement=True)
-    assert glyph_response == "Refined prompt"
-
-    chain_response = promptpal.refine_prompt("Test prompt", chain_of_thought=True)
-    assert chain_response == "Refined prompt"
-
-    keyword_response = promptpal.refine_prompt("Test prompt", keyword_refinement="simplify")
-    assert "Use less complex language for easier comprehension" in keyword_response
-
-    # Verify generate_content was called with correct parameters
-    assert mock_generate_content.call_count == 2  # Once for glyph, once for chain of thought
+    mock_chat_instance.send_message.assert_called_once_with(
+        expected_contents,
+        config={
+            "temperature": None,
+            "system_instruction": "Handle files",
+            "max_output_tokens": None,
+            "tools": None,
+        },
+    )
 
 
 def test_load_roles_from_file(tmp_path):

@@ -26,10 +26,10 @@ classifiers = [
 dependencies = [
     "google-genai>=1.2.0",
     "ipywidgets>=8.1.5",
-    "pillow>=10.2.0",  # Add explicit Pillow dependency
-    "pyyaml>=6.0.1",   # Add explicit PyYAML dependency
+    "pillow>=10.2.0", # Add explicit Pillow dependency
+    "pyyaml>=6.0.1", # Add explicit PyYAML dependency
     "pytest-mock>=3.14.0",
-    "jsonschema>=4.21.1",  # Add explicit jsonschema dependency
+    "jsonschema>=4.21.1", # Add explicit jsonschema dependency
 ]
 
 [project.optional-dependencies]
@@ -114,8 +114,8 @@ exclude = [
     "extras/*.ipynb",  # Exclude all notebooks in extras directory
 ]
 
-# Update line length to 100
-line-length = 100
+# Update line length to 120
+line-length = 120
 indent-width = 4
 
 # Assume Python 3.11
