@@ -279,8 +279,8 @@ class Promptpal:
                 "temperature": role.temperature,
                 "system_instruction": role.system_instruction,
                 "max_output_tokens": role.max_output_tokens,
+                "tools": tools,
             },
-            # tools=tools,
         )
 
         # Store the response
@@ -324,7 +324,8 @@ class Promptpal:
         # if self.quiet == True:
         #    response = self._quiet_response(response.text)
 
-        return response.text
+        for line in response.text.split("\n"):
+            print(line)
 
     def message(self, role_name: str, message: str):
         """
@@ -400,6 +401,12 @@ class Promptpal:
         }.get(lang, ".txt")  # Default to .txt if language is unknown
 
         return f"code_snippet_{code_hash}{extension}"
+
+    def get_last_response(self) -> str:
+        """
+        Get the last response from the chat.
+        """
+        return self._last_response.text
 
     def _quiet_response(self, text):
         """Create condensed responses to avoid walls of text"""
