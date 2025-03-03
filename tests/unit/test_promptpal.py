@@ -87,9 +87,7 @@ def test_chat_valid_role(mocker):
     ]
     promptpal.add_roles(roles)
 
-    response = promptpal.chat(
-        "role1", "Explain how AI works", write_code=False, token_threshold=1000
-    )
+    response = promptpal.chat("role1", "Explain how AI works", write_code=False, token_threshold=1000)
     assert response == "AI response text"
 
 
@@ -112,9 +110,7 @@ def test_chat_api_error(mocker):
     promptpal.add_roles(roles)
 
     # Mock the SDK to raise an exception
-    mocker.patch.object(
-        promptpal._client.models, "generate_content", side_effect=Exception("API error")
-    )
+    mocker.patch.object(promptpal._client.models, "generate_content", side_effect=Exception("API error"))
 
     with pytest.raises(Exception, match="API error"):
         promptpal.chat("role1", "Explain how AI works")
@@ -154,9 +150,7 @@ def test_chat_with_file_references(mocker):
     mock_chat_instance = mock_chat.return_value
     mock_generate_content = mock_chat_instance.send_message
     mock_generate_content.return_value.text = "Response text"
-    mock_generate_content.return_value.usage_metadata.prompt_token_count = (
-        500  # Set to a valid integer
-    )
+    mock_generate_content.return_value.usage_metadata.prompt_token_count = 500  # Set to a valid integer
 
     # Mock the file upload
     mock_upload = mock_client.return_value.files.upload
@@ -260,9 +254,7 @@ def test_chat_summarization(mocker):
 
     # Verify that the summarization was triggered
     assert mock_chat_instance.send_message.call_count == 3
-    assert mock_chat_instance.send_message.call_args_list[1][0][0] == [
-        "Summarize the previous chat."
-    ]
+    assert mock_chat_instance.send_message.call_args_list[1][0][0] == ["Summarize the previous chat."]
     assert mock_chat_instance.send_message.call_args_list[2][0][0] == [
         "Here is a summary of the previous chat:",
         "Summary of the chat",
@@ -488,7 +480,14 @@ def test_chat_with_file_upload_and_message_parts(mocker, tmp_path):
         "some",
         "text",
     ]
-    mock_chat_instance.send_message.assert_called_once_with(expected_contents)
+    mock_chat_instance.send_message.assert_called_once_with(
+        expected_contents,
+        config={
+            "temperature": None,
+            "system_instruction": "Handle files",
+            "max_output_tokens": None,
+        },
+    )
 
 
 def test_load_roles_from_file(tmp_path):
