@@ -13,7 +13,7 @@ is_ci = os.getenv("CI") is not None
 @pytest.mark.skipif(is_ci, reason="Skipping integration tests in CI environment.")
 def test_message_integration():
     # Initialize Promptpal with actual API
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
 
     # Define a role for message
     role = Role(
@@ -34,7 +34,7 @@ def test_message_integration():
 @pytest.mark.skipif(is_ci, reason="Skipping integration tests in CI environment.")
 def test_chat_integration():
     # Initialize Promptpal with actual API
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
 
     # Define a role for chat
     role = Role(
@@ -46,9 +46,9 @@ def test_chat_integration():
     promptpal.add_roles([role])
 
     # Send a message and verify response
-    response = promptpal.chat("chat_role", "Explain how AI works")
-    assert response is not None
-    assert isinstance(response, str)
+    promptpal.chat("chat_role", "Explain how AI works")
+    assert promptpal.get_last_response() is not None
+    assert isinstance(promptpal.get_last_response(), str)
 
 
 @pytest.mark.integration
@@ -81,7 +81,7 @@ def test_image_generation_integration(tmp_path):
 @pytest.mark.skipif(is_ci, reason="Skipping integration tests in CI environment.")
 def test_refine_prompt_integration():
     # Initialize Promptpal with actual API
-    promptpal = Promptpal(load_default_roles=False)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
 
     # Add a role for glyph refinement
     role = Role(

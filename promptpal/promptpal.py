@@ -205,7 +205,6 @@ class Promptpal:
         message: str,
         write_output: bool = True,
         write_code: bool = True,
-        import_python: bool = False,
         token_threshold: int = 1000,
     ) -> str:
         """
@@ -215,7 +214,6 @@ class Promptpal:
             role_name (str): The name of the role to use for the chat.
             message (str): The user's message to send.
             write_code (bool): If True, write any code from the response to a file.
-            import_python (bool): If True, imports newly written python modules into current environment
             token_threshold (int): The threshold for prompt_token_count.
 
         Returns:
@@ -337,11 +335,6 @@ class Promptpal:
                 with open(file_path, "w") as code_file:
                     code_file.write(code)
 
-                if import_python == True and file_path[-3:] == ".py":
-                    import_python_modules(file_path)
-
-            self._files_written["code"] += len(code_snippets)
-
         for line in response.text.split("\n"):
             print(line)
 
@@ -376,20 +369,6 @@ class Promptpal:
             # Log more detailed error information
             logger.error(f"Error details: {type(e).__name__}, {e!s}")
             raise
-
-    def import_python_modules(self, script_path: str):
-        """
-        Import python modules from AI generated code
-        """
-        module_name = script_path.replace('/','.')[0:-3]
-        try:
-            module = importlib.import_module(module_name)
-            for import_name in dir(module):
-                if not import_name.startswith('_'):  # Avoid importing private attributes
-                    globals()[import_name] = getattr(module, import_name)
-                    print(f"\tImported {import_name} to current environment.")
-        except ModuleNotFoundError:
-            print(f"Module {module_name} not found.")
 
     def extract_code_snippets(self, text: str) -> dict:
         """
