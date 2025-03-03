@@ -39,9 +39,25 @@ def find_existing_files(message: str) -> list[str]:
     Returns:
         A list of file paths found in the message.
     """
-    # Regex pattern to match file paths (basic example)
-    file_pattern = re.compile(r"/[^\s]+")
-    return file_pattern.findall(message)
+    # Split the message into words
+    words = message.split()
+    file_paths = []
+
+    for word in words:
+        # Remove any punctuation at the end of the word
+        word = word.rstrip(".,;:!?")
+
+        # Check if the word is a valid file path
+        path = Path(word)
+        try:
+            # Check if the path exists and is a file
+            if path.exists() and path.is_file():
+                file_paths.append(word)
+        except (OSError, ValueError):
+            # Skip invalid paths (e.g., paths with invalid characters)
+            continue
+
+    return file_paths
 
 
 class Promptpal:

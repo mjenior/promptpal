@@ -5,8 +5,8 @@ from .promptpal import Promptpal, PromptRefinementType
 
 
 class PromptpalUI:
-    def __init__(self):
-        self.promptpal = Promptpal()
+    def __init__(self, vertexai: bool = True, project: str = "", location: str = ""):
+        self.promptpal = Promptpal(vertexai=vertexai, project=project, location=location)
 
         self.refine_method_select = widgets.RadioButtons(
             options=[
@@ -21,27 +21,19 @@ class PromptpalUI:
 
         self.tool_output = widgets.Textarea(layout=widgets.Layout(width="800px", height="150px"))
 
-        self.refine_button = widgets.Button(
-            description="Refine Prompt", layout=widgets.Layout(width="250px")
-        )
+        self.refine_button = widgets.Button(description="Refine Prompt", layout=widgets.Layout(width="250px"))
 
         self.refine_button.on_click(self.refine_prompt)
 
-        self.update_prompt_button = widgets.Button(
-            description="Update Prompt", layout=widgets.Layout(width="250px")
-        )
+        self.update_prompt_button = widgets.Button(description="Update Prompt", layout=widgets.Layout(width="250px"))
 
         self.update_prompt_button.on_click(self.update_prompt)
 
-        self.get_advice_button = widgets.Button(
-            description="Get Advice", layout=widgets.Layout(width="250px")
-        )
+        self.get_advice_button = widgets.Button(description="Get Advice", layout=widgets.Layout(width="250px"))
 
         self.get_advice_button.on_click(self.get_advice)
 
-        self.clear_button = widgets.Button(
-            description="Clear", layout=widgets.Layout(width="250px")
-        )
+        self.clear_button = widgets.Button(description="Clear", layout=widgets.Layout(width="250px"))
 
         self.clear_button.on_click(self.clear)
 

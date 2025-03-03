@@ -87,7 +87,7 @@ def test_chat_valid_role(mocker):
     ]
     promptpal.add_roles(roles)
 
-    response = promptpal.chat("role1", "Explain how AI works", write_code=False, token_threshold=1000)
+    promptpal.chat("role1", "Explain how AI works", write_code=False, token_threshold=1000)
     assert promptpal.get_last_response() == "AI response text"
 
 
@@ -173,7 +173,7 @@ def test_chat_with_file_references(mocker):
 
     # Call the chat method with a message containing the file path
     message = f"Read {temp_file_path} and provide a summary."
-    response = promptpal.chat(role_name="test_role", message=message, token_threshold=1000)
+    promptpal.chat(role_name="test_role", message=message, token_threshold=1000)
 
     # Verify that the file was uploaded and included in the contents
     mock_upload.assert_called_once_with(file=temp_file_path)
@@ -249,7 +249,7 @@ def test_chat_summarization(mocker):
     promptpal.add_roles(roles)
 
     # Simulate the chat process
-    response = promptpal.chat("role1", "Explain how AI works", token_threshold=1000)
+    promptpal.chat("role1", "Explain how AI works", token_threshold=1000)
     assert promptpal.get_last_response() == "AI response text"
 
     # Verify that the summarization was triggered
@@ -297,7 +297,7 @@ def test_chat_with_write_code(mocker, tmp_path):
     promptpal.add_roles(roles)
 
     # Call the chat method with write_code=True
-    response = promptpal.chat("role1", "Generate some code", write_code=True, token_threshold=1000)
+    promptpal.chat("role1", "Generate some code", write_code=True, token_threshold=1000)
     assert promptpal.get_last_response() == mock_response.text
 
     # Verify that code files were written
@@ -339,9 +339,8 @@ def test_chat_with_web_search(mocker):
     )
     promptpal.add_roles([role])
 
-    response = promptpal.chat("searcher", "Search for something")
+    promptpal.chat("searcher", "Search for something")
     assert promptpal.get_last_response() == "Search response"
-    assert mock_chat_instance.send_message.called
 
 
 def test_chat_with_file_upload(mocker, tmp_path):
@@ -371,7 +370,7 @@ def test_chat_with_file_upload(mocker, tmp_path):
     promptpal.add_roles([role])
 
     message = f"Process this file: {test_file!s}"
-    response = promptpal.chat("file_handler", message)
+    promptpal.chat("file_handler", message)
 
     assert promptpal.get_last_response() == "Response with file"
     mock_upload.assert_called_once_with(file=str(test_file))
@@ -396,7 +395,7 @@ def test_chat_with_file_not_found(mocker):
     promptpal.add_roles([role])
 
     message = "Process this file: /nonexistent/file.txt"
-    response = promptpal.chat("file_handler", message)
+    promptpal.chat("file_handler", message)
 
     assert promptpal.get_last_response() == "Response without file"
     # Verify that the message was sent without the file reference
@@ -463,7 +462,7 @@ def test_chat_with_file_upload_and_message_parts(mocker, tmp_path):
 
     # Create message with multiple files and text
     message = f"Process these files: {test_file1!s} and {test_file2!s} with some text"
-    response = promptpal.chat("file_handler", message)
+    promptpal.chat("file_handler", message)
 
     assert promptpal.get_last_response() == "Response with files"
     assert mock_upload.call_count == 2

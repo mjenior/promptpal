@@ -17,7 +17,7 @@ def test_message_integration():
 
     # Define a role for message
     role = Role(
-        model="gemini-1.5-flash",
+        model="gemini-2.0-flash",
         name="message_role",
         description="Message Role",
         system_instruction="Instruction",
@@ -41,7 +41,7 @@ def test_chat_integration():
         name="chat_role",
         description="Chat Role",
         system_instruction="Instruction",
-        model="gemini-1.5-flash",
+        model="gemini-2.0-flash",
     )
     promptpal.add_roles([role])
 
@@ -52,9 +52,7 @@ def test_chat_integration():
 
 
 @pytest.mark.integration
-@pytest.mark.skip(
-    reason="Image generation model not available. TODO: Fix image generation handling."
-)
+@pytest.mark.skip(reason="Image generation model not available. TODO: Fix image generation handling.")
 def test_image_generation_integration(tmp_path):
     # Initialize Promptpal with actual API
     promptpal = Promptpal(output_dir=str(tmp_path))
@@ -90,7 +88,7 @@ def test_refine_prompt_integration():
         name="glyph_prompt",
         description="Glyph Prompt",
         system_instruction="<user_prompt>",
-        model="gemini-1.5-pro",
+        model="gemini-2.0-flash",
     )
     promptpal.add_roles([role])
 
