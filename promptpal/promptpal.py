@@ -99,7 +99,7 @@ class Promptpal:
                 vertexai=True,
                 project=project,
                 location=location,
-                http_options={"api_version": "v1beta"},
+                http_options={"api_version": "v1"},
             )
 
         # Create a chat instance

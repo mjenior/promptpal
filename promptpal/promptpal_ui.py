@@ -165,7 +165,7 @@ class PromptpalUI:
         try:
             # Call the prompt_advisor role
             self.tool_output.value = "Getting advice on prompt..."
-            advice = self.promptpal.chat("prompt_advisor", f"Analyze this prompt: {current_prompt}")
+            advice = self.promptpal.message("prompt_advisor", f"Analyze this prompt: {current_prompt}")
 
             # Update the tool output with the advice
             self.tool_output.value = advice
