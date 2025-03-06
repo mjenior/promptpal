@@ -736,6 +736,7 @@ prompt_advisor:
        [Technique name]: [Brief explanation of why this technique would be beneficial]
 
     GUIDELINES:
+    - DO NOT include any text in you response beyond the prescribed format above
     - Be specific and actionable in your recommendations
     - Provide examples to illustrate your points
     - Maintain a constructive and supportive tone
