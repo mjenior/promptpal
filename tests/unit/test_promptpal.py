@@ -73,7 +73,7 @@ def test_chat_valid_role(mocker):
     mock_chat_instance = mock_chat.return_value
     mock_response = MagicMock()
     mock_response.text = "AI response text"
-    mock_response.usage_metadata.prompt_token_count = 500  # Set to a valid integer
+    mock_response.usage_metadata.total_token_count = 500  # Set to a valid integer
     mock_chat_instance.send_message.return_value = mock_response
 
     promptpal = Promptpal(load_default_roles=False, vertexai=False)
@@ -150,7 +150,7 @@ def test_chat_with_file_references(mocker):
     mock_chat_instance = mock_chat.return_value
     mock_generate_content = mock_chat_instance.send_message
     mock_generate_content.return_value.text = "Response text"
-    mock_generate_content.return_value.usage_metadata.prompt_token_count = 500  # Set to a valid integer
+    mock_generate_content.return_value.usage_metadata.total_token_count = 500  # Set to a valid integer
 
     # Mock the file upload
     mock_upload = mock_client.return_value.files.upload
@@ -216,7 +216,7 @@ def test_chat_summarization(mocker):
     mock_chat_instance = mock_chat.return_value
     mock_response = MagicMock()
     mock_response.text = "AI response text"
-    mock_response.usage_metadata.prompt_token_count = 1500  # Exceed threshold
+    mock_response.usage_metadata.total_token_count = 1500  # Exceed threshold
     mock_chat_instance.send_message.return_value = mock_response
 
     # Mock the summarization response
@@ -280,7 +280,7 @@ def test_chat_with_write_code(mocker, tmp_path):
     }
     ```
     """
-    mock_response.usage_metadata.prompt_token_count = 500  # Set to a valid integer
+    mock_response.usage_metadata.total_token_count = 500  # Set to a valid integer
     mock_chat_instance.send_message.return_value = mock_response
 
     # Use a temporary directory for writing code files
@@ -327,7 +327,7 @@ def test_chat_with_web_search(mocker):
     mock_chat_instance = mock_chat.return_value
     mock_response = MagicMock()
     mock_response.text = "Search response"
-    mock_response.usage_metadata.prompt_token_count = 500
+    mock_response.usage_metadata.total_token_count = 500
     mock_chat_instance.send_message.return_value = mock_response
 
     promptpal = Promptpal(load_default_roles=False, vertexai=False)
@@ -354,7 +354,7 @@ def test_chat_with_file_upload(mocker, tmp_path):
     mock_chat_instance = mock_chat.return_value
     mock_response = MagicMock()
     mock_response.text = "Response with file"
-    mock_response.usage_metadata.prompt_token_count = 500
+    mock_response.usage_metadata.total_token_count = 500
     mock_chat_instance.send_message.return_value = mock_response
 
     # Mock file upload
@@ -383,7 +383,7 @@ def test_chat_with_file_not_found(mocker):
     mock_chat_instance = mock_chat.return_value
     mock_response = MagicMock()
     mock_response.text = "Response without file"
-    mock_response.usage_metadata.prompt_token_count = 500
+    mock_response.usage_metadata.total_token_count = 500
     mock_chat_instance.send_message.return_value = mock_response
 
     promptpal = Promptpal(load_default_roles=False)
@@ -410,7 +410,7 @@ def test_chat_with_web_search_tool_configuration(mocker):
     mock_chat_instance = mock_chat.return_value
     mock_response = MagicMock()
     mock_response.text = "Search response"
-    mock_response.usage_metadata.prompt_token_count = 500
+    mock_response.usage_metadata.total_token_count = 500
     mock_chat_instance.send_message.return_value = mock_response
 
     # Create Promptpal instance with web search role
@@ -445,14 +445,18 @@ def test_chat_with_file_upload_and_message_parts(mocker, tmp_path):
     mock_chat_instance = mock_chat.return_value
     mock_response = MagicMock()
     mock_response.text = "Response with files"
-    mock_response.usage_metadata.prompt_token_count = 500
+    mock_response.usage_metadata.total_token_count = 500
     mock_chat_instance.send_message.return_value = mock_response
 
     # Mock file upload with different references
     mock_upload = mock_client.return_value.files.upload
     mock_upload.side_effect = ["ref1", "ref2"]
 
-    promptpal = Promptpal(load_default_roles=False)
+    # Store the side effect values for later use
+    file_refs = ["ref1", "ref2"]
+
+    # Test with vertexai=False (should use file uploads)
+    promptpal = Promptpal(load_default_roles=False, vertexai=False)
     role = Role(
         name="file_handler",
         description="File Handler",
@@ -468,26 +472,53 @@ def test_chat_with_file_upload_and_message_parts(mocker, tmp_path):
     assert mock_upload.call_count == 2
 
     # Verify the message was constructed correctly with file references
-    expected_contents = [
-        "Process",
-        "these",
-        "files:",
-        "ref1",
-        "and",
-        "ref2",
-        "with",
-        "some",
-        "text",
-    ]
-    mock_chat_instance.send_message.assert_called_once_with(
+    expected_contents = []
+    for part in message.split():
+        if part == str(test_file1):
+            expected_contents.append(file_refs[0])
+        elif part == str(test_file2):
+            expected_contents.append(file_refs[1])
+        else:
+            expected_contents.append(part)
+
+    mock_chat_instance.send_message.assert_called_with(
         expected_contents,
         config={
-            "temperature": None,
-            "system_instruction": "Handle files",
-            "max_output_tokens": None,
+            "temperature": role.temperature,
+            "system_instruction": role.system_instruction,
+            "max_output_tokens": role.max_output_tokens,
             "tools": None,
         },
     )
+
+    # Reset mocks for the second test
+    mock_chat_instance.send_message.reset_mock()
+    mock_upload.reset_mock()
+
+    # Test with vertexai=True (should read file contents)
+    promptpal_vertex = Promptpal(load_default_roles=False, vertexai=True)
+    promptpal_vertex.add_roles([role])
+
+    # Mock open to capture file reading
+    mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data="test content"))
+
+    promptpal_vertex.chat("file_handler", message)
+
+    assert promptpal_vertex.get_last_response() == "Response with files"
+    # No file uploads should happen with vertexai=True
+    assert mock_upload.call_count == 0
+
+    # Verify that open was called for each file
+    assert mock_open.call_count == 2
+
+    # The message should include the file contents
+    mock_chat_instance.send_message.assert_called_once()
+    sent_message = mock_chat_instance.send_message.call_args[0][0]
+    assert isinstance(sent_message, str)
+    assert "Process these files:" in sent_message
+    assert "Contents of" in sent_message
+    assert "```" in sent_message
+    assert "test content" in sent_message
 
 
 def test_load_roles_from_file(tmp_path):

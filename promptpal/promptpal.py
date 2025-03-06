@@ -109,6 +109,8 @@ class Promptpal:
         self._last_response = None  # Store the last response
         self._output_dir = output_dir  # Directory for writing code and image files
 
+        self._vertexai = vertexai
+
         # Initialize trackers for chat statistics
         self._token_count = 0
         self._message_count = 0
@@ -269,24 +271,55 @@ class Promptpal:
             #     raise
 
         # Parse the message and look for references to files. If found, upload them to the client.
+        # vertexai doesn't support file uploads, so we skip this step if vertexai is True
         file_references = find_existing_files(message)
-        uploaded_files = {}
-        for file_path in file_references:
-            try:
-                uploaded_file = self._client.files.upload(file=file_path)
-                uploaded_files[file_path] = uploaded_file
-            except FileNotFoundError:
-                logger.warning(f"File path detected in prompt but not found: {file_path}")
-                continue
 
-        # Split the message around file references
-        message_parts = message.split()
-        contents = []
-        for part in message_parts:
-            if part in uploaded_files:
-                contents.append(uploaded_files[part])
+        if file_references:
+            if not self._vertexai:
+                # For non-vertexai, upload files to the client
+                uploaded_files = {}
+                for file_path in file_references:
+                    try:
+                        uploaded_file = self._client.files.upload(file=file_path)
+                        uploaded_files[file_path] = uploaded_file
+                    except FileNotFoundError:
+                        logger.warning(f"File path detected in prompt but not found: {file_path}")
+                        continue
+
+                # Split the message around file references
+                message_parts = message.split()
+                contents = []
+                for part in message_parts:
+                    if part in uploaded_files:
+                        contents.append(uploaded_files[part])
+                    else:
+                        contents.append(part)
             else:
-                contents.append(part)
+                # For vertexai, we can't upload files directly, so we'll read the file contents
+                # and include them in the message
+                file_contents = {}
+                for file_path in file_references:
+                    try:
+                        with open(file_path) as f:
+                            file_contents[file_path] = f.read()
+                    except FileNotFoundError:
+                        logger.warning(f"File path detected in prompt but not found: {file_path}")
+                        continue
+                    except Exception as e:
+                        logger.warning(f"Error reading file {file_path}: {e}")
+                        continue
+
+                # If we have file contents, modify the message to include them
+                if file_contents:
+                    modified_message = message
+                    for file_path, content in file_contents.items():
+                        file_info = f"\n\nContents of {file_path}:\n```\n{content}\n```\n"
+                        modified_message += file_info
+                    contents = modified_message
+                else:
+                    contents = message
+        else:
+            contents = message
 
         # Send the message using the chat instance
         response = self._chat.send_message(
@@ -305,7 +338,7 @@ class Promptpal:
         # Check the usage metadata of the last response
         if self._last_response:
             usage_metadata = self._last_response.usage_metadata
-            if usage_metadata.prompt_token_count and usage_metadata.prompt_token_count > token_threshold:
+            if usage_metadata.total_token_count and usage_metadata.total_token_count > token_threshold:
                 # Summarize the chat
                 summary_role = self._roles.get("summarizer")
                 if summary_role:
@@ -319,7 +352,7 @@ class Promptpal:
                     logger.error("Summarizer role not found. Use the default roles or add a summarizer role.")
 
         # Update token count and message count
-        self._token_count += response.usage_metadata.prompt_token_count
+        self._token_count += response.usage_metadata.total_token_count
         self._message_count += 1
         self._role_message_count[role_name] = self._role_message_count.get(role_name, 0) + 1
 

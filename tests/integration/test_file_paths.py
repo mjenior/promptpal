@@ -57,7 +57,7 @@ def test_chat_with_file_paths(tmp_path, mocker):
     mock_chat_instance = mock_chat.return_value
     mock_response = mocker.MagicMock()
     mock_response.text = "I've processed the files and found the content: Test content 1 and Test content 2"
-    mock_response.usage_metadata.prompt_token_count = 500
+    mock_response.usage_metadata.total_token_count = 500
     mock_chat_instance.send_message.return_value = mock_response
 
     # Mock file upload
@@ -111,7 +111,7 @@ def test_chat_with_nonexistent_file_paths(mocker):
     mock_chat_instance = mock_chat.return_value
     mock_response = mocker.MagicMock()
     mock_response.text = "I couldn't find the files you mentioned."
-    mock_response.usage_metadata.prompt_token_count = 500
+    mock_response.usage_metadata.total_token_count = 500
     mock_chat_instance.send_message.return_value = mock_response
 
     # Initialize Promptpal
