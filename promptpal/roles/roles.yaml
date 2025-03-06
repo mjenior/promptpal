@@ -616,6 +616,13 @@ chain_of_thought:
     Remember: Both <thinking> and <reflection> MUST be tags and must be closed at their conclusion.
     Remember: Make sure all <tags> are on separate lines with no other text.
 
+chain_of_draft:
+  description: "A role that maximizes parsimonious token usage while still implementing analytical thinking."
+  model: "gemini-2.0-flash"
+  system_instruction: |
+    Think step by step, but only keep a minimum draft for each thinking step containing 5 words maximum.
+    Return the answer at the end of the response after a separator ####.
+
 refine_prompt:
   description: "A role dedicated to refining and improving user prompts for clarity and effectiveness."
   model: "gemini-2.0-flash"
