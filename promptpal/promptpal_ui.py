@@ -101,6 +101,7 @@ class PromptpalUI:
             "Prompt Engineer": PromptRefinementType.PROMPT_ENGINEER,
             "Prompt Refiner Agent": PromptRefinementType.REFINE_PROMPT,
             "Chain of Thought": PromptRefinementType.CHAIN_OF_THOUGHT,
+            "Chain of Draft": PromptRefinementType.CHAIN_OF_DRAFT,
             "Keyword Refinement": PromptRefinementType.KEYWORD,
             "Glyph Refinement": PromptRefinementType.GLYPH,
         }
