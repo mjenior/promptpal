@@ -20,6 +20,7 @@ class PromptRefinementType(Enum):
     PROMPT_ENGINEER = "prompt_engineer"
     REFINE_PROMPT = "refine_prompt"
     CHAIN_OF_THOUGHT = "chain_of_thought"
+    CHAIN_OF_DRAFT = "chain_of_draft"
     GLYPH = "glyph"
     KEYWORD = "keyword"
 
@@ -207,7 +208,7 @@ class Promptpal:
         message: str,
         write_output: bool = True,
         write_code: bool = True,
-        token_threshold: int = 1000,
+        token_threshold: int = 10000,
     ) -> str:
         """
         Send a chat message to the given role and get a response.
@@ -580,6 +581,16 @@ class Promptpal:
                 return prompt
 
             response = self.message("chain_of_thought", f"Refine this prompt: {prompt}")
+            return self._extract_refined_prompt(response)
+
+        elif refinement_type == PromptRefinementType.CHAIN_OF_DRAFT:
+            # Use the chain_of_draft role to refine the prompt
+            role = self._roles.get("chain_of_draft")
+            if role is None:
+                logger.warning("Chain of draft role not found. Returning original prompt.")
+                return prompt
+
+            response = self.message("chain_of_draft", f"Refine this prompt: {prompt}")
             return self._extract_refined_prompt(response)
 
         elif refinement_type == PromptRefinementType.KEYWORD:
