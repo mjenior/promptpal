@@ -9,8 +9,6 @@ from promptpal.roles import Role
 is_ci = os.getenv("CI") is not None
 
 
-
-
 @pytest.mark.integration
 @pytest.mark.skipif(is_ci, reason="Skipping integration tests in CI environment.")
 def test_message_integration():
