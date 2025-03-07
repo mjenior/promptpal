@@ -369,8 +369,9 @@ class Promptpal:
                 with open(file_path, "w") as code_file:
                     code_file.write(code)
 
-        for line in response.text.split("\n"):
-            print(line)
+        if write_output:
+            for line in response.text.split("\n"):
+                print(line)
 
     def message(self, role_name: str, message: str):
         """
