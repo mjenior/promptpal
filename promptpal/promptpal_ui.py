@@ -13,39 +13,40 @@ class PromptpalUI:
                 "Prompt Engineer",
                 "Prompt Refiner Agent",
                 "Chain of Thought",
+                "Chain of Draft",
                 "Keyword Refinement",
                 "Glyph Refinement",
             ],
             layout=widgets.Layout(width="200px", height="150px"),
         )
 
-        self.tool_output = widgets.Textarea(layout=widgets.Layout(width="800px", height="150px"))
+        self.tool_output = widgets.Textarea(layout=widgets.Layout(width="400px", height="150px"))
 
-        self.refine_button = widgets.Button(description="Refine Prompt", layout=widgets.Layout(width="250px"))
+        self.refine_button = widgets.Button(description="Refine Prompt", layout=widgets.Layout(width="150px"))
 
         self.refine_button.on_click(self.refine_prompt)
 
-        self.update_prompt_button = widgets.Button(description="Update Prompt", layout=widgets.Layout(width="250px"))
+        self.update_prompt_button = widgets.Button(description="Update Prompt", layout=widgets.Layout(width="150px"))
 
         self.update_prompt_button.on_click(self.update_prompt)
 
-        self.get_advice_button = widgets.Button(description="Get Advice", layout=widgets.Layout(width="250px"))
+        self.get_advice_button = widgets.Button(description="Get Advice", layout=widgets.Layout(width="150px"))
 
         self.get_advice_button.on_click(self.get_advice)
 
-        self.clear_button = widgets.Button(description="Clear", layout=widgets.Layout(width="250px"))
+        self.clear_button = widgets.Button(description="Clear", layout=widgets.Layout(width="150px"))
 
         self.clear_button.on_click(self.clear)
 
         self.prompt_input = widgets.Textarea(
             value="",
             placeholder="Enter your prompt here",
-            layout=widgets.Layout(width="500px", height="500px"),
+            layout=widgets.Layout(width="300px", height="400px"),
         )
 
         self.refined_prompt_output = widgets.Textarea(
             placeholder="Refined prompt will appear here",
-            layout=widgets.Layout(width="500px", height="500px"),
+            layout=widgets.Layout(width="300px", height="400px"),
         )
 
         self.layout = widgets.Box(

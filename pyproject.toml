@@ -49,10 +49,10 @@ Issues = "https://github.com/mattjenior/promptpal/issues"
 Changelog = "https://github.com/mattjenior/promptpal/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["promptpal"]
+packages = ["promptpal", "promptpal.roles"]
 
 [tool.setuptools.package-data]
-promptpal = ["promptpal/roles/roles.yaml", "promptpal/roles/role_schema.yaml"]
+promptpal = ["roles/roles.yaml", "roles/role_schema.yaml"]
 
 [tool.pytest.ini_options]
 minversion = "2.0.1"
