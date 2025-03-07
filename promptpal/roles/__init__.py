@@ -1,3 +1,4 @@
 from .role import Role
+from .role_schema import validate_role
 
-__ALL__ = [Role]
+__all__ = ["Role", "validate_role"]
