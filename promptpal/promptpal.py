@@ -203,8 +203,8 @@ class Promptpal:
 
     def chat(
         self,
-        role_name: str,
         message: str,
+        role_name: str = "prompt_engineer",
         write_output: bool = True,
         write_code: bool = True,
         token_threshold: int = 1000,
@@ -239,36 +239,6 @@ class Promptpal:
                     )
                 )
             ]
-
-        # Check if the role is associated with image generation
-        if role.output_type == "image":
-            raise NotImplementedError("Image generation is not implemented yet.")
-            # Generate images using the genai client
-            # try:
-            #     response = self._client.models.generate_images(
-            #         model=role.model,
-            #         prompt=message,
-            #         config=genai.types.GenerateImagesConfig(
-            #             number_of_images=1,
-            #         ),
-            #     )
-            #     logger.debug("Image generation response: %s", response)
-
-            #     # Ensure the output directory exists
-            #     if not self._output_dir:
-            #         self._output_dir = "./generated_files"
-            #     Path(self._output_dir).mkdir(parents=True, exist_ok=True)
-
-            #     # Save images to the output directory
-            #     for i, generated_image in enumerate(response.generated_images):
-            #         image = Image.open(BytesIO(generated_image.image.image_bytes))
-            #         image_path = Path(self._output_dir) / f"{role_name}_image_{i}.png"
-            #         image.save(image_path)
-
-            #     return f"Images saved to {self._output_dir}"
-            # except Exception as e:
-            #     logger.error("Error during image generation: %s", e)
-            #     raise
 
         # Parse the message and look for references to files. If found, upload them to the client.
         # vertexai doesn't support file uploads, so we skip this step if vertexai is True

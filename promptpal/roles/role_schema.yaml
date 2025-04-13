@@ -45,12 +45,6 @@ properties:
       seed:
         type: integer
         description: Random seed integer value
-      output_type:
-        type: string
-        description: Specifies the type of output the role generates, either 'text' or 'image'.
-        enum:
-          - text
-          - image
       search_web:
         type: boolean
         description: Indicates whether the role can search the web.

@@ -9,7 +9,7 @@ Python based tool for improved LLM interactions using the Google Gemini API.
 
 ## Overview
 
-This package is a Python-based prompt enhancing tool that allows users to automate significant portions of interactions with the Google Gemini API. It provides several powerful features, including automated system role selection, prompt refinement, iterative response parsing, and the ability to save identified code snippets as separate scripts. Additionally, it includes basic chain of thought enforcement in prompts and associative glyph representation in prompts.
+This package is a Python-based prompt enhancing tool that allows users to automate significant portions of interactions with the Google Gemini API. The main objective is top help users refine prompts to be used in other tasks and learn key skills necessary for composing effective prompts. It provides several powerful features, including automated system role selection, prompt refinement, and iterative response parsing. Additionally, it includes basic chain of thought enforcement in prompts and associative glyph representation in prompts.
 
 ## Requirements
 - Python >= 3.11
@@ -22,7 +22,6 @@ This package is a Python-based prompt enhancing tool that allows users to automa
 - **Chain of Thought Enforcement**: Adds prompts that track reasoning and thought process, improving responses in scenarios requiring step-by-step reasoning
 - **Automated Prompt Refinement and Glyph Representation**: Will automatically refactor prompts to be more descriptive and structured for improved LLM interpretability
 - **Flexible Parameterization**: Simple, yet powerful, arguments during agent initialization allow easy interaction with the Gemini API
-- **Code Detection**: The tool automatically identifies code snippets in the responses from the model, formats them properly, saves as separate script files for future use or execution
 - **File and Directory Structure Comprehension**: Understands and reads in content of files listed directly in the prompt, and is also able to recursively read in entire subdirectories
 
 ## Table of Contents
@@ -131,18 +130,6 @@ output_dir = "./example_output"
 # Initialize Promptpal with default roles
 promptpal = Promptpal(load_default_roles=True, output_dir=output_dir)
 
-# List available roles
-print("Available Roles:")
-for role_name in promptpal.list_roles():
-    print(f"- {role_name}")
-
-# Use analyst role for content generation
-response = promptpal.chat(
-    "analyst", 
-    "Analyze the gene expression data for patterns."
-)
-print(response)
-
 # Refine a prompt using keyword refinement
 refined_prompt = promptpal.refine_prompt(
     "Explain the process of DNA replication.",
@@ -150,21 +137,9 @@ refined_prompt = promptpal.refine_prompt(
 )
 print("Refined Prompt:", refined_prompt)
 
-# Reset chat for a new session
-promptpal.new_chat()
+# Work with prompt engineer for further improvements
+promptpal.chat("Help me improve the following prompt: " + refined_prompt)
 
-# Generate and save code snippets
-response = promptpal.chat(
-    "developer",
-    "Write a Python function to calculate the GC content of a DNA sequence.",
-    write_code=True
-)
-
-# Generate images
-response = promptpal.chat(
-    "artist",
-    "Create a detailed and artistic representation of a DNA double helix."
-)
 ```
 
 ### Configuration Options
@@ -180,33 +155,6 @@ The `Promptpal` class accepts the following parameters:
 | `top_p` | float | Top-p sampling parameter | `0.8` |
 | `top_k` | int | Top-k sampling parameter | `40` |
 | `max_output_tokens` | int | Maximum output length | `2048` |
-
-### Available Roles
-
-- **analyst**: Data analysis and interpretation
-- **artist**: Image generation and creative tasks
-- **developer**: Code generation and software development
-- **prompt**: Prompt engineering and optimization
-- **tester**: Test case generation and QA
-- **writer**: Content creation and documentation
-- **editor**: Text editing and refinement
-
-### Working with Files
-
-```python
-# Save generated code to files
-promptpal.chat(
-    "developer",
-    "Write a unit test for a string reversal function",
-    write_code=True
-)
-
-# Process files in prompt
-promptpal.chat(
-    "analyst",
-    "Analyze the contents of /path/to/data.csv"
-)
-```
 
 ## Interactive Prompt Refinement
 
@@ -225,7 +173,7 @@ initial_prompt = "Create a data visualization of climate change trends."
 refined_prompt = pal.interactive_prompt_refinement(initial_prompt)
 
 # Use the refined prompt
-response = pal.chat("assistant", refined_prompt)
+response = pal.chat(refined_prompt)
 ```
 
 The interactive refinement process offers:
@@ -247,18 +195,18 @@ from promptpal.roles import Role
 pal = Promptpal()
 
 # Create a custom role
-data_scientist = Role(
-    name="data_scientist",
-    description="Expertise in data analysis and visualization",
-    system_instruction="You are a data scientist with expertise in analyzing and visualizing data.",
+short_prompter = Role(
+    name="short_prompter",
+    description="Creates short prompts based on user requests.",
+    system_instruction="You are a expert prompt engineer who focuses on creating extremely short but effective prompts.",
     temperature=0.2,
 )
 
 # Add the role
-pal.add_roles([data_scientist])
+pal.add_roles([short_prompter])
 
 # Use the custom role
-response = pal.chat("data_scientist", "How would you analyze this dataset?")
+response = pal.chat("short_prompter", "Can you write a good prompt to ask for cookie recipes?")
 ```
 
 ## Advanced Features
